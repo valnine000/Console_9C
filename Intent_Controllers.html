@@ -381,8 +381,31 @@
         const updateBtn = document.getElementById('updateCalendarEventBtn');
         if (updateBtn) updateBtn.addEventListener('click', submitUpdatedCalendarEvent);
 
+
+        // ==========================================
+        // TIMELINE LIST: COLLAPSE & EXPAND TOGGLE
+        // ==========================================
+
         const toggleListBtn = document.getElementById('toggleListBtn');
-        if (toggleListBtn) toggleListBtn.addEventListener('click', toggleTimelineList);
+        if (toggleListBtn) {
+          toggleListBtn.addEventListener('click', () => {
+            const timelineListContainer = document.getElementById('calendarListContainer');
+
+            if (timelineListContainer) {
+              if (timelineListContainer.style.display === 'none') {
+                // Expand (Point Up)
+                timelineListContainer.style.display = 'block';
+                timelineListContainer.style.background = 'var(--backgroundColor3)';
+                toggleListBtn.style.transform = 'rotate(90deg)';
+              } else {
+                // Collapse (Point Right)
+                timelineListContainer.style.display = 'none';
+                timelineListContainer.style.background = '';
+                toggleListBtn.style.transform = 'rotate(180deg)';
+              }
+            }
+          });
+        }
 
         const newBtn = document.getElementById('createNewEntry');
         if (newBtn) newBtn.addEventListener('click', submitNewCalendarEvent);

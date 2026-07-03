@@ -146,43 +146,4 @@
           statusField.style.color = "red";
         });
     }
-
-    // ==========================================
-    // TIMELINE LIST: COLLAPSE & EXPAND TOGGLE
-    // ==========================================
-    function toggleTimelineList() {
-        const listScrollContainer = document.getElementById('calendarListScrollContainer');
-        const toggleBtn = document.getElementById('toggleListBtn');
-
-        if (listScrollContainer && toggleBtn) {
-            if (listScrollContainer.style.display === 'none') {
-                // Expand (Point Up)
-                listScrollContainer.style.display = 'block';
-                listScrollContainer.style.background = 'var(--backgroundColor3a5)';
-                toggleBtn.style.transform = 'rotate(-90deg)';
-            } else {
-                // Collapse (Point Right)
-                listScrollContainer.style.display = 'none';
-                listScrollContainer.style.background = '';
-                toggleBtn.style.transform = 'rotate(0deg)';
-            }
-        }
-    }
-
-  function formatMyDate(timestamp) {
-    const d = new Date(timestamp);
-    let h = d.getHours();
-    const ampm = h >= 12 ? 'pm' : 'am';
-    h = h % 12 || 12;
-
-    const min = d.getMinutes();
-    // Drop the colon and minutes if it lands exactly on the hour
-    const timeStr = min === 0 ? h + ampm : h + ":" + min.toString().padStart(2, '0') + ampm;
-
-    const m = d.getMonth() + 1;
-    const dd = d.getDate().toString().padStart(2, '0');
-    const yy = d.getFullYear().toString().slice(-2);
-
-    return timeStr + " " + m + "/" + dd + "/" + yy;
-  }
 </script>
