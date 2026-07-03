@@ -1,0 +1,38 @@
+<script type="text/javascript">
+    // ==========================================
+    // VIEW: COMPONENT RENDERING FACTORY
+    // ==========================================
+    window.C9.Nodes = {
+
+      // Injects the standard text-based layout into an empty container
+      drawTextMarker: function(container, displayText, fontSize, textPixelHeight, laneHeight) {
+        // 1. Core Classes & Styles
+        container.classList.add('themed-scrollbar');
+        container.classList.add('hidden-scrollbar');
+
+        // 'pre' respects \n, but completely FORBIDS soft-wrapping.
+        container.style.whiteSpace = 'pre';
+
+        // 2. The Decorator (Borders & Padding)
+        container.style.borderLeft = '1px solid var(--borderColor3)';
+        container.style.borderBottom = '1px solid var(--borderColor3)';
+        container.style.paddingLeft = '3px';
+
+        // 3. Typography & Sizing
+        container.style.maxHeight = (laneHeight * 3) + 'px';
+        container.style.minHeight = laneHeight + 'px';
+        container.style.lineHeight = laneHeight + 'px';
+        container.style.height = textPixelHeight + 'px';
+
+        container.style.color = '#ff9000';
+        container.style.fontSize = fontSize + 'px';
+
+        // Allow X and Y scrolling natively, but rely on CSS to hide the UI
+        container.style.overflowY = 'auto';
+        container.style.overflowX = 'auto';
+
+        // 4. Inject the payload
+        container.textContent = displayText;
+      }
+    };
+</script>

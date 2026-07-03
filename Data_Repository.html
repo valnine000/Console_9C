@@ -1,0 +1,47 @@
+<script type="text/javascript">
+    // ==========================================
+    // DATA REPOSITORY & NETWORK BRIDGE
+    // ==========================================
+    window.C9.Repository = {
+
+      // 1. Fetch Standard Ledger Things (Google Calendar Adapter)
+      fetchGoogleCalendarThings: function(startIso, endIso, lastSyncTime) {
+        return new Promise((resolve, reject) => {
+          google.script.run
+            .withSuccessHandler(resolve)
+            .withFailureHandler(reject)
+            .getGoogleCalendarThings(startIso, endIso, lastSyncTime);
+        });
+      },
+
+      // 2. Create New Event
+      createEvent: function(payload) {
+        return new Promise((resolve, reject) => {
+          google.script.run
+            .withSuccessHandler(resolve)
+            .withFailureHandler(reject)
+            .createGoogleCalendarEvent(payload);
+        });
+      },
+
+      // 3. Update Existing Event
+      updateEvent: function(payload) {
+        return new Promise((resolve, reject) => {
+          google.script.run
+            .withSuccessHandler(resolve)
+            .withFailureHandler(reject)
+            .updateGoogleCalendarEvent(payload);
+        });
+      },
+
+      // 4. Fetch Query Spaces
+      fetchQuerySpaces: function() {
+        return new Promise((resolve, reject) => {
+          google.script.run
+            .withSuccessHandler(resolve)
+            .withFailureHandler(reject)
+            .fetchQuerySpacesData();
+        });
+      }
+    };
+</script>

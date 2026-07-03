@@ -1,0 +1,125 @@
+<script type="text/javascript">
+  // ==========================================
+  // DOMAIN: COMPOSITOR (The Read Path)
+  // ==========================================
+  window.C9 = window.C9 || {};
+
+  window.C9.Compositor = {
+
+    initialize: function() {
+      // Establish the Communication Contract (The Router)
+      window.addEventListener('c9:requestTimeRange', (e) => {
+        const direction = e.detail.direction;
+        const startIso = e.detail.startIso;
+        const endIso = e.detail.endIso;
+
+        console.log(`[COMPOSITOR ROUTER] Intercepted data request from ${e.detail.source}`);
+
+        if (typeof C9.SyncEngine === 'undefined') {
+          console.error("[COMPOSITOR ERROR] SyncEngine is missing. Cannot fulfill data request.");
+          return;
+        }
+
+        // Path A: Infinite Scroll Edge Loading
+        if (direction) {
+          console.log(`[COMPOSITOR] Directing SyncEngine to fetch more data for the ${direction}`);
+          C9.SyncEngine.fetchMoreData(direction);
+        }
+        // Path B: Big Jumps (MapsToDate / Minimap Jumps)
+        else if (startIso && endIso) {
+          console.log(`[COMPOSITOR] Directing SyncEngine to fetch explicit range: ${startIso} to ${endIso}`);
+          C9.SyncEngine.fetchLedgerData(startIso, endIso);
+        }
+      });
+    },
+
+    // 2. The Assembly Engine
+    buildRenderQueue: function() {
+      const state = C9.Store.state;
+      if (!state.memoryStore) return;
+
+      let compositeQueue = [];
+
+      // A. Scoop the Ledger (Mapping to pure Things)
+      state.memoryStore.forEach(ev => {
+        compositeQueue.push({
+          id: ev.id,
+          googleCalendarId: ev.googleCalendarId,
+          title: ev.title,
+          description: ev.description,
+          symbol: ev.symbol,
+          thing: ev.thing,
+          startTime: ev.startTime,
+          endTime: ev.endTime,
+          source: ev.source || 'primary'
+        });
+      });
+
+      // B. Scoop the Query Spaces AND Cross-References (If Toggle is ON)
+      if (state.showQuerySpace) {
+
+        // 1. Parent Query Spaces
+        if (state.globalQuerySpaces) {
+          state.globalQuerySpaces.forEach(qs => {
+            const timestamp = parseInt(qs.qsId.split('-')[2]) || Date.now();
+            compositeQueue.push({
+              id: qs.qsId,
+              googleCalendarId: qs.googleEventId,
+              title: qs.name,
+              description: qs.rawDescription,
+              symbol: qs.symbol,
+              thing: qs.name,
+              startTime: new Date(timestamp).toISOString(),
+              endTime: new Date(timestamp + 900000).toISOString(),
+              source: 'queryspace'
+            });
+          });
+        }
+
+        // 2. Cross-References
+        if (state.globalQuerySpaceRefs) {
+          state.globalQuerySpaceRefs.forEach(ref => {
+            compositeQueue.push({
+              id: ref.id, // Your new explicit explicit ID
+              qsId: ref.qsId, // Passed along for the Active Lens filter below
+              googleCalendarId: ref.googleEventId,
+              title: ref.title,
+              description: ref.rawDescription,
+              symbol: '🔗',
+              thing: ref.title,
+              startTime: ref.startTime, // Your parsed explicit timestamp
+              endTime: ref.startTime,
+              source: 'queryspace'
+            });
+          });
+        }
+      }
+
+      // C. Apply the Active Lens Filter (If Toggle is ON)
+      if (state.filterTimelineByAQ && state.activeQuerySpaceId) {
+        let aqTargetIds = new Set();
+        state.globalQuerySpaceRefs.forEach(ref => {
+          if (ref.qsId === state.activeQuerySpaceId) {
+            aqTargetIds.add(ref.ledgerId);
+          }
+        });
+
+        compositeQueue = compositeQueue.filter(item => {
+          // Keep it if it's a target ledger item, the active Parent space, OR an active Reference
+          return aqTargetIds.has(item.id) ||
+                 item.id === state.activeQuerySpaceId ||
+                 item.qsId === state.activeQuerySpaceId;
+        });
+      }
+
+      // D. Chronological Sort
+      compositeQueue.sort((a, b) => new Date(a.startTime) - new Date(b.startTime));
+
+      // E. Save to State
+      state.compositorQueue = compositeQueue;
+
+      console.log(`[COMPOSITOR] Built Shadow Package: ${compositeQueue.length} Things ready for View.`);
+    }
+
+  };
+</script>

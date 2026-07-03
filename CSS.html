@@ -1,0 +1,360 @@
+<style>
+    :root {
+      --defaultZoom: 1;
+      --defaultAperture: 420px;
+      --defaultMobilWidth: 420px;
+      --defaultDesktopWidth: 1800px;
+      --defaultStackHeight:1;
+      --defaultColumn1WidthViewer: 15ch;
+      --defaultColumn2WidthViewer: 30ch;
+      --defaultColumn3WidthViewer: 5ch;
+      --defaultTimelineDisplay: 'cascade';
+
+      --event-font-size: 12px;
+      --default-font-size: 15px;
+      --button-font-size: 12px;
+      --systemDate-default-font-size:12px;
+      --systemClock-default-font-size:20px;
+
+      --c1: #ff9000;
+      --c1d1: #9a5700;
+
+      --backgroundColor1: #050200;
+      --backgroundColor2: #0b0400;
+      --backgroundColor3: #201000;
+      --backgroundColor3a5: #20100055;
+      --backgroundColor4: #503000;
+      --backgroundColor4a5: #50300055;
+      --backgroundColor5: #ffffff;
+
+      --borderColor1: #420b00;
+      --borderColor2: #1f0400;
+      --borderColor3: #802b00;
+      --borderColor4: #000000;
+
+      // The Fours
+      --theFours4Am: #620b0099;
+      --theFours8Am: #450b00aa;
+      --theFours12Pm: #380b00aa;
+      --theFours4Pm: #220b00aa;
+      --theFours8Pm: #000000;
+      --theFours12Am: #000000;
+
+    }
+
+    .material-symbols-outlined {
+      font-variation-settings:
+      'FILL' 0,
+      'wght' 100,
+      'GRAD' -25,
+      'opsz' 48
+    }
+
+    #fontDown, #fontUp, #scaleDown, #scaleUp, #baseFontDown, #baseFontUp {
+      cursor: pointer;
+      user-select: none;
+    }
+
+    /* Global Viewport Scrollbar (The main browser window) */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: transparent;
+      border-radius: 4px;
+    }
+
+    /* We don't use :hover on the global track because the body covers the whole screen.
+       Instead, we just make it permanently subtle, or hoverable on the thumb itself */
+    ::-webkit-scrollbar-thumb:hover {
+      background: #555555;
+    }
+
+    .calendar-list-row {
+<!--        color: green;-->
+    }
+
+    /* 2-Column Grid for Data Entry Forms */
+    .form-row {
+      display: grid;
+      grid-template-columns: 100px 1fr;
+      align-items: baseline; /* Aligns the text baselines, which looks better for text forms */
+      gap: 10px;
+      width: 100%;
+      margin-bottom: 4px;
+    }
+
+    /* Modifier to override the center-alignment of our original editable class */
+    .text-left {
+      text-align: left !important;
+    }
+
+    .text-right {
+      text-align: right !important;
+    }
+
+    .text-center {
+      text-align: center !important;
+    }
+
+    /* Distinct styling for the non-editable data at the bottom */
+    .setting-readonly-value {
+      width: 100%;
+      text-align: left;
+      color: var(--c1d1);
+
+      /* The valid wrapping command */
+      word-break: break-all;
+
+      min-width: 0;
+      white-space: normal;
+      height: auto;
+
+      /* Overrides the Grid baseline so the row expands downward */
+      align-self: start;
+      display: block;
+
+      font-family: monospace;
+      font-size: var(--default-font-size);
+    }
+    /* END 2-Column Grid for Data Entry Forms */
+
+    .timeline-marker {
+      font-size: var(--default-font-size) !important;
+      line-height: 1;
+      box-sizing: border-box;
+      margin: 0;
+    }
+
+    .c1 {
+      color: var(--c1);
+    }
+
+    .c1d1 {
+      color: var(--c1d1);
+    }
+
+    body, html {
+      background-color: var(--backgroundColor1);
+      color: var(--c1);
+      overscroll-behavior: none;
+      font-family: serif;
+      font-size: var(--default-font-size);
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      height: 100dvh; /* Modern mobile fix, falls back to 100% if unsupported */
+      overflow: hidden;
+      -webkit-text-size-adjust: none;
+      text-size-adjust: none;
+    }
+
+    /* The container for each setting row */
+    .setting-row {
+      display: grid;
+      /* Column 1 gets 3 parts of the space (60%).
+        Columns 2 & 3 get 1 part each (20%).
+        They will perfectly align on every single row.
+      */
+      grid-template-columns: 3fr 1fr 1fr;
+      align-items: center; /* Vertically centers the text within the row */
+      gap: 8px; /* Adds a fluid gutter between columns so text never touches */
+
+      width: 100%; /* Conforms to whatever device or panel it is inside */
+       /* Prevents it from getting absurdly stretched on desktop monitors */
+      margin-bottom: 8px;
+    }
+
+    /* The label on the left */
+    .setting-label {
+      text-align: left;
+      /* No nowrap here! If the font gets huge, it naturally wraps to a second line */
+      word-wrap: break-word;
+    }
+
+    /* The clickable action buttons */
+    .setting-action {
+      width: 100%; /* Expands to safely fill its 1fr grid column */
+      text-align: center;
+      cursor: pointer;
+      user-select: none;
+      word-wrap: break-word; /* Wraps instead of overlapping if font is massive */
+    }
+
+    .setting-action:hover {
+      background-color: var(--backgroundColor4);
+    }
+
+    /* The editable number field */
+    .setting-editable-value {
+      width: 100%; /* Expands to safely fill its 1fr grid column */
+
+      text-align: center;
+      cursor: text;
+      outline: none;
+      transition: border-color 0.2s;
+      word-wrap: break-word; /* Wraps long numbers safely */
+    }
+
+    .setting-editable-value:focus {
+<!--      border-bottom: 1px solid #ff9000;-->
+    }
+
+    .textInputFieldContainer {
+        display: inline-block;
+        border-left: 1px solid var(--borderColor1);
+        padding-left: 4px;
+        width:70%;
+    }
+
+    .textInputFieldLabel {
+        display: inline-block;
+        margin:0;
+        word-wrap: break-word;
+    }
+
+    .defaultColumn1Width {
+        width: var(--defaultColumn1WidthViewer);
+    }
+
+    .defaultColumn2Width {
+        width: var(--defaultColumn2WidthViewer);
+    }
+
+    .defaultColumn3Width {
+        width: var(--defaultColumn3WidthViewer);
+    }
+
+    #calendarTimeline * {
+      font-family: inherit;
+      font-weight: normal;
+    }
+
+    /* Reusable class for top-level toggle and action buttons */
+    .control-btn {
+      display: inline-block;
+      cursor: pointer;
+      padding: 6px;
+      margin-left: 0px;
+      font-size: var(--button-font-size);
+      user-select: none;
+      vertical-align: middle;
+    }
+
+    /* Desktop Only: Apply hover state if the device has a physical mouse */
+    @media (hover: hover) {
+      .control-btn:hover {
+        background-color: var(--backgroundColor4);
+      }
+    }
+
+    /* All Devices: Apply momentary highlight strictly during the physical tap/click */
+    .control-btn:active {
+      background-color: var(--backgroundColor4);
+    }
+
+    /* Prevent accidental text highlighting during drag-to-scroll */
+    #calendarTimeLineContainer, #calendarTimeline {
+      -webkit-user-select: none; /* Safari */
+      -moz-user-select: none;    /* Firefox */
+      -ms-user-select: none;     /* Legacy Edge */
+      user-select: none;         /* Standard syntax */
+    }
+
+    /* Animate height changes in timeline */
+    #calendarTimeline {
+      /* The cubic-bezier curve gives it a natural, snappy ease-out instead of a robotic linear slide */
+      transition: height 0.5s cubic-bezier(0, 0, 0.2, 1);
+    }
+
+    .hasBorder {
+      border: 1px solid var(--borderColor1);
+    }
+
+    #systemDate {
+      white-space: nowrap;
+      font-size: var(--systemDate-default-font-size);
+      padding-top:4px;
+    }
+
+    #systemClock {
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+      font-size: var(--systemClock-default-font-size);
+      padding-top:4px;
+    }
+
+    .divFullscreenButton {
+      background: #0a020000;
+      text-align: center;
+      position: fixed;
+      bottom: 5px;
+      left: 5px;
+      left: 50%;
+      z-index: 200;
+      transform: translate(-50%, -50%);
+    }
+
+    .divFullscreenButton button {
+      background: #0a020000;
+      border-color: #150a0500;
+      border-width: 1px;
+      border-style: none none none none;
+      color: #a05000;
+      z-index: 200;
+      font: 6px Courier New, monospace;
+
+      /* font-family: Arial, Helvetica, sans-serif; */
+      font-size: 6px;
+    }
+
+    /* Universal Custom Scrollbar Class */
+    .themed-scrollbar::-webkit-scrollbar {
+      height: 6px;
+      width: 6px;
+    }
+
+    .themed-scrollbar::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .themed-scrollbar::-webkit-scrollbar-thumb {
+      background: transparent;
+      border-radius: 4px;
+    }
+
+    .themed-scrollbar:hover::-webkit-scrollbar-thumb {
+      background: #333333;
+    }
+
+    .themed-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #555555;
+    }
+
+    .themed-scrollbar::-webkit-scrollbar-corner {
+      background: transparent;
+    }
+
+    /* The Invisible Scrollbar Class */
+    .hidden-scrollbar {
+      -ms-overflow-style: none;  /* IE and Edge */
+      scrollbar-width: none;  /* Firefox */
+    }
+
+    .hidden-scrollbar::-webkit-scrollbar {
+      display: none; /* Chrome, Safari, and Opera */
+    }
+
+    .responsive-wrapper {
+        overflow-x: auto;
+        white-space: nowrap;
+        padding-bottom: 4px;
+    }
+</style>

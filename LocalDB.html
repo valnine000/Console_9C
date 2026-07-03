@@ -1,0 +1,171 @@
+<script type="text/javascript">
+    // ==========================================
+    // LOCAL DB: INDEXEDDB INITIALIZATION
+    // ==========================================
+    const DB_NAME = 'Console9LocalDB';
+    const DB_VERSION = 4;
+    let localDB = null; // Global reference to the database connection
+
+    function initializeLocalDB() {
+      return new Promise((resolve, reject) => {
+        // Open (or create) the database
+        const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+        // 1. THE SCHEMA UPGRADE
+        request.onupgradeneeded = (event) => {
+            const db = event.target.result;
+
+            if (!db.objectStoreNames.contains('ledger_events')) {
+              // PRIMARY KEY RECLAIMED: 'id'
+              const store = db.createObjectStore('ledger_events', { keyPath: 'id' });
+
+              // GOOGLE ID BAGGAGE INDEX
+              store.createIndex('googleCalendarId', 'googleCalendarId', { unique: false });
+              store.createIndex('idt', 'idt', { unique: false });
+              store.createIndex('timestamp', 'timestamp', { unique: false });
+
+              console.log("[LOCAL DB] Database upgraded: 'ledger_events' store created.");
+            }
+        };
+
+        // This hook fires every time we successfully connect
+        request.onsuccess = (event) => {
+          localDB = event.target.result;
+          console.log("[LOCAL DB] Connection established successfully.");
+          resolve(localDB);
+        };
+
+        request.onerror = (event) => {
+          console.error("[LOCAL DB] Connection failed:", event.target.error);
+          reject(event.target.error);
+        };
+      });
+    }
+
+    // ==========================================
+    // LOCAL DB: CORE READ/WRITE UTILITIES
+    // ==========================================
+
+    // 1. Bulk Upsert (Strict Console 9 Ontology)
+    function saveEventsToLocalDB(googleEventsArray) {
+    console.log("saveEventsToLocalDB: !!!!");
+
+    return new Promise((resolve, reject) => {
+      if (!localDB) return reject("LocalDB not initialized.");
+
+      const transaction = localDB.transaction(['ledger_events'], 'readwrite');
+      const store = transaction.objectStore('ledger_events');
+
+      googleEventsArray.forEach(ev => {
+        // Wash the description once to extract the core truth
+        const cleanDesc = C9.Parser.cleanHtmlText(ev.description);
+
+        // 1. Extract the Core Console 9 Qualities
+        const rawC9Id = C9.Parser.extractC9Field(cleanDesc, 'id');
+        const rawC9Timestamp = C9.Parser.extractC9Field(cleanDesc, 'timestamp');
+
+        // --- THE BACK-FILL PROTOCOL (Legacy Google Events) ---
+        // Work backwards from Google's startTime if the C9 timestamp is missing
+        const generatedTimestampMs = ev.startTime ? new Date(ev.startTime).getTime() : Date.now();
+        const finalTimestamp = (rawC9Timestamp !== "") ? rawC9Timestamp : generatedTimestampMs.toString();
+
+        // Mint the missing ID using the jtp-machineId-timestamp format
+        const userId = "jtp";
+        const machineId = "unk"; // Not implemented yet, leaves a double hyphen (jtp--123456789)
+        const finalId = (rawC9Id !== "") ? rawC9Id : `${userId}-${machineId}-${finalTimestamp}`;
+
+        const c9_data = C9.Parser.extractC9Block(cleanDesc, 'C9D');
+
+        // 2. Build the True Entity Record
+        const dbRecord = {
+          // --- CONSOLE 9 CORE ENTITY ---
+          id: finalId,
+          symbol: C9.Parser.extractC9Field(cleanDesc, 'symbol') || '',
+          thing: C9.Parser.extractC9Field(cleanDesc, 'thing') || '',
+          idt: C9.Parser.extractC9Field(cleanDesc, 'idt') || '',
+          duration: C9.Parser.extractC9Field(cleanDesc, 'duration') || '',
+          timestamp: finalTimestamp,
+          data: c9_data,
+          source: ev.source || 'primary', // THE FEDERATED KEY
+
+          // --- GOOGLE CALENDAR BAGGAGE ---
+          googleCalendarId: ev.id,
+          startTime: ev.startTime,
+          endTime: ev.endTime,
+          title: ev.title,
+          description: ev.description
+        };
+
+        store.put(dbRecord);
+      });
+
+      transaction.oncomplete = () => {
+        console.log(`[LOCAL DB] Successfully saved ${googleEventsArray.length} Thing entities to local db.`);
+        resolve();
+      };
+
+      transaction.onerror = (event) => {
+        console.error("[LOCAL DB] Save failed:", event.target.error);
+        reject(event.target.error);
+      };
+    });
+    }
+
+    // 2. Fetch the Entire Ledger
+    function getAllEventsFromLocalDB() {
+    return new Promise((resolve, reject) => {
+      if (!localDB) return reject("LocalDB not initialized.");
+
+      const transaction = localDB.transaction(['ledger_events'], 'readonly');
+      const store = transaction.objectStore('ledger_events');
+      const request = store.getAll();
+
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = (event) => reject(event.target.error);
+    });
+    }
+
+    // 3. The Nuke Button
+    function clearLocalDB() {
+    return new Promise((resolve, reject) => {
+      if (!localDB) return reject("LocalDB not initialized.");
+
+      const transaction = localDB.transaction(['ledger_events'], 'readwrite');
+      const store = transaction.objectStore('ledger_events');
+      const request = store.clear();
+
+      request.onsuccess = () => {
+        console.log("[LOCAL DB] Local db completely cleared.");
+        resolve();
+      };
+      request.onerror = (event) => reject(event.target.error);
+    });
+    }
+
+    function deleteEventByGoogleId(deleteId) {
+    if (!localDB) return;
+    const transaction = localDB.transaction(['ledger_events'], 'readwrite');
+    const store = transaction.objectStore('ledger_events');
+
+    // 1. Vaporize from the physical local database
+    store.openCursor().onsuccess = function(event) {
+      const cursor = event.target.result;
+      if (cursor) {
+        if (cursor.value.googleCalendarId === deleteId || cursor.value.id === deleteId) {
+          cursor.delete();
+        }
+        cursor.continue();
+      }
+    };
+
+    // 2. Vaporize from the active spatial memory
+    if (C9 && C9.Store) {
+      const updatedMemory = C9.Store.state.memoryStore.filter(ev =>
+        ev.googleCalendarId !== deleteId && ev.id !== deleteId
+      );
+      C9.Store.update({ memoryStore: updatedMemory });
+    }
+  }
+
+
+</script>

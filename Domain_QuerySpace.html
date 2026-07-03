@@ -1,0 +1,278 @@
+<script type="text/javascript">
+    // ==========================================
+    // DOMAIN: QUERY SPACE
+    // ==========================================
+    window.C9 = window.C9 || {};
+
+    window.C9.QuerySpace = {
+      // 1. Fetching Pipeline
+      fetchAll: function() {
+        const statusField = document.getElementById('queryspaceEntryStatusField');
+        if (statusField) statusField.textContent = 'Loading Query Spaces...';
+
+        C9.Repository.fetchQuerySpaces()
+          .then(this.processPayload.bind(this))
+          .catch(err => {
+            console.error("Query Space Fetch Error:", err);
+            if (statusField) statusField.textContent = 'Error loading Query Spaces.';
+          });
+      },
+
+      processPayload: function(response) {
+        const statusField = document.getElementById('queryspaceEntryStatusField');
+
+        if (response.status !== 'success') {
+          console.error("Failed to fetch query spaces:", response.message);
+          if (statusField) statusField.textContent = 'Failed to load Query Spaces.';
+          const listContainer = document.getElementById('queryspacesList');
+          if (listContainer) listContainer.replaceChildren();
+          return;
+        }
+
+        if (statusField) statusField.textContent = '-';
+
+        C9.Store.state.globalQuerySpaces = [];
+        C9.Store.state.globalQuerySpaceRefs = [];
+
+        response.data.forEach(event => {
+          const desc = (event.description || '').trim();
+
+            // === CROSS-REFERENCE GATEKEEPER ===
+            if (desc.startsWith('[#C9QSCR]') && desc.endsWith('[/#C9QSCR]')) {
+              const topIdMatch = desc.match(/\[#C9QSCR\][\s\S]*?id:\s*([^\n\[]+)/i);
+              const qseBlockMatch = desc.match(/\[#C9QSER\]([\s\S]*?)\[\/#C9QSER\]/i);
+              const c9BlockMatch = desc.match(/\[#C9R\]([\s\S]*?)\[\/#C9R\]/i);
+
+              if (qseBlockMatch && c9BlockMatch) {
+                const qsIdMatch = qseBlockMatch[1].match(/id:\s*([^\n\[]+)/i);
+                const ledgerIdMatch = c9BlockMatch[1].match(/id:\s*([^\n\[]+)/i);
+                const timestampMatch = desc.match(/timestamp:\s*([^\n\[]+)/i);
+
+                // STRICT VALIDATION: Reject the block if any explicit identifier is missing.
+                if (topIdMatch && qsIdMatch && ledgerIdMatch && timestampMatch) {
+                  const rawTs = timestampMatch[1].trim();
+
+                  // STRICT VALIDATION: Must be a pure integer (Unix Epoch)
+                  if (!/^\d+$/.test(rawTs)) {
+                    console.error("[PARSER ERROR] Timestamp is not a valid Unix Epoch integer. Skipping.", { rawDescription: desc });
+                    return;
+                  }
+
+                  const explicitTimestamp = parseInt(rawTs, 10);
+
+                  // SECONDARY VALIDATION: Reject if the parsed date is mathematically invalid (NaN)
+                  if (isNaN(explicitTimestamp)) {
+                    console.error("[PARSER ERROR] Invalid timestamp format in Cross-Reference. Skipping.", { rawDescription: desc });
+                    return; // Stop processing this event
+                  }
+
+                  C9.Store.state.globalQuerySpaceRefs.push({
+                    id: topIdMatch[1].trim(),
+                    qsId: qsIdMatch[1].trim(),
+                    ledgerId: ledgerIdMatch[1].trim(),
+                    googleEventId: event.eventId,
+                    title: event.title || 'QS-REF',
+                    startTime: new Date(explicitTimestamp).toISOString(),
+                    rawDescription: desc
+                  });
+                } else {
+                  console.error("[PARSER ERROR] Cross-Reference missing required explicit ID or Timestamp. Skipping.", { rawDescription: desc });
+                }
+              }
+              return; // Ensure we always exit the loop after handling a [#C9QSCR] block
+            }
+
+          // === PARENT QUERY SPACE GATEKEEPER ===
+          if (desc.startsWith('[#C9QSE]') && desc.endsWith('[/#C9QSE]')) {
+            const block = desc.slice(8, -9);
+            const idMatch = block.match(/id:\s*(.+)/i);
+            const nameMatch = block.match(/name:\s*(.+)/i);
+            const symbolMatch = block.match(/symbol:\s*(.+)/i);
+
+            if (idMatch) {
+              C9.Store.state.globalQuerySpaces.push({
+                googleEventId: event.eventId,
+                qsId: idMatch[1].trim(),
+                name: nameMatch ? nameMatch[1].trim() : 'Unnamed Space',
+                symbol: symbolMatch ? symbolMatch[1].trim() : '*',
+                rawDescription: event.description
+              });
+            }
+          }
+        });
+
+        // Hand off to the View layer to draw
+        C9.QuerySpaceView.renderList();
+      },
+
+      getLedgerEntryById: function(ledgerId) {
+        if (!C9.Store.state.memoryStore) return null;
+
+        const targetEvent = C9.Store.state.memoryStore.find(e => {
+          const cleanDesc = C9.Parser.cleanHtmlText(e.description);
+          const idInDesc = C9.Parser.extractC9Field(cleanDesc, 'id');
+          return idInDesc === ledgerId;
+        });
+
+        if (!targetEvent) return null;
+
+        const cleanDesc = C9.Parser.cleanHtmlText(targetEvent.description);
+        return {
+          symbol: C9.Parser.extractC9Field(cleanDesc, 'symbol') || '*',
+          thing: C9.Parser.extractC9Field(cleanDesc, 'thing') || 'Unknown',
+          idt: C9.Parser.extractC9Field(cleanDesc, 'idt') || '',
+          timestamp: targetEvent.timestamp || C9.Parser.extractC9Field(cleanDesc, 'timestamp') || ''
+        };
+      },
+
+      // 2. Server Pushes (Promisified, NO Local DB/RAM mutations)
+      pushNewSpaceToGoogle: function(payload) {
+        return new Promise((resolve, reject) => {
+          google.script.run
+            .withSuccessHandler(resolve)
+            .withFailureHandler(reject)
+            .createQuerySpaceEvent(payload);
+        });
+      },
+
+      pushNewReferenceToGoogle: function(payload) {
+        return new Promise((resolve, reject) => {
+          google.script.run
+            .withSuccessHandler(resolve)
+            .withFailureHandler(reject)
+            .createQuerySpaceEvent(payload);
+        });
+      }
+    };
+
+    // ==========================================
+    // VIEW: QUERY SPACE
+    // ==========================================
+    window.C9.QuerySpaceView = {
+      renderList: function() {
+        const listContainer = document.getElementById('queryspacesList');
+        const statusField = document.getElementById('queryspaceEntryStatusField');
+
+        if (!listContainer) return;
+
+        listContainer.replaceChildren();
+
+        if (C9.Store.state.globalQuerySpaces.length === 0) {
+          const emptyDiv = document.createElement('div');
+          emptyDiv.style.padding = '4px';
+          emptyDiv.style.color = 'var(--c1d1)';
+          emptyDiv.textContent = 'No Query Spaces found.';
+          listContainer.appendChild(emptyDiv);
+          if (statusField) statusField.textContent = '-';
+          return;
+        }
+
+        C9.Store.state.globalQuerySpaces.forEach(qs => {
+          const row = document.createElement('div');
+          row.className = 'qs-list-row';
+          row.dataset.qsid = qs.qsId;
+
+          row.style.padding = '6px 4px';
+          row.style.cursor = 'pointer';
+          row.style.borderBottom = '1px solid var(--borderColor1)';
+          row.style.color = 'var(--c1)';
+          row.style.display = 'flex';
+          row.style.alignItems = 'center';
+
+          const symbolSpan = document.createElement('span');
+          symbolSpan.style.marginRight = '8px';
+          symbolSpan.style.fontWeight = 'bold';
+          symbolSpan.style.width = '15px';
+          symbolSpan.style.textAlign = 'center';
+          symbolSpan.textContent = qs.symbol;
+
+          const nameSpan = document.createElement('span');
+          nameSpan.textContent = qs.name;
+
+          row.appendChild(symbolSpan);
+          row.appendChild(nameSpan);
+          listContainer.appendChild(row);
+        });
+
+        if (statusField) statusField.textContent = '-';
+      },
+
+      renderActiveRefs: function(activeQsId) {
+        const activeListContainer = document.getElementById('activeQueryspaceLedgerEntriesList');
+        if (!activeListContainer) return;
+
+        activeListContainer.replaceChildren();
+
+        const refs = C9.Store.state.globalQuerySpaceRefs.filter(ref => ref.qsId === activeQsId);
+
+        if (refs.length === 0) {
+          const emptyDiv = document.createElement('div');
+          emptyDiv.style.padding = '4px';
+          emptyDiv.style.color = 'var(--c1d1)';
+          emptyDiv.textContent = 'No ledger entries found.';
+          activeListContainer.appendChild(emptyDiv);
+          return;
+        }
+
+        const populatedRefs = refs.map(ref => ({
+          ref: ref,
+          ledgerEntry: C9.QuerySpace.getLedgerEntryById(ref.ledgerId)
+        }));
+
+        populatedRefs.sort((a, b) => {
+          if (!a.ledgerEntry) return 1;
+          if (!b.ledgerEntry) return -1;
+          const valA = a.ledgerEntry.idt || a.ledgerEntry.timestamp || "0";
+          const valB = b.ledgerEntry.idt || b.ledgerEntry.timestamp || "0";
+          return valA.localeCompare(valB);
+        });
+
+        populatedRefs.forEach(item => {
+          const ref = item.ref;
+          const ledgerEntry = item.ledgerEntry;
+
+          const row = document.createElement('div');
+          row.style.padding = '4px 4px';
+          row.style.borderBottom = '1px solid var(--borderColor1)';
+          row.style.display = 'flex';
+          row.style.alignItems = 'center';
+          row.style.whiteSpace = 'nowrap';
+          row.style.overflow = 'hidden';
+
+          if (ledgerEntry) {
+            const symbolSpan = document.createElement('span');
+            symbolSpan.style.color = 'var(--c1)';
+            symbolSpan.style.fontWeight = 'bold';
+            symbolSpan.style.width = '15px';
+            symbolSpan.style.textAlign = 'center';
+            symbolSpan.style.marginRight = '8px';
+            symbolSpan.textContent = ledgerEntry.symbol || '*';
+
+            const thingSpan = document.createElement('span');
+            thingSpan.style.color = 'var(--c1)';
+            thingSpan.style.marginRight = '8px';
+            thingSpan.style.textOverflow = 'ellipsis';
+            thingSpan.style.overflow = 'hidden';
+            thingSpan.textContent = ledgerEntry.thing || 'Unknown';
+
+            const idtSpan = document.createElement('span');
+            idtSpan.style.color = 'var(--c1d1)';
+            idtSpan.style.fontSize = '0.85em';
+            idtSpan.style.marginLeft = 'auto';
+            idtSpan.textContent = ledgerEntry.idt || '';
+
+            row.appendChild(symbolSpan);
+            row.appendChild(thingSpan);
+            row.appendChild(idtSpan);
+          } else {
+            const orphanSpan = document.createElement('span');
+            orphanSpan.style.color = 'var(--c1d1)';
+            orphanSpan.style.fontStyle = 'italic';
+            orphanSpan.textContent = `Orphaned Ref: ${ref.ledgerId}`;
+            row.appendChild(orphanSpan);
+          }
+          activeListContainer.appendChild(row);
+        });
+      }
+    };
+</script>

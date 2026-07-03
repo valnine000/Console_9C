@@ -1,0 +1,34 @@
+<script type="text/javascript">
+    // ==========================================
+    // CORE SERVICE: TIME ENGINE
+    // ==========================================
+<!--    window.C9 = window.C9 || {};-->
+
+    window.C9.TimeEngine = {
+      subscribers: [],
+      intervalId: null,
+
+      // UI components call this to add themselves to the sync list
+      subscribe: function(fn) {
+        if (typeof fn === 'function') {
+          this.subscribers.push(fn);
+        }
+      },
+
+      // The master switch
+      start: function() {
+        if (this.intervalId) return; // Prevent double-booting
+
+        // Fire immediately on boot, then lock into the 1000ms rhythm
+        this.tick();
+        this.intervalId = setInterval(() => this.tick(), 1000);
+      },
+
+      tick: function() {
+        const now = new Date();
+        // Execute every subscribed UI update synchronously.
+        // The browser will batch these and paint them simultaneously.
+        this.subscribers.forEach(fn => fn(now));
+      }
+    };
+</script>

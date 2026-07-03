@@ -1,0 +1,86 @@
+<script type="text/javascript">
+    // ==========================================
+    // TIMELINE PHYSICS & COLLISION ENGINE
+    // ==========================================
+    window.C9.Physics = {
+      // STRATEGY 1: The Original (Greedy Lane Packing)
+      greedy_pack: function(x, boundedWidth, estimatedLines, currentStackLanes, memoryData) {
+          let laneIndex = 0;
+          let foundSpace = false;
+          while (!foundSpace) {
+              let canFit = true;
+              for (let i = 0; i < estimatedLines; i++) {
+                  if (currentStackLanes[laneIndex + i] !== undefined && x < currentStackLanes[laneIndex + i]) {
+                      canFit = false;
+                      laneIndex++;
+                      break;
+                  }
+              }
+              if (canFit) foundSpace = true;
+          }
+          for (let i = 0; i < estimatedLines; i++) {
+              currentStackLanes[laneIndex + i] = x + boundedWidth + 10;
+          }
+          return { finalLane: laneIndex, finalWidth: boundedWidth };
+      },
+
+      // STRATEGY 2: The Resetting Waterfall
+      chronological_waterfall: function(x, boundedWidth, estimatedLines, currentStackLanes, memoryData) {
+          let maxActiveLane = -1;
+          for (let i = 0; i < currentStackLanes.length; i++) {
+              if (currentStackLanes[i] !== undefined && x < currentStackLanes[i]) {
+                  if (i > maxActiveLane) maxActiveLane = i;
+              }
+          }
+          const targetLane = maxActiveLane + 1;
+          for (let i = 0; i < estimatedLines; i++) {
+              currentStackLanes[targetLane + i] = x + boundedWidth + 6;
+          }
+          return { finalLane: targetLane, finalWidth: boundedWidth };
+      },
+
+      // STRATEGY 3: Conditional Extreme Squish
+      extreme_squish: function(x, boundedWidth, estimatedLines, currentStackLanes, memoryData) {
+          const MIN_WIDTH = 12;
+          let laneIndex = 0;
+          let foundSpace = false;
+
+          while (!foundSpace) {
+              let canFitInThisLaneBlock = true;
+              for (let i = 0; i < estimatedLines; i++) {
+                  const prevEvent = currentStackLanes[laneIndex + i];
+                  if (prevEvent !== undefined && x < prevEvent.endX) {
+                      if (x < prevEvent.startX + MIN_WIDTH) {
+                          canFitInThisLaneBlock = false;
+                          break;
+                      }
+                  }
+              }
+              if (canFitInThisLaneBlock) {
+                  foundSpace = true;
+              } else {
+                  laneIndex++;
+              }
+          }
+
+          const domId = 'squish-ev-' + Math.random().toString(36).substr(2, 9);
+
+          for (let i = 0; i < estimatedLines; i++) {
+              const prevEvent = currentStackLanes[laneIndex + i];
+              if (prevEvent !== undefined && x < prevEvent.endX) {
+                  const newPrevWidth = x - prevEvent.startX - 8;
+                  const prevDomElement = document.getElementById(prevEvent.domId);
+                  if (prevDomElement) {
+                      prevDomElement.style.maxWidth = newPrevWidth + 'px';
+                      prevDomElement.style.overflowY = 'auto';
+                      prevDomElement.style.overflowX = 'auto';
+                  }
+                  prevEvent.endX = x;
+              }
+              currentStackLanes[laneIndex + i] = { startX: x, endX: x + boundedWidth + 6, domId: domId };
+          }
+
+          return { finalLane: laneIndex, finalWidth: boundedWidth, domId: domId };
+      }
+    };
+</script>

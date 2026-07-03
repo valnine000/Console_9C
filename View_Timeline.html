@@ -1,0 +1,519 @@
+<script type="text/javascript">
+    // ==========================================
+    // VIEW: TIMELINE SPATIAL MATRIX & PHYSICS LOOP
+    // ==========================================
+    window.C9.Timeline = {
+      // 1. Local Measurement Canvas
+      measureCanvas: document.createElement('canvas'),
+      get measureCtx() { return this.measureCanvas.getContext('2d'); },
+
+      // 2. The Main Render Loop
+      render: function() {
+        const state = C9.Store.state;
+        const timeline = document.getElementById('calendarTimeline');
+        const container = document.getElementById('calendarTimeLineContainer');
+        const zoomInput = document.getElementById('dateZoomInput');
+        const apertureInput = document.getElementById('apertureWidthInput');
+
+        const TIMELINE_COLLISION_BUFFER = 2;
+        const MIN_SQUISH_WIDTH = 12;
+        const ITEM_GAP = 4;
+        const GRID_RES = 2;
+        const STACK_BOTTOM_PADDING = 4;
+
+        if (!timeline || !container || !zoomInput || !apertureInput || !state.loadedStartDate) return;
+
+        const currentScroll = container.scrollLeft;
+        C9.Store.update({ lastRenderedScrollX: currentScroll });
+
+        const apertureWidth = parseFloat(apertureInput.innerText) || 1000;
+        container.style.width = apertureWidth + 'px';
+        container.style.overflowX = 'auto';
+
+        const zeroMs = state.loadedStartDate.getTime();
+        const dateZoom = parseFloat(zoomInput.innerText) || 7;
+        const pixelsPerDay = apertureWidth / dateZoom;
+        const msPerDay = 24 * 60 * 60 * 1000;
+        const totalSpanMs = (state.loadedEndDate ? state.loadedEndDate.getTime() : (zeroMs + 60 * msPerDay)) - zeroMs;
+        const totalSpanDays = totalSpanMs / msPerDay;
+        const landscapeWidth = totalSpanDays * pixelsPerDay;
+
+        const lookAheadBuffer = 80;
+        const renderBufferLeft = currentScroll - 10;
+        const renderBufferRight = currentScroll + container.clientWidth + 40;
+
+        timeline.style.width = landscapeWidth + 'px';
+        timeline.style.position = 'relative';
+        timeline.style.overflow = 'hidden';
+
+        // --- DOM VAPORIZATION ---
+        const stackCount = state.timelineStackCount > 0 ? state.timelineStackCount : 1;
+        Array.from(timeline.children).forEach(child => {
+          if (!child.classList.contains('persisted-stack') && !child.classList.contains('persisted-now-marker')) {
+            child.remove();
+          } else if (child.classList.contains('persisted-stack')) {
+            const stackIndex = parseInt(child.id.replace('stackLayer-', ''));
+            if (stackIndex >= stackCount) child.remove();
+          }
+        });
+
+        const timelinePosition = 44;
+        const baseline = document.createElement('div');
+        baseline.style.position = 'absolute';
+        baseline.style.left = '0px';
+        baseline.style.width = '100%';
+        baseline.style.height = '1px';
+        baseline.style.top = timelinePosition + 'px';
+        timeline.appendChild(baseline);
+
+        // --- LOD TICK ENGINE ---
+        let minVisibleRank = 1;
+        if (pixelsPerDay < 5) minVisibleRank = 6;
+        else if (pixelsPerDay < 15) minVisibleRank = 5;
+        else if (pixelsPerDay < 40) minVisibleRank = 4;
+        else if (pixelsPerDay < 110) minVisibleRank = 3;
+        else if (pixelsPerDay < 128) minVisibleRank = 2;
+
+        let cursor = new Date(state.loadedStartDate);
+        cursor.setHours(0,0,0,0);
+        const endMs = zeroMs + (totalSpanDays * msPerDay);
+
+        while (cursor.getTime() <= endMs) {
+          const t = cursor.getTime();
+          const basePathX = ((t - zeroMs) / msPerDay) * pixelsPerDay;
+
+          // ==========================================
+          // ADDITION: THE FOURS DECORATIONS
+          // ==========================================
+          const theFours = [
+            { startHr: 0,  duration: 4, color: 'var(--theFours12Am, #000000)' },
+            { startHr: 4,  duration: 4, color: 'var(--theFours4Am, #520b00aa)' },
+            { startHr: 8,  duration: 4, color: 'var(--theFours8Am, #420b00aa)' },
+            { startHr: 12, duration: 4, color: 'var(--theFours12Pm, #320b00aa)' },
+            { startHr: 16, duration: 4, color: 'var(--theFours4Pm, #320b00aa)' },
+            { startHr: 20, duration: 4, color: 'var(--theFours8Pm, #000000)' }
+          ];
+
+          theFours.forEach(segment => {
+            const segLeft = basePathX + ((segment.startHr / 24) * pixelsPerDay);
+            const segWidth = (segment.duration / 24) * pixelsPerDay;
+
+            // Render Buffer Culling: Only draw the bar if it is actually on screen
+            if (segLeft + segWidth >= renderBufferLeft && segLeft <= renderBufferRight) {
+              const fourBar = document.createElement('div');
+              fourBar.style.position = 'absolute';
+              fourBar.style.left = segLeft + 'px';
+              fourBar.style.width = Math.max(1, segWidth) + 'px';
+              fourBar.style.height = '4px';
+              fourBar.style.top = (timelinePosition - 4) + 'px'; // Sits right above the baseline
+              fourBar.style.backgroundColor = segment.color;
+              timeline.appendChild(fourBar);
+            }
+          });
+          // ==========================================
+
+          if (basePathX + pixelsPerDay >= renderBufferLeft && basePathX <= renderBufferRight) {
+            let dayRank = 4;
+            if (cursor.getMonth() === 0 && cursor.getDate() === 1) dayRank = 7;
+            else if (cursor.getDate() === 1) dayRank = 6;
+            else if (cursor.getDay() === 1) dayRank = 5;
+
+            if (dayRank >= minVisibleRank) {
+              const tick = document.createElement('div');
+              tick.style.position = 'absolute';
+              tick.style.backgroundColor = '#7a3700';
+              tick.style.left = basePathX + 'px';
+              tick.style.transform = 'translateX(-50%)';
+
+              if (dayRank >= 6) {
+                tick.style.width = '2px';
+                tick.style.height = (14 * state.currentTickScale) + 'px';
+                tick.style.top = (timelinePosition - (14 * state.currentTickScale)) + 'px';
+              } else {
+                tick.style.width = '1px';
+                tick.style.height = (12 * state.currentTickScale) + 'px';
+                tick.style.top = (timelinePosition - (12 * state.currentTickScale)) + 'px';
+              }
+              timeline.appendChild(tick);
+
+              let showLabel = false;
+              if (pixelsPerDay >= 40) showLabel = true;
+              else if (pixelsPerDay >= 15 && dayRank >= 5) showLabel = true;
+              else if (pixelsPerDay < 15 && dayRank >= 6) showLabel = true;
+
+              if (showLabel) {
+                const isToday = cursor.toDateString() === new Date().toDateString();
+                const label = document.createElement('div');
+                label.style.position = 'absolute';
+                label.style.left = (basePathX + 4) + 'px';
+                label.style.color = '#ff9000';
+                label.style.display = 'flex';
+
+                if (pixelsPerDay > 55) {
+                  label.style.flexDirection = 'row';
+                  label.style.alignItems = 'baseline';
+                  label.style.gap = '4px';
+                  label.style.top = '12px';
+                } else {
+                  label.style.flexDirection = 'column';
+                  label.style.alignItems = 'flex-start';
+                  label.style.gap = '0px';
+                  label.style.top = '2px';
+                }
+
+                const dayAbbr = document.createElement('div');
+                dayAbbr.style.fontSize = '10px';
+                dayAbbr.style.lineHeight = '1';
+
+                if (dayRank >= 6 && pixelsPerDay < 40) {
+                  const monthNamesShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                  dayAbbr.textContent = monthNamesShort[cursor.getMonth()];
+                } else {
+                  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                  dayAbbr.textContent = dayNames[cursor.getDay()];
+                }
+                label.appendChild(dayAbbr);
+
+                const dateSpan = document.createElement('div');
+                dateSpan.textContent = cursor.getDate();
+                dateSpan.style.fontSize = '12px';
+                dateSpan.style.lineHeight = '1';
+
+                if (isToday) {
+                  dateSpan.style.backgroundColor = '#410';
+                  dateSpan.style.padding = '1px 3px';
+                  dateSpan.style.borderRadius = '3px';
+                }
+                label.appendChild(dateSpan);
+                timeline.appendChild(label);
+              }
+            }
+
+            if (minVisibleRank <= 3) {
+              for (let hour = 1; hour < 24; hour++) {
+                let hourRank = 1;
+                if (hour === 12) hourRank = 3;
+                else if (hour === 4 || hour === 16) hourRank = 2;
+                else if (hour === 8 || hour === 20) hourRank = 2;
+
+                if (hourRank >= minVisibleRank) {
+                  const subX = basePathX + ((hour / 24) * pixelsPerDay);
+                  if (subX >= renderBufferLeft && subX <= renderBufferRight) {
+                    const subTick = document.createElement('div');
+                    subTick.style.position = 'absolute';
+                    subTick.style.backgroundColor = '#7a3700';
+
+                    if (hour === 12) {
+                      subTick.style.left = subX + 'px';
+                      subTick.style.width = '1px';
+                      subTick.style.height = (8 * state.currentTickScale) + 'px';
+                      subTick.style.top = (timelinePosition - (8 * state.currentTickScale)) + 'px';
+                      subTick.style.transform = 'translateX(-50%)';
+                    } else if (hour === 4 || hour === 16) {
+                      subTick.style.left = subX + 'px';
+                      subTick.style.width = '1px';
+                      subTick.style.height = (10 * state.currentTickScale) + 'px';
+                      subTick.style.top = (timelinePosition - (10 * state.currentTickScale)) + 'px';
+                      subTick.style.transform = 'translateX(-50%) rotate(30deg)';
+                    } else if (hour === 8 || hour === 20) {
+                      subTick.style.left = subX + 'px';
+                      subTick.style.width = (8 * state.currentTickScale) + 'px';
+                      subTick.style.height = '1px';
+                      subTick.style.top = (timelinePosition - 1) + 'px';
+                      subTick.style.transform = 'translateX(-50%)';
+                    } else {
+                      subTick.style.left = subX + 'px';
+                      subTick.style.width = Math.max(1, 2 * state.currentTickScale) + 'px';
+                      subTick.style.height = Math.max(1, 2 * state.currentTickScale) + 'px';
+                      subTick.style.top = (timelinePosition - Math.max(1, 2 * state.currentTickScale)) + 'px';
+                      subTick.style.borderRadius = '50%';
+                      subTick.style.transform = 'translateX(-50%)';
+                    }
+                    timeline.appendChild(subTick);
+                  }
+                }
+              }
+            }
+          }
+          cursor.setDate(cursor.getDate() + 1);
+        }
+
+        // --- THE SPATIAL MATRIX LOOP ---
+        const laneHeight = state.currentFontSize * 1.4;
+        let currentStackYFloor = 48;
+
+        if (!window.stableStackHeights) window.stableStackHeights = [];
+        const newTargetHeights = [];
+
+        <!--        let aqTargetIds = new Set();-->
+        <!--        if (state.filterTimelineByAQ && state.activeQuerySpaceId) {-->
+        <!--          state.globalQuerySpaceRefs.forEach(ref => {-->
+        <!--            if (ref.qsId === state.activeQuerySpaceId) {-->
+        <!--              aqTargetIds.add(ref.ledgerId);-->
+        <!--            }-->
+        <!--          });-->
+        <!--        }-->
+
+        for (let currentStack = 0; currentStack < stackCount; currentStack++) {
+          let stackLayer = document.getElementById('stackLayer-' + currentStack);
+          if (!stackLayer) {
+            stackLayer = document.createElement('div');
+            stackLayer.id = 'stackLayer-' + currentStack;
+            stackLayer.classList.add('persisted-stack');
+            stackLayer.style.position = 'absolute';
+            stackLayer.style.left = '0px';
+            stackLayer.style.width = '100%';
+            stackLayer.style.overflow = 'hidden';
+            stackLayer.style.transition = 'height 0.5s cubic-bezier(0, 0, 0.2, 1), top 0.5s cubic-bezier(0, 0, 0.2, 1)';
+            timeline.appendChild(stackLayer);
+          }
+
+          stackLayer.replaceChildren();
+
+          if (currentStack > 0) {
+            const separator = document.createElement('div');
+            separator.style.position = 'absolute';
+            separator.style.left = renderBufferLeft + 'px';
+            separator.style.width = (renderBufferRight - renderBufferLeft) + 'px';
+            separator.style.height = '1px';
+            separator.style.backgroundColor = 'var(--borderColor1, #420b00)';
+            separator.style.top = '0px';
+            stackLayer.appendChild(separator);
+          }
+
+          const daysToShift = currentStack * dateZoom;
+          const currentStackLanes = [];
+          let maxLanesUsedInRenderBuffer = 0;
+
+          const queue = state.compositorQueue || [];
+          queue.forEach(function(ev) {
+        <!--          state.memoryStore.forEach(function(ev) {-->
+
+        <!--            if (!state.showQuerySpace && ev.source === 'queryspace') return;-->
+        <!--            if (state.filterTimelineByAQ && (!state.activeQuerySpaceId || !aqTargetIds.has(ev.id))) return;-->
+
+            const shiftedDate = new Date(ev.startTime);
+            shiftedDate.setDate(shiftedDate.getDate() - daysToShift);
+            const x = ((shiftedDate.getTime() - zeroMs) / msPerDay) * pixelsPerDay;
+            if (x < 0 || x > landscapeWidth) return;
+
+            const d = new Date(ev.startTime);
+            let h = d.getHours();
+            const ampm = h >= 12 ? 'pm' : 'am';
+            const min = d.getMinutes();
+            const timeStr = min === 0 ? (h % 12 || 12) + ampm : (h % 12 || 12) + ":" + min.toString().padStart(2, '0') + ampm;
+
+            let cleanDesc = ev.description ? C9.Parser.cleanHtmlText(ev.description) : "";
+            const parts = [];
+
+            if (state.showEventSymbol) {
+              let finalSymbol = Array.from((ev.title || "").trim())[0] || '?';
+              if (ev.symbol && ev.symbol !== "") finalSymbol = ev.symbol;
+              else if (ev.thing && ev.thing !== "") finalSymbol = Array.from(ev.thing.trim())[0] || finalSymbol;
+              parts.push(finalSymbol);
+            }
+
+            if (state.showEventTime) parts.push(timeStr);
+            if (state.showEventThing) parts.push((ev.thing || ev.title || "Thing").trim());
+            if (state.showEventDesc && cleanDesc) parts.push(cleanDesc);
+
+            const displayText = parts.join(' ');
+            C9.Timeline.measureCtx.font = state.currentFontSize + 'px serif';
+            const MAX_LABEL_WIDTH = 200;
+            const lines = displayText.split('\n');
+            let maxLineWidth = 0;
+            let totalLinesNeeded = 0;
+
+            for (let i = 0; i < lines.length; i++) {
+                const lineWidth = C9.Timeline.measureCtx.measureText(lines[i]).width;
+                if (lineWidth > maxLineWidth) maxLineWidth = lineWidth;
+                totalLinesNeeded += Math.max(1, Math.ceil(lineWidth / MAX_LABEL_WIDTH));
+            }
+
+            const boundedWidth = Math.min(Math.max(maxLineWidth, 4), MAX_LABEL_WIDTH);
+            const textPixelHeight = Math.min(3, totalLinesNeeded) * laneHeight;
+            const estimatedGridLanes = Math.ceil((textPixelHeight + ITEM_GAP) / GRID_RES);
+
+            const layoutResult = C9.Physics[state.activeCollisionStrategy](x, boundedWidth, estimatedGridLanes, currentStackLanes, ev);
+
+            if (x + boundedWidth >= renderBufferLeft && x <= renderBufferRight) {
+              if (layoutResult.finalLane + estimatedGridLanes > maxLanesUsedInRenderBuffer) {
+                maxLanesUsedInRenderBuffer = layoutResult.finalLane + estimatedGridLanes;
+              }
+
+              // === THE SEPARATION OF CONCERNS ===
+              // We just make the box and place it on the coordinate grid.
+              const marker = document.createElement('div');
+              if (layoutResult.domId) marker.id = layoutResult.domId;
+              marker.style.position = 'absolute';
+              marker.style.top = (layoutResult.finalLane * GRID_RES) + 'px';
+              marker.style.left = x + 'px';
+              marker.style.maxWidth = layoutResult.finalWidth + 'px';
+
+              // We let the Factory paint it!
+              C9.Nodes.drawTextMarker(marker, displayText, state.currentFontSize, textPixelHeight, laneHeight);
+
+              stackLayer.appendChild(marker);
+            }
+          });
+
+          const targetHeight = (Math.max(maxLanesUsedInRenderBuffer, 1) * GRID_RES) + STACK_BOTTOM_PADDING;
+          newTargetHeights.push(targetHeight);
+          const stableHeight = (window.stableStackHeights[currentStack] !== undefined) ? window.stableStackHeights[currentStack] : targetHeight;
+
+          stackLayer.style.top = currentStackYFloor + 'px';
+          stackLayer.style.height = stableHeight + 'px';
+          currentStackYFloor += stableHeight;
+        }
+
+        container.scrollLeft = currentScroll;
+        C9.Timeline.updateMonthDisplay();
+
+        // --- DEBOUNCE ENGINE ---
+        if (window.heightDebounceTimer) clearTimeout(window.heightDebounceTimer);
+        let needsUpdate = false;
+        for (let i = 0; i < stackCount; i++) {
+          if (window.stableStackHeights[i] !== newTargetHeights[i]) { needsUpdate = true; break; }
+        }
+
+        if (needsUpdate) {
+          if (window.stableStackHeights.length === 0) {
+            window.stableStackHeights = newTargetHeights;
+            timeline.style.height = (currentStackYFloor + 4) + 'px';
+          } else {
+            window.heightDebounceTimer = setTimeout(() => {
+              window.stableStackHeights = newTargetHeights;
+              C9.Timeline.render();
+            }, 150);
+          }
+        } else {
+          timeline.style.height = (currentStackYFloor + 4) + 'px';
+        }
+      },
+
+      updateMonthDisplay: function() {
+        const container = document.getElementById('calendarTimeLineContainer');
+        const monthDisplay = document.getElementById('currentMonthDisplay');
+        const zoomInput = document.getElementById('dateZoomInput');
+        const apertureInput = document.getElementById('apertureWidthInput');
+
+        if (!container || !monthDisplay || !zoomInput || !apertureInput || !C9.Store.state.loadedStartDate) return;
+
+        const apertureWidth = parseFloat(apertureInput.innerText) || 1000;
+        const dateZoom = parseFloat(zoomInput.innerText) || 7;
+        const pixelsPerDay = apertureWidth / dateZoom;
+        const msPerDay = 24 * 60 * 60 * 1000;
+
+        const playheadX = container.scrollLeft + (container.clientWidth / 2);
+        const playheadDate = new Date(C9.Store.state.loadedStartDate.getTime() + ((playheadX / pixelsPerDay) * msPerDay));
+
+        const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        const monthStr = monthNames[playheadDate.getMonth()] + " " + playheadDate.getFullYear();
+
+        if (monthDisplay.innerText !== monthStr) {
+          monthDisplay.innerText = monthStr;
+        }
+      },
+
+      // --- THE NEW MARKER LOGIC ---
+      renderNowMarker: function(nowMs) {
+        const timeline = document.getElementById('calendarTimeline');
+        const zoomInput = document.getElementById('dateZoomInput');
+        const apertureInput = document.getElementById('apertureWidthInput');
+
+        if (!timeline || !zoomInput || !apertureInput || !C9.Store.state.loadedStartDate) {
+          return;
+        }
+
+        let nowMarker = document.getElementById('nowMarker');
+        if (!nowMarker) {
+          nowMarker = document.createElement('div');
+          nowMarker.id = 'nowMarker';
+          nowMarker.classList.add('persisted-now-marker');
+          nowMarker.style.position = 'absolute';
+          nowMarker.style.width = '1px';
+          nowMarker.style.backgroundColor = '#ff0000';
+          nowMarker.style.top = '30px';
+          nowMarker.style.height = '14px';
+          nowMarker.style.zIndex = '20';
+          nowMarker.style.pointerEvents = 'none';
+          timeline.appendChild(nowMarker);
+        }
+
+        const apertureWidth = parseFloat(apertureInput.innerText) || 1000;
+        const dateZoom = parseFloat(zoomInput.innerText) || 7;
+        const pixelsPerDay = apertureWidth / dateZoom;
+        const msPerDay = 24 * 60 * 60 * 1000;
+
+        const zeroMs = C9.Store.state.loadedStartDate.getTime();
+        // Use the synchronized time from the TimeEngine
+        const nowX = ((nowMs - zeroMs) / msPerDay) * pixelsPerDay;
+
+        if (isNaN(nowX) || nowX < 0) {
+          console.warn(`[NOW MARKER] Math failure! zeroMs: ${zeroMs}, nowMs: ${nowMs}, nowX: ${nowX}`);
+        }
+
+        nowMarker.style.left = nowX + 'px';
+      },
+
+      // --- THE SUBSCRIPTION BINDING ---
+      initialize: function() {
+        // The TimeEngine passes a Date object. We convert it to Ms for the math engine.
+        C9.TimeEngine.subscribe((now) => {
+          this.renderNowMarker(now.getTime());
+        });
+      },
+
+      MapsToDate: function(targetDate) {
+      console.log("MapsToDate:", targetDate);
+        const container = document.getElementById('calendarTimeLineContainer');
+        const zoomInput = document.getElementById('dateZoomInput');
+        const apertureInput = document.getElementById('apertureWidthInput');
+
+        if (!container || !zoomInput || !apertureInput) return;
+
+        targetDate.setHours(0, 0, 0, 0);
+
+        const inBounds = C9.Store.state.loadedStartDate && C9.Store.state.loadedEndDate &&
+                         targetDate >= C9.Store.state.loadedStartDate &&
+                         targetDate <= C9.Store.state.loadedEndDate;
+
+        if (inBounds) {
+        console.log("MapsToDate: in bounds");
+          const apertureWidth = parseFloat(apertureInput.innerText) || 1000;
+          const dateZoom = parseFloat(zoomInput.innerText) || 7;
+          const pixelsPerDay = apertureWidth / dateZoom;
+          const msPerDay = 24 * 60 * 60 * 1000;
+
+          const deltaMs = targetDate.getTime() - C9.Store.state.loadedStartDate.getTime();
+          const targetX = (deltaMs / msPerDay) * pixelsPerDay;
+          container.scrollLeft = targetX;
+        } else {
+          localStorage.removeItem('timeline_events_cache');
+          C9.Store.state.memoryStore = [];
+
+          C9.Store.state.loadedStartDate = new Date(targetDate);
+          C9.Store.state.loadedStartDate.setDate(C9.Store.state.loadedStartDate.getDate() - C9.FETCH_CHUNK_DAYS);
+          C9.Store.state.loadedEndDate = new Date(targetDate);
+          C9.Store.state.loadedEndDate.setDate(C9.Store.state.loadedEndDate.getDate() + C9.FETCH_CHUNK_DAYS);
+
+          window.pendingJumpTarget = new Date(targetDate);
+
+          // === THE NEW RADIO SIGNAL (Strangler Fig: Parallel Path) ===
+          console.log("MapsToDate: out of bounds");
+          const timeRequestEvent = new CustomEvent('c9:requestTimeRange', {
+            detail: {
+              startIso: C9.Store.state.loadedStartDate.toISOString(),
+              endIso: C9.Store.state.loadedEndDate.toISOString(),
+              source: 'View_Timeline'
+            }
+          });
+          window.dispatchEvent(timeRequestEvent);
+          // ===========================================================
+
+          // Routed through the new SyncEngine
+        <!--          C9.SyncEngine.fetchLedgerData(C9.Store.state.loadedStartDate.toISOString(), C9.Store.state.loadedEndDate.toISOString());-->
+        }
+      }
+    };
+</script>

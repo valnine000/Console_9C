@@ -1,0 +1,280 @@
+<script type="text/javascript">
+    // ==========================================
+    // VIEW: FORMS, BUILDER & SHUTTLE
+    // ==========================================
+    window.C9.Forms = {
+
+      renderDetails: function(eventId) {
+        C9.Store.update({ activeLedgerEntry: eventId });
+        const targetEvent = C9.Store.state.memoryStore.find(item => item.id === eventId);
+
+        if (targetEvent) {
+          // Quarantine the Google ID in the State Store immediately
+          C9.Store.update({ stagedGoogleCalendarId: targetEvent.googleCalendarId });
+
+          const titleInput = document.getElementById('calendarEventTitleInput');
+          const startDateInput = document.getElementById('calendarEventStartDate');
+          const startTimeInput = document.getElementById('calendarEventStartTime');
+          const endDateInput = document.getElementById('calendarEventEndDate');
+          const endTimeInput = document.getElementById('calendarEventEndTime');
+          const descInput = document.getElementById('calendarEventDescription');
+          const detailsIdField = document.getElementById('detailsGoogleCalendarEventId');
+
+          const start = new Date(targetEvent.startTime);
+          const end = new Date(targetEvent.endTime);
+          const formatDate = (d) => `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`;
+          const formatTime = (d) => d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          const rawDescription = C9.Parser.cleanHtmlText(targetEvent.description);
+
+          if (titleInput) titleInput.textContent = targetEvent.title || "No Title";
+          if (startDateInput) startDateInput.textContent = formatDate(start);
+          if (startTimeInput) startTimeInput.textContent = formatTime(start);
+          if (endDateInput) endDateInput.textContent = formatDate(end);
+          if (endTimeInput) endTimeInput.textContent = formatTime(end);
+
+          if (descInput) {
+            descInput.style.whiteSpace = 'pre-wrap';
+            descInput.textContent = rawDescription;
+          }
+
+          // Purely visual update for confirmation
+          if (detailsIdField) {
+            detailsIdField.textContent = targetEvent.googleCalendarId;
+            detailsIdField.style.color = 'var(--c1d1)';
+          }
+        }
+      },
+
+      loadPayloadForUpdate: function() {
+        const srcTitle = document.getElementById('calendarEventTitleInput');
+        const srcStartDate = document.getElementById('calendarEventStartDate');
+        const srcStartTime = document.getElementById('calendarEventStartTime');
+        const srcEndDate = document.getElementById('calendarEventEndDate');
+        const srcEndTime = document.getElementById('calendarEventEndTime');
+        const srcDesc = document.getElementById('calendarEventDescription');
+        const srcIdField = document.getElementById('detailsGoogleCalendarEventId');
+
+        const destTitle = document.getElementById('thingBuilderEventTitleInput');
+        const destStartDate = document.getElementById('thingBuilderEventStartDate');
+        const destStartTime = document.getElementById('thingBuilderEventStartTime');
+        const destEndDate = document.getElementById('thingBuilderEventEndDate');
+        const destEndTime = document.getElementById('thingBuilderEventEndTime');
+        const destDesc = document.getElementById('descriptionPayloadInput');
+        const destIdField = document.getElementById('payloadGoogleCalendarEventId');
+
+        if (!srcDesc || !destDesc) return;
+
+        destDesc.innerText = srcDesc.innerText;
+        if (srcTitle && destTitle) destTitle.innerText = srcTitle.innerText;
+        if (srcStartDate && destStartDate) destStartDate.innerText = srcStartDate.innerText;
+        if (srcStartTime && destStartTime) destStartTime.innerText = srcStartTime.innerText;
+        if (srcEndDate && destEndDate) destEndDate.innerText = srcEndDate.innerText;
+        if (srcEndTime && destEndTime) destEndTime.innerText = srcEndTime.innerText;
+
+        if (srcIdField && destIdField) {
+          destIdField.innerText = srcIdField.innerText;
+          destIdField.style.color = 'var(--c1d1)';
+        }
+      },
+
+      clearBuilderGoogleId: function() {
+        // 1. Purge the truth
+        C9.Store.update({ stagedGoogleCalendarId: null });
+
+        // 2. Purge the visual
+        const payloadIdField = document.getElementById('payloadGoogleCalendarEventId');
+        if (payloadIdField) {
+          payloadIdField.innerText = '-';
+          payloadIdField.style.color = '';
+        }
+      },
+
+      clearBuilderForm: function() {
+        const title = document.getElementById('thingBuilderEventTitleInput');
+        const startD = document.getElementById('thingBuilderEventStartDate');
+        const startT = document.getElementById('thingBuilderEventStartTime');
+        const endD = document.getElementById('thingBuilderEventEndDate');
+        const endT = document.getElementById('thingBuilderEventEndTime');
+        const descInput = document.getElementById('descriptionPayloadInput');
+
+        if (title) title.innerText = '-';
+        if (startD) startD.innerText = '-';
+        if (startT) startT.innerText = '';
+        if (endD) endD.innerText = '-';
+        if (endT) endT.innerText = '';
+
+        if (descInput) {
+          descInput.innerText = "[#C9]\nsymbol:○\nthing:\nidt:\nduration:\nid:\ntimestamp:\n[#C9D]\n[/#C9D]\n[/#C9]";
+        }
+        this.clearBuilderGoogleId();
+      },
+
+      loadAsReference: function() {
+        const srcDesc = document.getElementById('calendarEventDescription');
+        const destDesc = document.getElementById('descriptionPayloadInput');
+        const btn = document.getElementById('loadEntryAsReference');
+
+        if (!srcDesc || !destDesc || !btn) return;
+
+        const srcText = srcDesc.innerText;
+        const idMatch = srcText.match(/id:(.*)/i);
+        const extractedId = idMatch ? idMatch[1].trim() : null;
+
+        if (!extractedId || extractedId === "") {
+          btn.style.outline = "2px solid red";
+          setTimeout(() => { btn.style.outline = ""; }, 2000);
+          return;
+        }
+
+        let destText = destDesc.innerText;
+        if (destText.includes('[#C9D]')) {
+          destText = destText.replace(/\[#C9D\]/i, `[#C9D]\nreferenceId:${extractedId}`);
+        } else {
+          destText += `\n[#C9D]\nreferenceId:${extractedId}\n[/#C9D]`;
+        }
+
+        destDesc.innerText = destText;
+        btn.style.outline = "2px solid green";
+        setTimeout(() => { btn.style.outline = ""; }, 2000);
+      },
+
+      parseThingPayload: function() {
+        const payloadInput = document.getElementById('descriptionPayloadInput');
+        const entryContainer = document.getElementById('calendarEntryContainer');
+
+        const rightTitle = document.getElementById('calendarEntryTitleInput');
+        const rightStartDate = document.getElementById('calendarEntryStartDateInput');
+        const rightEndDate = document.getElementById('calendarEntryEndDateInput');
+        const rightStartTime = document.getElementById('calendarEntryStartTimeInput');
+        const rightEndTime = document.getElementById('calendarEntryEndTimeInput');
+        const rightDesc = document.getElementById('calendarEntryDescriptionInput');
+
+        const bStartDInput = document.getElementById('thingBuilderEventStartDate');
+        const bStartTInput = document.getElementById('thingBuilderEventStartTime');
+        const bEndDInput = document.getElementById('thingBuilderEventEndDate');
+        const bEndTInput = document.getElementById('thingBuilderEventEndTime');
+
+        if (!payloadInput) return;
+
+        entryContainer.style.borderColor = "";
+        const rawText = payloadInput.innerText;
+
+        if (!rawText.includes('[#C9]') || !rawText.includes('[/#C9]')) {
+          entryContainer.style.borderColor = "orange";
+        }
+
+        let thingName = C9.Parser.extractC9Field(rawText, 'thing');
+        if (!thingName || thingName === "") thingName = "Thing";
+
+        let rawIdt = C9.Parser.extractC9Field(rawText, 'idt');
+        const idtStr = rawIdt ? rawIdt.trim() : "";
+        let durationStr = C9.Parser.extractC9Field(rawText, 'duration');
+
+        let existingId = C9.Parser.extractC9Field(rawText, 'id');
+        let existingTimestamp = C9.Parser.extractC9Field(rawText, 'timestamp');
+        const nowMs = Date.now();
+
+        const finalId = (existingId && existingId.trim() !== "") ? existingId.trim() : `JTP-${nowMs}`;
+        const finalTimestamp = (existingTimestamp && existingTimestamp.trim() !== "") ? existingTimestamp.trim() : `${nowMs}`;
+
+        const getValidText = (el, ignoreVal) => {
+          if (!el) return "";
+          const txt = el.innerText.trim();
+          return (txt.toLowerCase() === ignoreVal) ? "" : txt;
+        };
+
+        const bStartD = getValidText(bStartDInput, "start");
+        const bStartT = getValidText(bStartTInput, "time");
+        const bEndD = getValidText(bEndDInput, "end");
+        const bEndT = getValidText(bEndTInput, "time");
+
+        let baseTime;
+        let usedBuilderStart = false;
+
+        if (idtStr !== "") {
+          baseTime = new Date(idtStr);
+          if (isNaN(baseTime.getTime())) {
+             entryContainer.style.borderColor = "red";
+             baseTime = new Date(nowMs);
+          }
+        } else if (bStartD !== "" && bStartT !== "") {
+          baseTime = new Date(`${bStartD} ${bStartT}`);
+          if (isNaN(baseTime.getTime())) {
+             baseTime = new Date(nowMs);
+          } else {
+             usedBuilderStart = true;
+          }
+        } else {
+          baseTime = new Date(nowMs);
+        }
+
+        let durationMs = null;
+        let isNegative = false;
+        if (durationStr && durationStr !== "") {
+          if (durationStr.startsWith('-')) {
+            isNegative = true;
+            durationStr = durationStr.substring(1).trim();
+          }
+          const parts = durationStr.split(':');
+          if (parts.length === 3) {
+            const h = parseInt(parts[0]) || 0;
+            const m = parseInt(parts[1]) || 0;
+            const s = parseInt(parts[2]) || 0;
+            durationMs = (h * 3600000) + (m * 60000) + (s * 1000);
+          }
+        }
+
+        let startTime, endTime;
+        if (durationMs === null || isNaN(durationMs)) {
+           if (usedBuilderStart && bEndD !== "" && bEndT !== "") {
+               startTime = new Date(baseTime);
+               endTime = new Date(`${bEndD} ${bEndT}`);
+               if (isNaN(endTime.getTime())) {
+                   endTime = new Date(baseTime.getTime() + (15 * 60000));
+               }
+           } else {
+               startTime = new Date(baseTime);
+               endTime = new Date(baseTime.getTime() + (15 * 60000));
+           }
+        } else if (isNegative) {
+           endTime = new Date(baseTime);
+           startTime = new Date(baseTime.getTime() - durationMs);
+        } else {
+           startTime = new Date(baseTime);
+           endTime = new Date(baseTime.getTime() + durationMs);
+        }
+
+        const formatDate = (d) => `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`;
+        const formatTime = (d) => d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+        if (rightTitle) rightTitle.innerText = thingName;
+        if (rightStartDate) rightStartDate.innerText = formatDate(startTime);
+        if (rightEndDate) rightEndDate.innerText = formatDate(endTime);
+        if (rightStartTime) rightStartTime.innerText = formatTime(startTime);
+        if (rightEndTime) rightEndTime.innerText = formatTime(endTime);
+
+        let updatedPayload = rawText;
+        updatedPayload = updatedPayload.replace(/id:(.*)/i, `id:${finalId}`);
+        updatedPayload = updatedPayload.replace(/timestamp:(.*)/i, `timestamp:${finalTimestamp}`);
+
+        if (rightDesc) {
+           rightDesc.innerText = updatedPayload;
+           rightDesc.style.whiteSpace = "pre-wrap";
+        }
+
+        const payloadIdField = document.getElementById('payloadGoogleCalendarEventId');
+        const statusField = document.getElementById('calendarEntryStatusField');
+
+        if (payloadIdField && statusField) {
+          const currentGoogleId = payloadIdField.innerText.trim();
+          if (currentGoogleId && currentGoogleId !== "-") {
+              statusField.innerText = currentGoogleId;
+              statusField.style.color = 'var(--c1d1)';
+          } else {
+              statusField.innerText = "-";
+              statusField.style.color = 'var(--c1)';
+          }
+        }
+      }
+    };
+</script>

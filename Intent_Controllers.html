@@ -1,0 +1,707 @@
+<script type="text/javascript">
+    // ==========================================
+    // USER INTENT & EVENT CONTROLLERS (STATE-WIRED)
+    // ==========================================
+    window.C9.Intent = {
+
+      initializeAll: function() {
+        this.initializeFontScaling();
+        this.initializeTickScaling();
+        this.initializeBaseFontScaling();
+        this.initializeStackControl();
+        this.initializeApertureControl();
+        this.initializeDragScroll();
+        this.initializeScrollObserver();
+        this.initializeDisplayToggles();
+        this.initializeCollisionControls();
+        this.bindCoreUI();
+        this.initializeFullscreenControls();
+        this.initializeQuerySpaceControls();
+      },
+
+      updateFontSize: function() {
+        document.documentElement.style.setProperty('--event-font-size', C9.Store.state.currentFontSize + 'px');
+      },
+
+      updateBaseFontSizes: function() {
+        document.documentElement.style.setProperty('--default-font-size', C9.Store.state.currentDefaultFontSize + 'px');
+        document.documentElement.style.setProperty('--button-font-size', C9.Store.state.currentButtonFontSize + 'px');
+      },
+
+      initializeDisplayToggles: function() {
+      const toggleMap = [
+        { id: 'showHideActiveQueryspaceEntries', stateKey: 'filterTimelineByAQ', shouldRenderList: true },
+        { id: 'showHideQueryspaceEntries', stateKey: 'showQuerySpace', shouldRenderList: false },
+        { id: 'displayIdt', stateKey: 'showEventTime', shouldRenderList: false },
+        { id: 'displaySymbol', stateKey: 'showEventSymbol', shouldRenderList: false },
+        { id: 'displayThing', stateKey: 'showEventThing', shouldRenderList: false },
+        { id: 'displayDescription', stateKey: 'showEventDesc', shouldRenderList: false }
+      ];
+
+      toggleMap.forEach(btnConfig => {
+        const btn = document.getElementById(btnConfig.id);
+        if (btn) {
+          btn.style.opacity = '1';
+          btn.style.color = C9.Store.state[btnConfig.stateKey] ? 'var(--c1)' : 'var(--c1d1)';
+
+          btn.addEventListener('click', () => {
+            const newState = {};
+            newState[btnConfig.stateKey] = !C9.Store.state[btnConfig.stateKey];
+            C9.Store.update(newState);
+
+            btn.style.color = C9.Store.state[btnConfig.stateKey] ? 'var(--c1)' : 'var(--c1d1)';
+
+            // === THE COMPOSITOR TRIGGER ===
+            if (typeof C9.Compositor !== 'undefined') {
+              C9.Compositor.buildRenderQueue();
+            }
+            // ==============================
+
+            // Force immediate UI repaint
+            C9.Timeline.render();
+            if (btnConfig.shouldRenderList) {
+              C9.Lists.renderEvents();
+            }
+          });
+        }
+      });
+    },
+
+      initializeApertureControl: function() {
+        const apertureInput = document.getElementById('apertureWidthInput');
+        const zoomInput = document.getElementById('dateZoomInput');
+        const timeline = document.getElementById('calendarTimeline');
+
+        if (!apertureInput || !zoomInput || !timeline) return;
+
+        const initAperture = apertureInput.innerText.trim();
+        if (initAperture) timeline.style.width = initAperture + 'px';
+
+        apertureInput.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            const container = document.getElementById('calendarTimeLineContainer');
+
+            let anchorMs = null;
+            if (container && C9.Store.state.loadedStartDate) {
+              const oldContainerWidth = parseFloat(container.style.width) || 1000;
+              const oldDateZoom = parseFloat(zoomInput.innerText) || 7;
+              const oldPixelsPerDay = oldContainerWidth / oldDateZoom;
+              const msPerDay = 24 * 60 * 60 * 1000;
+              const currentScroll = container.scrollLeft;
+              const daysFromZero = currentScroll / oldPixelsPerDay;
+              anchorMs = C9.Store.state.loadedStartDate.getTime() + (daysFromZero * msPerDay);
+            }
+
+            const oldContainerWidth = container ? parseFloat(container.style.width) : 1000;
+            const oldDateZoom = parseFloat(zoomInput.innerText) || 7;
+            const baselineScale = oldContainerWidth / oldDateZoom;
+            const newInputValue = parseFloat(apertureInput.innerText);
+
+            if (!isNaN(baselineScale) && baselineScale !== 0 && !isNaN(newInputValue)) {
+              const newDateZoom = newInputValue / baselineScale;
+              zoomInput.innerText = newDateZoom.toFixed(2);
+              if (container) container.style.width = newInputValue + 'px';
+              apertureInput.blur();
+              if (typeof renderTimeline === 'function') C9.Timeline.render();
+
+              if (anchorMs !== null && container) {
+                const newDateZoomParsed = parseFloat(zoomInput.innerText);
+                const newPixelsPerDay = newInputValue / newDateZoomParsed;
+                const msPerDay = 24 * 60 * 60 * 1000;
+                const zeroMs = C9.Store.state.loadedStartDate.getTime();
+                const deltaMs = anchorMs - zeroMs;
+                container.scrollLeft = (deltaMs / msPerDay) * newPixelsPerDay;
+              }
+            }
+          }
+        });
+
+        zoomInput.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            const container = document.getElementById('calendarTimeLineContainer');
+            const timeline = document.getElementById('calendarTimeline');
+            let anchorMs = null;
+
+            if (container && timeline && C9.Store.state.loadedStartDate) {
+              const currentScroll = container.scrollLeft;
+              const currentLandscapeWidth = parseFloat(timeline.style.width);
+              const zeroMs = C9.Store.state.loadedStartDate.getTime();
+              const msPerDay = 24 * 60 * 60 * 1000;
+              const totalSpanMs = (C9.Store.state.loadedEndDate ? C9.Store.state.loadedEndDate.getTime() : (zeroMs + 60 * msPerDay)) - zeroMs;
+              const scrollRatio = currentScroll / currentLandscapeWidth;
+              anchorMs = zeroMs + (scrollRatio * totalSpanMs);
+            }
+
+            zoomInput.blur();
+            if (typeof triggerFetch === 'function') triggerFetch();
+
+            if (anchorMs !== null && container) {
+              const apertureWidth = parseFloat(apertureInput.innerText) || 1000;
+              const newDateZoom = parseFloat(zoomInput.innerText) || 7;
+              const pixelsPerDay = apertureWidth / newDateZoom;
+              const msPerDay = 24 * 60 * 60 * 1000;
+              const zeroMs = C9.Store.state.loadedStartDate.getTime();
+              const deltaMs = anchorMs - zeroMs;
+              container.scrollLeft = (deltaMs / msPerDay) * pixelsPerDay;
+            }
+          }
+        });
+      },
+
+      initializeFontScaling: function() {
+        const fontDown = document.getElementById('fontDown');
+        const fontUp = document.getElementById('fontUp');
+
+        if (fontDown) {
+          fontDown.addEventListener('click', () => {
+            C9.Store.update({ currentFontSize: C9.Store.state.currentFontSize * 0.93 });
+            this.updateFontSize();
+            requestAnimationFrame(() => C9.Timeline.render());
+          });
+        }
+
+        if (fontUp) {
+          fontUp.addEventListener('click', () => {
+            C9.Store.update({ currentFontSize: C9.Store.state.currentFontSize * 1.07 });
+            this.updateFontSize();
+            requestAnimationFrame(() => C9.Timeline.render());
+          });
+        }
+      },
+
+      initializeBaseFontScaling: function() {
+        const baseFontDown = document.getElementById('baseFontDown');
+        const baseFontUp = document.getElementById('baseFontUp');
+
+        if (baseFontDown) {
+          baseFontDown.addEventListener('click', () => {
+            C9.Store.update({
+              currentDefaultFontSize: C9.Store.state.currentDefaultFontSize * 0.93,
+              currentButtonFontSize: C9.Store.state.currentButtonFontSize * 0.93
+            });
+            this.updateBaseFontSizes();
+          });
+        }
+
+        if (baseFontUp) {
+          baseFontUp.addEventListener('click', () => {
+            C9.Store.update({
+              currentDefaultFontSize: C9.Store.state.currentDefaultFontSize * 1.07,
+              currentButtonFontSize: C9.Store.state.currentButtonFontSize * 1.07
+            });
+            this.updateBaseFontSizes();
+          });
+        }
+      },
+
+      initializeStackControl: function() {
+        const stackDown = document.getElementById('stackDown');
+        const stackUp = document.getElementById('stackUp');
+
+        if (stackDown) {
+          stackDown.addEventListener('click', () => {
+            if (C9.Store.state.timelineStackCount > 1) {
+              C9.Store.update({ timelineStackCount: C9.Store.state.timelineStackCount - 1 });
+              requestAnimationFrame(() => C9.Timeline.render());
+            }
+          });
+        }
+
+        if (stackUp) {
+          stackUp.addEventListener('click', () => {
+            C9.Store.update({ timelineStackCount: C9.Store.state.timelineStackCount + 1 });
+            requestAnimationFrame(() => C9.Timeline.render());
+          });
+        }
+      },
+
+      initializeTickScaling: function() {
+        const scaleDown = document.getElementById('scaleDown');
+        const scaleUp = document.getElementById('scaleUp');
+
+        if (scaleDown) {
+          scaleDown.addEventListener('click', () => {
+            C9.Store.update({ currentTickScale: C9.Store.state.currentTickScale * 0.85 });
+            requestAnimationFrame(() => C9.Timeline.render());
+          });
+        }
+
+        if (scaleUp) {
+          scaleUp.addEventListener('click', () => {
+            C9.Store.update({ currentTickScale: C9.Store.state.currentTickScale * 1.15 });
+            requestAnimationFrame(() => C9.Timeline.render());
+          });
+        }
+      },
+
+      initializeDragScroll: function() {
+        const container = document.getElementById('calendarTimeLineContainer');
+        if (!container) return;
+
+        let isDown = false;
+        let startX;
+        let scrollLeft;
+
+        container.style.cursor = 'grab';
+
+        container.addEventListener('mousedown', (e) => {
+          isDown = true;
+          container.style.cursor = 'grabbing';
+          startX = e.pageX - container.offsetLeft;
+          scrollLeft = container.scrollLeft;
+        });
+
+        container.addEventListener('mouseleave', () => {
+          isDown = false;
+          container.style.cursor = 'grab';
+        });
+
+        container.addEventListener('mouseup', () => {
+          isDown = false;
+          container.style.cursor = 'grab';
+        });
+
+        container.addEventListener('mousemove', (e) => {
+          if (!isDown) return;
+          e.preventDefault();
+          const x = e.pageX - container.offsetLeft;
+          const walk = (x - startX) * 1.2;
+          container.scrollLeft = scrollLeft - walk;
+        });
+      },
+
+      initializeScrollObserver: function() {
+      const container = document.getElementById('calendarTimeLineContainer');
+      if (!container) return;
+
+      let scrollTicking = false;
+      container.addEventListener('scroll', () => {
+        if (!scrollTicking) {
+          window.requestAnimationFrame(() => {
+            const threshold = container.clientWidth;
+            const currentScroll = container.scrollLeft;
+
+            // 1. Infinite Scroll Triggers
+            if (currentScroll < threshold) {
+              if (!C9.Store.state.isFetching) {
+
+                // === THE RADIO SIGNAL: PAST (Strangler Fig) ===
+                let reqStart = new Date(C9.Store.state.loadedStartDate);
+                reqStart.setDate(reqStart.getDate() - (C9.FETCH_CHUNK_DAYS || 30));
+                let reqEnd = new Date(C9.Store.state.loadedStartDate);
+
+                window.dispatchEvent(new CustomEvent('c9:requestTimeRange', {
+                  detail: {
+                    startIso: reqStart.toISOString(),
+                    endIso: reqEnd.toISOString(),
+                    direction: 'past',
+                    source: 'ScrollObserver (Past)'
+                  }
+                }));
+                // ==============================================
+
+<!--                C9.SyncEngine.fetchMoreData('past');-->
+              }
+            } else if (currentScroll + container.clientWidth > container.scrollWidth - threshold) {
+              if (!C9.Store.state.isFetching) {
+
+                // === THE RADIO SIGNAL: FUTURE (Strangler Fig) ===
+                let reqStart = new Date(C9.Store.state.loadedEndDate);
+                let reqEnd = new Date(C9.Store.state.loadedEndDate);
+                reqEnd.setDate(reqEnd.getDate() + (C9.FETCH_CHUNK_DAYS || 30));
+
+                window.dispatchEvent(new CustomEvent('c9:requestTimeRange', {
+                  detail: {
+                    startIso: reqStart.toISOString(),
+                    endIso: reqEnd.toISOString(),
+                    direction: 'future',
+                    source: 'ScrollObserver (Future)'
+                  }
+                }));
+                // ==============================================
+
+<!--                C9.SyncEngine.fetchMoreData('future');-->
+              }
+            }
+
+            // 2. Virtual Scroll Trigger (DOM Culling)
+            const renderThreshold = 20;
+            if (Math.abs(currentScroll - C9.Store.state.lastRenderedScrollX) > renderThreshold) {
+              C9.Timeline.render();
+            }
+
+            if (typeof C9.Timeline.updateMonthDisplay === 'function') C9.Timeline.updateMonthDisplay();
+            if (typeof C9.Lists !== 'undefined' && typeof C9.Lists.renderEvents === 'function') C9.Lists.renderEvents();
+
+            scrollTicking = false;
+          });
+          scrollTicking = true;
+        }
+      });
+    },
+
+      initializeCollisionControls: function() {
+        const collisionStrategyMap = {
+          'collisionDetection1': 'greedy_pack',
+          'collisionDetection2': 'chronological_waterfall',
+          'collisionDetection3': 'extreme_squish'
+        };
+
+        const c1Btn = document.getElementById('collisionDetection1');
+        const c2Btn = document.getElementById('collisionDetection2');
+        const c3Btn = document.getElementById('collisionDetection3');
+        const collisionBtns = [c1Btn, c2Btn, c3Btn];
+
+        function handleCollisionStrategySwitch(buttonId) {
+          C9.Store.update({ activeCollisionStrategy: collisionStrategyMap[buttonId] });
+          collisionBtns.forEach(btn => {
+            if (!btn) return;
+            btn.style.opacity = '1';
+            btn.style.color = (btn.id === buttonId) ? 'var(--c1)' : 'var(--c1d1)';
+          });
+          C9.Timeline.render();
+        }
+
+        if (c1Btn) c1Btn.addEventListener('click', () => handleCollisionStrategySwitch('collisionDetection1'));
+        if (c2Btn) c2Btn.addEventListener('click', () => handleCollisionStrategySwitch('collisionDetection2'));
+        if (c3Btn) c3Btn.addEventListener('click', () => handleCollisionStrategySwitch('collisionDetection3'));
+
+        handleCollisionStrategySwitch('collisionDetection2');
+      },
+
+      bindCoreUI: function() {
+        const clearIdBtn = document.getElementById('clrRef');
+        if (clearIdBtn) clearIdBtn.addEventListener('click', () => C9.Forms.clearBuilderGoogleId());
+
+        const clearFormBtn = document.getElementById('clrForm');
+        if (clearFormBtn) clearFormBtn.addEventListener('click', () => C9.Forms.clearBuilderForm());
+
+        const loadRefBtn = document.getElementById('loadEntryAsReference');
+        if (loadRefBtn) loadRefBtn.addEventListener('click', () => C9.Forms.loadAsReference());
+
+        const updateEntryBtn = document.getElementById('updateEntry');
+        if (updateEntryBtn) updateEntryBtn.addEventListener('click', () => C9.Forms.loadPayloadForUpdate());
+
+        const parseBtn = document.getElementById('parseEntry');
+        if (parseBtn) parseBtn.addEventListener('click', () => C9.Forms.parseThingPayload());
+
+        const updateBtn = document.getElementById('updateCalendarEventBtn');
+        if (updateBtn) updateBtn.addEventListener('click', submitUpdatedCalendarEvent);
+
+        const toggleListBtn = document.getElementById('toggleListBtn');
+        if (toggleListBtn) toggleListBtn.addEventListener('click', toggleTimelineList);
+
+        const newBtn = document.getElementById('createNewEntry');
+        if (newBtn) newBtn.addEventListener('click', submitNewCalendarEvent);
+
+        const settingsBtn = document.getElementById('settingsShowMenu');
+        const settingsPanel = document.getElementById('consoleControlPanelContainer');
+        if (settingsBtn && settingsPanel) {
+          settingsBtn.addEventListener('click', () => {
+            settingsPanel.style.display = (settingsPanel.style.display === 'none') ? 'block' : 'none';
+          });
+        }
+
+        const todayBtn = document.getElementById('goToToday');
+        if (todayBtn) todayBtn.addEventListener('click', () => C9.Timeline.MapsToDate(new Date()));
+
+        const weekBtn = document.getElementById('goToThisWeek');
+        if (weekBtn) {
+          weekBtn.addEventListener('click', () => {
+            const d = new Date();
+            d.setHours(0, 0, 0, 0);
+            d.setDate(d.getDate() - d.getDay());
+            C9.Timeline.MapsToDate(d);
+          });
+        }
+
+        const deleteCacheBtn = document.getElementById('deleteCache');
+        if (deleteCacheBtn) {
+          deleteCacheBtn.addEventListener('click', function() {
+            if (window.confirm("Are you sure you want to clear the local cache and resync?")) {
+              localStorage.clear();
+              sessionStorage.clear();
+
+              // Update Store to ground zero
+              C9.Store.update({
+                memoryStore: [],
+                loadedStartDate: null,
+                loadedEndDate: null,
+                lastRenderedScrollX: 0
+              });
+
+              const timeline = document.getElementById('calendarTimeline');
+              if (timeline) timeline.replaceChildren();
+              const calendar = document.getElementById('calendar');
+              if (calendar) calendar.replaceChildren();
+
+              C9.SyncEngine.initializeDataStore();
+              C9.QuerySpace.fetchAll();
+            }
+          });
+        }
+
+        const refreshCacheBtn = document.getElementById('refreshCache');
+        if (refreshCacheBtn) {
+          refreshCacheBtn.addEventListener('click', function() {
+            if (!C9.Store.state.loadedStartDate || !C9.Store.state.loadedEndDate) return;
+
+            const container = document.getElementById('calendarTimeLineContainer');
+            const zoomInput = document.getElementById('dateZoomInput');
+            const apertureInput = document.getElementById('apertureWidthInput');
+
+            if (container && zoomInput && apertureInput) {
+              const apertureWidth = parseFloat(apertureInput.innerText) || 1000;
+              const dateZoom = parseFloat(zoomInput.innerText) || 7;
+              const pixelsPerDay = apertureWidth / dateZoom;
+              const msPerDay = 24 * 60 * 60 * 1000;
+              const currentScroll = container.scrollLeft;
+              const exactTimeMs = C9.Store.state.loadedStartDate.getTime() + ((currentScroll / pixelsPerDay) * msPerDay);
+              sessionStorage.setItem('savedAnchorMs', exactTimeMs);
+            }
+            const lastSyncTime = localStorage.getItem('lastSyncTime');
+            C9.SyncEngine.fetchLedgerData(C9.Store.state.loadedStartDate.toISOString(), C9.Store.state.loadedEndDate.toISOString(), lastSyncTime);
+            C9.QuerySpace.fetchAll();
+          });
+        }
+
+        const listContainer = document.getElementById('calendarListScrollContainer');
+        if (listContainer) {
+          listContainer.addEventListener('click', (e) => {
+            const clickedRow = e.target.closest('.calendar-list-row');
+            if (!clickedRow) return;
+
+            const eventId = clickedRow.dataset.id;
+            if (eventId) {
+              C9.Forms.renderDetails(eventId);
+            }
+          });
+        }
+      },
+
+      initializeFullscreenControls: function() {
+        const openBtn = document.getElementById('fullscreenButton');
+        //const closeBtn = document.getElementById('closeFullscreenButton'); // If you have one
+
+        if (openBtn) {
+          openBtn.addEventListener('click', () => {
+            C9.Screen.open();
+          });
+        }
+
+        //if (closeBtn) {
+        //  closeBtn.addEventListener('click', () => {
+        //    C9.Screen.close();
+        //  });
+        //}
+      },
+
+      initializeQuerySpaceControls: function() {
+
+        // 1. THE LIST DELEGATOR (Clicking a QS to make it active)
+        const listContainer = document.getElementById('queryspacesList');
+        if (listContainer) {
+          listContainer.addEventListener('click', (e) => {
+            const clickedRow = e.target.closest('.qs-list-row');
+            if (!clickedRow) return;
+
+            const selectedId = clickedRow.dataset.qsid;
+            const qs = C9.Store.state.globalQuerySpaces.find(q => q.qsId === selectedId);
+            if (!qs) return;
+
+            // Set Global State
+            C9.Store.state.activeQuerySpaceId = qs.qsId;
+
+            // === THE ONE-LINE FIX ===
+            if (typeof C9.Compositor !== 'undefined') C9.Compositor.buildRenderQueue();
+            // ========================
+
+            // Populate Builder UI
+            const titleInput = document.getElementById('queryspaceEntryTitleInput');
+            // ... (rest remains the same)
+            if (titleInput) titleInput.textContent = qs.name;
+
+            const descSpan = document.getElementById('queryspaceEntryDescriptionInput');
+            if (descSpan) {
+              descSpan.textContent = qs.rawDescription;
+              descSpan.style.whiteSpace = 'pre-wrap';
+            }
+
+            // Draw the side panel
+            C9.QuerySpaceView.renderActiveRefs(qs.qsId);
+
+            // Redraw Timeline if Lens is ON
+            if (C9.Store.state.filterTimelineByAQ) {
+              C9.Timeline.render();
+              if (typeof C9.Lists !== 'undefined') C9.Lists.renderEvents();
+            }
+          });
+        }
+
+        // 2. CREATE NEW QUERY SPACE BUTTON
+        const createBtn = document.getElementById('queryspaceCreateBtn');
+        if (createBtn) {
+          createBtn.addEventListener('click', () => {
+            const statusField = document.getElementById('queryspaceEntryStatusField');
+            const titleInput = document.getElementById('queryspaceEntryTitleInput');
+            const symbolInput = document.getElementById('queryspaceEntrySymbolInput');
+
+            if (!titleInput || !symbolInput) return;
+
+            const rawTitle = titleInput.textContent.trim();
+            const rawSymbol = symbolInput.textContent.trim();
+
+            if (!rawTitle || rawTitle === '-') {
+              if (statusField) statusField.textContent = 'Error: Title cannot be empty.';
+              return;
+            }
+
+            const isDuplicate = C9.Store.state.globalQuerySpaces.some(qs => qs.name.toLowerCase() === rawTitle.toLowerCase());
+            if (isDuplicate) {
+              if (statusField) statusField.textContent = `Error: Space "${rawTitle}" exists.`;
+              return;
+            }
+
+            const timestamp = Date.now();
+            const qsId = `qs-jtp-${timestamp}`;
+            const formattedDescription = `[#C9QSE]\nsymbol: ${rawSymbol || '*'}\nname: ${rawTitle}\nid: ${qsId}\ntimestamp: ${timestamp}\nlastModified: ${timestamp}\n[/#C9QSE]`;
+            const startTime = new Date();
+            const endTime = new Date(timestamp + (15 * 60 * 1000));
+
+            const payload = {
+              title: rawTitle,
+              description: formattedDescription,
+              startIso: startTime.toISOString(),
+              endIso: endTime.toISOString()
+            };
+
+            if (statusField) statusField.textContent = 'Saving to Google...';
+
+            C9.QuerySpace.pushNewSpaceToGoogle(payload)
+              .then(() => {
+                if (statusField) statusField.textContent = 'Success. Click Refresh to load.';
+              })
+              .catch(err => {
+                console.error("Failed to create Query Space:", err);
+                if (statusField) statusField.textContent = 'Error saving to Google.';
+              });
+          });
+        }
+
+        // 3. STAGE REFERENCE BUTTON
+    const loadBtn = document.getElementById('loadEntryInAddToQueryspaceWindow');
+    if (loadBtn) {
+      loadBtn.addEventListener('click', () => {
+        const statusField = document.getElementById('addToQueryspaceEntryStatusField');
+
+        if (!C9.Store.state.activeQuerySpaceId) {
+          if (statusField) statusField.textContent = 'Error: Select a Query Space first.';
+          return;
+        }
+
+        const titleField = document.getElementById('calendarEventTitleInput');
+        const targetTitle = titleField ? titleField.textContent : 'Unknown Entry';
+
+        const thingInput = document.getElementById('addToQueryspaceEntryThingInput');
+        if (thingInput) thingInput.textContent = targetTitle;
+
+        // Generate strict temporal coordinates at the moment of staging
+        const stagingTimestamp = Date.now();
+        const stagedId = `qsr-jtp-unk-${stagingTimestamp}`;
+
+        const descInput = document.getElementById('addToQueryspaceEntryDescriptionInput');
+        if (descInput) {
+          descInput.textContent = `[#C9QSCR]
+id: ${stagedId}
+timestamp: ${stagingTimestamp}
+[#C9QSER]
+id: ${C9.Store.state.activeQuerySpaceId}
+[/#C9QSER]
+[#C9R]
+id: ${C9.Store.state.activeLedgerEntry}
+[/#C9R]
+[/#C9QSCR]`;
+        }
+
+        if (statusField) statusField.textContent = 'Ready to add.';
+      });
+    }
+
+        // 4. COMMIT REFERENCE BUTTON
+        const addBtn = document.getElementById('queryspaceLedgerEntryAddBtn');
+        if (addBtn) {
+          addBtn.addEventListener('click', () => {
+            const descInput = document.getElementById('addToQueryspaceEntryDescriptionInput');
+            const thingInput = document.getElementById('addToQueryspaceEntryThingInput');
+            const statusField = document.getElementById('addToQueryspaceEntryStatusField');
+
+            if (!descInput || !descInput.textContent) return;
+
+            const rawDesc = descInput.textContent;
+            const title = thingInput && thingInput.textContent !== '-' ? `QS-REF: ${thingInput.textContent}` : 'QS-REF';
+
+            // Extract IDs and the staged timestamp directly from the UI payload
+            const qsMatch = rawDesc.match(/\[#C9QSER\][\s\S]*?id:\s*([^\n\[]+)/);
+            const refMatch = rawDesc.match(/\[#C9R\][\s\S]*?id:\s*([^\n\[]+)/);
+            const tsMatch = rawDesc.match(/timestamp:\s*(\d+)/);
+
+            // Strict rejection if the payload was manually corrupted before committing
+            if (!qsMatch || !refMatch || !tsMatch) {
+              if (statusField) statusField.textContent = 'Error: Invalid reference format or missing timestamp.';
+              return;
+            }
+
+            if (statusField) statusField.textContent = 'Saving to Google...';
+
+            const explicitTimestamp = parseInt(tsMatch[1].trim(), 10);
+
+            const payload = {
+              title: title,
+              description: rawDesc,
+              startIso: new Date(explicitTimestamp).toISOString(),
+              endIso: new Date(explicitTimestamp + (15 * 60 * 1000)).toISOString()
+            };
+
+            C9.QuerySpace.pushNewReferenceToGoogle(payload)
+              .then(() => {
+                if (statusField) statusField.textContent = 'Success. Click Refresh to load.';
+                if (descInput) descInput.textContent = '';
+                if (thingInput) thingInput.textContent = '-';
+              })
+              .catch(err => {
+                console.error("Failed to add reference:", err);
+                if (statusField) statusField.textContent = 'Error saving to Google.';
+              });
+          });
+        }
+      }
+    };
+
+    window.C9.Screen = {
+      open: function() {
+        if (document.documentElement.requestFullscreen) {
+          document.documentElement.requestFullscreen();
+        } else if (document.documentElement.webkitRequestFullscreen) { /* Safari */
+          document.documentElement.webkitRequestFullscreen();
+        } else if (document.documentElement.msRequestFullscreen) { /* IE11 */
+          document.documentElement.msRequestFullscreen();
+        }
+        document.documentElement.blur();
+
+        const btn = document.getElementById("fullscreenButton");
+        if (btn) btn.blur();
+      },
+
+      close: function() {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) { /* Safari */
+          document.webkitExitFullscreen();
+        } else if (document.msExitFullscreen) { /* IE11 */
+          document.msExitFullscreen();
+        }
+      }
+    };
+</script>

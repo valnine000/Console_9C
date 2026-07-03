@@ -1,0 +1,44 @@
+<script type="text/javascript">
+    // ==========================================
+    // STATE STORE (UNIDIRECTIONAL DATA FLOW)
+    // ==========================================
+    window.C9.Store = {
+      state: {
+        // 1. Data & Memory
+        memoryStore: [],
+        isFetching: false,
+        loadedStartDate: null,
+        loadedEndDate: null,
+
+        // 2. Query Spaces & Lenses
+        globalQuerySpaces: [],
+        globalQuerySpaceRefs: [],
+        activeQuerySpaceId: null,
+        activeLedgerEntry: null,
+        stagedGoogleCalendarId: null,
+
+        // 3. Display Toggles
+        showEventTime: false,
+        showEventSymbol: false,
+        showEventThing: true,
+        showEventDesc: false,
+        showQuerySpace: false,
+        filterTimelineByAQ: false,
+
+        // 4. UI Configuration & Spatial Memory
+        currentFontSize: 12,
+        currentDefaultFontSize: 12,
+        currentButtonFontSize: 10,
+        currentTickScale: 0.5,
+        timelineStackCount: 1,
+        activeCollisionStrategy: 'chronological_waterfall',
+        lastRenderedScrollX: 0
+      },
+
+      // The explicit update cycle.
+      // Pass an object like { showEventTime: true } to merge it into the state.
+      update: function(partialState) {
+        Object.assign(this.state, partialState);
+      }
+    };
+</script>

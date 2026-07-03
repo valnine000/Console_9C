@@ -1,0 +1,114 @@
+<script type="text/javascript">
+    // ==========================================
+    // VIEW: LIST & FEED RENDERERS
+    // ==========================================
+    window.C9.Lists = {
+
+      renderEvents: function() {
+        const container = document.getElementById('calendar');
+        const timelineContainer = document.getElementById('calendarTimeLineContainer');
+        const zoomInput = document.getElementById('dateZoomInput');
+        const apertureInput = document.getElementById('apertureWidthInput');
+
+        if (!container || !timelineContainer || !zoomInput || !apertureInput || !C9.Store.state.loadedStartDate) return;
+
+        // === ACTIVE QUERY SPACE LENS PREP ===
+        let aqTargetIds = new Set();
+        if (C9.Store.state.filterTimelineByAQ && C9.Store.state.activeQuerySpaceId) {
+          C9.Store.state.globalQuerySpaceRefs.forEach(ref => {
+            if (ref.qsId === C9.Store.state.activeQuerySpaceId) {
+              aqTargetIds.add(ref.ledgerId);
+            }
+          });
+        }
+
+        // 1. Calculate Aperture Window
+        const apertureWidth = parseFloat(apertureInput.innerText) || 1000;
+        const dateZoom = parseFloat(zoomInput.innerText) || 7;
+        const pixelsPerDay = apertureWidth / dateZoom;
+        const msPerDay = 24 * 60 * 60 * 1000;
+
+        const currentScroll = timelineContainer.scrollLeft;
+        const viewportWidth = timelineContainer.clientWidth;
+        const zeroMs = C9.Store.state.loadedStartDate.getTime();
+
+        const visibleStartMs = zeroMs + (currentScroll / pixelsPerDay) * msPerDay;
+        const visibleEndMs = zeroMs + ((currentScroll + viewportWidth) / pixelsPerDay) * msPerDay;
+
+        // 2. Filter visible events
+        const visibleEvents = C9.Store.state.memoryStore.filter(ev => {
+
+<!--            console.log("renderEvents: function() { -> ", ev);-->
+
+          if (!C9.Store.state.showQuerySpace && ev.source === 'queryspace') return false;
+
+          if (C9.Store.state.filterTimelineByAQ) {
+             if (!C9.Store.state.activeQuerySpaceId || !aqTargetIds.has(ev.id)) return false;
+          }
+
+          const evStartMs = new Date(ev.startTime).getTime();
+          const evEndMs = new Date(ev.endTime).getTime();
+
+          return (evStartMs <= visibleEndMs) && (evEndMs >= visibleStartMs);
+        });
+
+        // 3. Build the DOM
+        container.replaceChildren();
+        const listContainer = document.createElement('div');
+        listContainer.style.width = '100%';
+
+        let lastRenderedDate = null;
+
+        visibleEvents.forEach(function(ev) {
+          const d = new Date(ev.startTime);
+          const m = d.getMonth() + 1;
+          const dd = d.getDate().toString().padStart(2, '0');
+          const yy = d.getFullYear().toString().slice(-2);
+          const dateString = m + "/" + dd + "/" + yy;
+
+          let h = d.getHours();
+          const ampm = h >= 12 ? 'pm' : 'am';
+          h = h % 12 || 12;
+          const mm = d.getMinutes().toString().padStart(2, '0');
+          const timeString = h + ":" + mm + ampm;
+
+          if (dateString !== lastRenderedDate) {
+            const dateHeader = document.createElement('div');
+            dateHeader.style.textAlign = 'left';
+            dateHeader.style.margin = '0px 0px 0px 8px';
+            dateHeader.textContent = dateString;
+            listContainer.appendChild(dateHeader);
+            lastRenderedDate = dateString;
+          }
+
+          const linePara = document.createElement('p');
+          linePara.style.margin = '0px 8px 4px 0px';
+          linePara.classList.add('calendar-list-row');
+          linePara.dataset.id = ev.id;
+
+          const timeSpan = document.createElement('span');
+          timeSpan.classList.add('defaultColumn1Width');
+          timeSpan.style.display = 'inline-block';
+          timeSpan.style.textAlign = 'right';
+          timeSpan.style.whiteSpace = 'nowrap';
+          timeSpan.style.boxSizing = 'border-box';
+          timeSpan.style.verticalAlign = 'top';
+          timeSpan.style.paddingRight = '4px';
+          timeSpan.textContent = timeString;
+
+          const titleSpan = document.createElement('span');
+          titleSpan.classList.add('defaultColumn2Width');
+          titleSpan.style.display = 'inline-block';
+          titleSpan.style.verticalAlign = 'top';
+          titleSpan.style.paddingLeft = '4px';
+          titleSpan.textContent = ev.title;
+
+          linePara.appendChild(timeSpan);
+          linePara.appendChild(titleSpan);
+          listContainer.appendChild(linePara);
+        });
+
+        container.appendChild(listContainer);
+      }
+    };
+</script>

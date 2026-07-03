@@ -1,0 +1,7 @@
+.idea/
+.DS_Store
+
+# Google Apps Script / Local Configuration Secrets
+#C9.Config.js
+_Secrets.js
+.clasp.json

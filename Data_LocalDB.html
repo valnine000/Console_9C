@@ -1,0 +1,120 @@
+<script type="text/javascript">
+    // ==========================================
+    // CORE DATA: LOCAL INDEXED-DB
+    // ==========================================
+    window.C9 = window.C9 || {};
+
+    window.C9.LocalDB = {
+      dbName: 'Console9LocalDB',
+      dbVersion: 4,
+      dbInstance: null,
+
+      initialize: function() {
+        return new Promise((resolve, reject) => {
+          const request = indexedDB.open(this.dbName, this.dbVersion);
+
+          request.onupgradeneeded = (event) => {
+            const db = event.target.result;
+            if (!db.objectStoreNames.contains('ledger_events')) {
+              const store = db.createObjectStore('ledger_events', { keyPath: 'id' });
+              store.createIndex('googleCalendarId', 'googleCalendarId', { unique: false });
+              store.createIndex('idt', 'idt', { unique: false });
+              store.createIndex('timestamp', 'timestamp', { unique: false });
+              console.log("[LOCAL DB] Database upgraded: 'ledger_events' store created.");
+            }
+          };
+
+          request.onsuccess = (event) => {
+            this.dbInstance = event.target.result;
+            console.log("[LOCAL DB] Connection established successfully.");
+            resolve(this.dbInstance);
+          };
+
+          request.onerror = (event) => {
+            console.error("[LOCAL DB] Connection failed:", event.target.error);
+            reject(event.target.error);
+          };
+        });
+      },
+
+      // 1. Pure Write: Expects an array of fully-formed Console 9 Objects
+      saveBatch: function(c9RecordsArray) {
+        return new Promise((resolve, reject) => {
+          if (!this.dbInstance) return reject("LocalDB not initialized.");
+
+          const transaction = this.dbInstance.transaction(['ledger_events'], 'readwrite');
+          const store = transaction.objectStore('ledger_events');
+
+          c9RecordsArray.forEach(record => {
+            store.put(record);
+          });
+
+          transaction.oncomplete = () => {
+            console.log(`[LOCAL DB] Successfully saved ${c9RecordsArray.length} records to disk.`);
+            resolve();
+          };
+
+          transaction.onerror = (event) => {
+            console.error("[LOCAL DB] Save batch failed:", event.target.error);
+            reject(event.target.error);
+          };
+        });
+      },
+
+      // 2. Pure Read
+      getAll: function() {
+        return new Promise((resolve, reject) => {
+          if (!this.dbInstance) return reject("LocalDB not initialized.");
+
+          const transaction = this.dbInstance.transaction(['ledger_events'], 'readonly');
+          const store = transaction.objectStore('ledger_events');
+          const request = store.getAll();
+
+          request.onsuccess = () => resolve(request.result);
+          request.onerror = (event) => reject(event.target.error);
+        });
+      },
+
+      // 3. Pure Delete
+      deleteById: function(deleteId) {
+        return new Promise((resolve, reject) => {
+          if (!this.dbInstance) return reject("LocalDB not initialized.");
+
+          const transaction = this.dbInstance.transaction(['ledger_events'], 'readwrite');
+          const store = transaction.objectStore('ledger_events');
+
+          const request = store.openCursor();
+          request.onsuccess = function(event) {
+            const cursor = event.target.result;
+            if (cursor) {
+              // Check both properties just in case of legacy data
+              if (cursor.value.googleCalendarId === deleteId || cursor.value.id === deleteId) {
+                cursor.delete();
+              }
+              cursor.continue();
+            } else {
+              resolve(); // Reached the end
+            }
+          };
+          request.onerror = (event) => reject(event.target.error);
+        });
+      },
+
+      // 4. Pure Nuke
+      clearAll: function() {
+        return new Promise((resolve, reject) => {
+          if (!this.dbInstance) return reject("LocalDB not initialized.");
+
+          const transaction = this.dbInstance.transaction(['ledger_events'], 'readwrite');
+          const store = transaction.objectStore('ledger_events');
+          const request = store.clear();
+
+          request.onsuccess = () => {
+            console.log("[LOCAL DB] Database completely cleared.");
+            resolve();
+          };
+          request.onerror = (event) => reject(event.target.error);
+        });
+      }
+    };
+</script>

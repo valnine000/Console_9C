@@ -1,0 +1,317 @@
+<script type="text/javascript">
+    // ==========================================
+    // CORE DATA SERVICE: SYNC ENGINE & ACL
+    // ==========================================
+    window.C9 = window.C9 || {};
+
+    window.C9.SyncEngine = {
+
+      // --- THE ANTI-CORRUPTION LAYER (ACL) ---
+      // Translates chaotic external payloads into pure Console 9 Entities
+      translateGooglePayload: function(googleEventsArray) {
+        return googleEventsArray.map(ev => {
+
+          // 1. Extract the Core Console 9 Qualities
+          const cleanDesc = ev.description ? C9.Parser.cleanHtmlText(ev.description) : "";
+          const c9_data = C9.Parser.extractC9Block(cleanDesc, 'C9D');
+
+          // 2. Build the True Entity Record
+          return {
+            id: C9.Parser.extractC9Field(cleanDesc, 'id') || '',
+            symbol: C9.Parser.extractC9Field(cleanDesc, 'symbol') || '',
+            thing: C9.Parser.extractC9Field(cleanDesc, 'thing') || '',
+            idt: C9.Parser.extractC9Field(cleanDesc, 'idt') || '',
+            duration: C9.Parser.extractC9Field(cleanDesc, 'duration') || '',
+            timestamp: C9.Parser.extractC9Field(cleanDesc, 'timestamp') || '',
+            data: c9_data,
+            source: ev.source || 'primary',
+
+            // --- GOOGLE CALENDAR MANAGEMENT ---
+            googleCalendarId: ev.googleCalendarId,
+            startTime: ev.startTime,
+            endTime: ev.endTime,
+            title: ev.title,
+            description: ev.description
+          };
+        });
+      },
+
+      initializeDataStore: function() {
+      // 1. Wait for database connection via the new LocalDB object
+      C9.LocalDB.initialize().then(() => {
+        // 2. Scoop up the entire local history
+        return C9.LocalDB.getAll();
+      }).then((localDbData) => {
+        const lastSyncTime = localStorage.getItem('lastSyncTime');
+        console.log('[PROBE 2] Local db retrieval complete. Records found:', localDbData.length);
+
+        const baseDate = new Date();
+        baseDate.setHours(0, 0, 0, 0);
+
+        if (localDbData && localDbData.length > 0) {
+          // Data is injected into the Store HERE
+          C9.Store.state.memoryStore = localDbData;
+          C9.Store.state.memoryStore.sort((a, b) => new Date(a.startTime) - new Date(b.startTime));
+
+          C9.Store.state.loadedStartDate = new Date(C9.Store.state.memoryStore[0].startTime);
+          C9.Store.state.loadedEndDate = new Date(C9.Store.state.memoryStore[C9.Store.state.memoryStore.length - 1].startTime);
+
+          // === THE CORRECT WAKE UP ===
+          // The Compositor is built NOW, after memoryStore is populated.
+          if (C9.Compositor) {
+            C9.Compositor.buildRenderQueue();
+          }
+          // ===========================
+
+          C9.Timeline.render();
+          if (typeof C9.Lists !== 'undefined' && typeof C9.Lists.renderEvents === 'function') {
+            C9.Lists.renderEvents();
+          }
+
+          if (typeof C9.Timeline.MapsToDate === 'function') {
+              const d = new Date();
+              d.setHours(0, 0, 0, 0);
+              d.setDate(d.getDate() - d.getDay());
+              C9.Timeline.MapsToDate(d);
+          }
+
+          if (lastSyncTime) {
+            this.fetchLedgerData(C9.Store.state.loadedStartDate.toISOString(), C9.Store.state.loadedEndDate.toISOString(), lastSyncTime);
+          }
+        } else {
+          C9.Store.state.loadedStartDate = new Date(baseDate);
+          C9.Store.state.loadedStartDate.setDate(C9.Store.state.loadedStartDate.getDate() - C9.FETCH_CHUNK_DAYS);
+          C9.Store.state.loadedEndDate = new Date(baseDate);
+          C9.Store.state.loadedEndDate.setDate(C9.Store.state.loadedEndDate.getDate() + C9.FETCH_CHUNK_DAYS);
+
+          this.fetchLedgerData(C9.Store.state.loadedStartDate.toISOString(), C9.Store.state.loadedEndDate.toISOString(), null);
+        }
+      }).catch(err => {
+        console.error("[LOCAL DB] Critical initialization failure:", err);
+      });
+    },
+
+      fetchLedgerData: function(start, end, lastSyncTime) {
+        C9.Repository.fetchGoogleCalendarThings(start, end, lastSyncTime)
+          .then((payload) => this.onCalendarDataFetched(payload))
+          .catch(err => console.error("Failed to fetch ledger data:", err));
+      },
+
+      onCalendarDataFetched: function(response) {
+        const payload = response.events || [];
+        if (response.errors && response.errors.length > 0) {
+          console.warn("Calendar Sync Errors:", response.errors);
+        }
+
+        if (payload.length === 0) return;
+
+        payload.forEach(e => {
+          e.googleCalendarId = e.googleCalendarId;
+        });
+
+        const cancelledEvents = payload.filter(e => e.status === 'cancelled');
+        const activeEvents = payload.filter(e => e.status !== 'cancelled');
+
+        // 1. Execute DB Deletes
+        const deletePromises = cancelledEvents.map(e => C9.LocalDB.deleteById(e.googleCalendarId));
+
+        Promise.all(deletePromises).then(() => {
+          // 2. Translate and Save
+          if (activeEvents.length > 0) {
+            const translatedRecords = this.translateGooglePayload(activeEvents);
+
+            C9.LocalDB.saveBatch(translatedRecords).then(() => {
+              localStorage.setItem('lastSyncTime', new Date().toISOString());
+              this.reloadApplicationState();
+            }).catch(err => console.error("[LOCAL DB] Failed to sync server payload:", err));
+          } else {
+            localStorage.setItem('lastSyncTime', new Date().toISOString());
+            this.reloadApplicationState();
+          }
+        });
+      },
+
+      reloadApplicationState: function() {
+        return C9.LocalDB.getAll().then((localDbData) => {
+          console.log('[PROBE 4] Reloading UI from local database. Records found:', localDbData.length);
+
+          if (localDbData && localDbData.length > 0) {
+            C9.Store.state.memoryStore = localDbData;
+            C9.Store.state.memoryStore.sort((a, b) => new Date(a.startTime) - new Date(b.startTime));
+
+            C9.Store.state.loadedStartDate = new Date(C9.Store.state.memoryStore[0].startTime);
+            C9.Store.state.loadedStartDate.setHours(0, 0, 0, 0);
+
+            C9.Store.state.loadedEndDate = new Date(C9.Store.state.memoryStore[C9.Store.state.memoryStore.length - 1].startTime);
+            C9.Store.state.loadedEndDate.setHours(0, 0, 0, 0);
+            C9.Store.state.loadedEndDate.setDate(C9.Store.state.loadedEndDate.getDate() + 1);
+
+            // Build the queue before drawing
+            if (typeof C9.Compositor !== 'undefined') C9.Compositor.buildRenderQueue();
+
+            C9.Timeline.render();
+            if (typeof C9.Lists !== 'undefined' && typeof C9.Lists.renderEvents === 'function') {
+              C9.Lists.renderEvents();
+            }
+
+            const savedAnchorMs = sessionStorage.getItem('savedAnchorMs');
+            if (window.pendingJumpTarget) {
+              if (typeof C9.Timeline.MapsToDate === 'function') C9.Timeline.MapsToDate(window.pendingJumpTarget);
+              window.pendingJumpTarget = null;
+            } else if (savedAnchorMs !== null) {
+              const targetMs = parseFloat(savedAnchorMs);
+              const container = document.getElementById('calendarTimeLineContainer');
+              const zoomInput = document.getElementById('dateZoomInput');
+              const apertureInput = document.getElementById('apertureWidthInput');
+
+              if (container && zoomInput && apertureInput && C9.Store.state.loadedStartDate) {
+                const apertureWidth = parseFloat(apertureInput.innerText) || 1000;
+                const dateZoom = parseFloat(zoomInput.innerText) || 7;
+                const pixelsPerDay = apertureWidth / dateZoom;
+                const msPerDay = 24 * 60 * 60 * 1000;
+
+                const deltaMs = targetMs - C9.Store.state.loadedStartDate.getTime();
+                container.scrollLeft = (deltaMs / msPerDay) * pixelsPerDay;
+              }
+              sessionStorage.removeItem('savedAnchorMs');
+            } else {
+              if (typeof C9.Timeline.MapsToDate === 'function') {
+                const d = new Date();
+                d.setHours(0, 0, 0, 0);
+                d.setDate(d.getDate() - d.getDay());
+                C9.Timeline.MapsToDate(d);
+              }
+            }
+          }
+        }).catch(err => {
+          console.error("Failed to reload application state from Local DB:", err);
+        });
+      },
+
+      fetchMoreData: function(direction) {
+        C9.Store.state.isFetching = true;
+        let fetchStart, fetchEnd;
+
+        if (direction === 'past') {
+          fetchEnd = new Date(C9.Store.state.loadedStartDate);
+          fetchStart = new Date(C9.Store.state.loadedStartDate);
+          fetchStart.setDate(fetchStart.getDate() - C9.FETCH_CHUNK_DAYS);
+        } else {
+          fetchStart = new Date(C9.Store.state.loadedEndDate);
+          fetchEnd = new Date(C9.Store.state.loadedEndDate);
+          fetchEnd.setDate(fetchEnd.getDate() + C9.FETCH_CHUNK_DAYS);
+        }
+
+        C9.Repository.fetchGoogleCalendarThings(fetchStart.toISOString(), fetchEnd.toISOString(), null)
+          .then((payload) => this.processNewData(payload, direction, fetchStart, fetchEnd))
+          .catch(err => {
+            console.error("Infinite scroll fetch failed:", err);
+            C9.Store.state.isFetching = false;
+          });
+      },
+
+      processNewData: function(response, direction, newStart, newEnd) {
+        const payload = response.events || [];
+        if (response.errors && response.errors.length > 0) {
+          console.warn("Calendar Sync Errors:", response.errors);
+        }
+
+        if (payload.length === 0) {
+          console.warn("Google returned 0 events for this date range.");
+          C9.Store.state.isFetching = false;
+          return;
+        }
+
+        const container = document.getElementById('calendarTimeLineContainer');
+        const zoomInput = document.getElementById('dateZoomInput');
+        const apertureInput = document.getElementById('apertureWidthInput');
+
+        if (container && C9.Store.state.loadedStartDate && zoomInput && apertureInput) {
+          const apertureWidth = parseFloat(apertureInput.innerText) || 1000;
+          const dateZoom = parseFloat(zoomInput.innerText) || 7;
+          const pixelsPerDay = apertureWidth / dateZoom;
+          const msPerDay = 24 * 60 * 60 * 1000;
+          const anchorMs = C9.Store.state.loadedStartDate.getTime() + ((container.scrollLeft / pixelsPerDay) * msPerDay);
+          sessionStorage.setItem('savedAnchorMs', anchorMs.toString());
+        }
+
+        payload.forEach(e => {
+          e.googleCalendarId = e.id;
+        });
+
+        // Translate the raw payload into pure C9 Objects
+        const translatedRecords = this.translateGooglePayload(payload);
+
+        // Save the translated objects directly
+        C9.LocalDB.saveBatch(translatedRecords)
+          .then(() => {
+            this.integrateAndPruneMemory(translatedRecords, direction);
+          })
+          .catch(err => {
+            console.error("[LOCAL DB] Infinite scroll chunk save failed:", err);
+            C9.Store.state.isFetching = false;
+          });
+      },
+
+      integrateAndPruneMemory: function(translatedRecords, direction) {
+        const existingIds = new Set(C9.Store.state.memoryStore.map(ev => ev.googleCalendarId));
+        const uniqueNew = translatedRecords.filter(ev => !existingIds.has(ev.googleCalendarId));
+
+        C9.Store.state.memoryStore.push(...uniqueNew);
+        C9.Store.state.memoryStore.sort((a, b) => new Date(a.startTime) - new Date(b.startTime));
+
+        const isPrepending = (direction === 'past');
+
+        while (C9.Store.state.memoryStore.length > 1) {
+          const startMs = new Date(C9.Store.state.memoryStore[0].startTime).getTime();
+          const endMs = new Date(C9.Store.state.memoryStore[C9.Store.state.memoryStore.length - 1].startTime).getTime();
+          if ((endMs - startMs) <= C9.MAX_CACHE_MS) break;
+
+          if (isPrepending) {
+            C9.Store.state.memoryStore.pop();
+          } else {
+            C9.Store.state.memoryStore.shift();
+          }
+        }
+
+        if (C9.Store.state.memoryStore.length > 0) {
+          C9.Store.state.loadedStartDate = new Date(C9.Store.state.memoryStore[0].startTime);
+          C9.Store.state.loadedStartDate.setHours(0, 0, 0, 0);
+          C9.Store.state.loadedEndDate = new Date(C9.Store.state.memoryStore[C9.Store.state.memoryStore.length - 1].startTime);
+          C9.Store.state.loadedEndDate.setHours(0, 0, 0, 0);
+          C9.Store.state.loadedEndDate.setDate(C9.Store.state.loadedEndDate.getDate() + 1);
+        }
+
+        // === THE COMPOSITOR HANDOFF ===
+        // The data has changed. Tell the Compositor to build a new package.
+        if (typeof C9.Compositor !== 'undefined') {
+          C9.Compositor.buildRenderQueue();
+        }
+        // ==============================
+
+        C9.Timeline.render();
+        if (typeof C9.Lists !== 'undefined' && typeof C9.Lists.renderEvents === 'function') {
+          C9.Lists.renderEvents();
+        }
+
+        const savedAnchorMs = sessionStorage.getItem('savedAnchorMs');
+        const container = document.getElementById('calendarTimeLineContainer');
+        const zoomInput = document.getElementById('dateZoomInput');
+        const apertureInput = document.getElementById('apertureWidthInput');
+
+        if (savedAnchorMs !== null && container && zoomInput && apertureInput && C9.Store.state.loadedStartDate) {
+          const targetMs = parseFloat(savedAnchorMs);
+          const apertureWidth = parseFloat(apertureInput.innerText) || 1000;
+          const dateZoom = parseFloat(zoomInput.innerText) || 7;
+          const pixelsPerDay = apertureWidth / dateZoom;
+          const msPerDay = 24 * 60 * 60 * 1000;
+
+          const deltaMs = targetMs - C9.Store.state.loadedStartDate.getTime();
+          container.scrollLeft = (deltaMs / msPerDay) * pixelsPerDay;
+          sessionStorage.removeItem('savedAnchorMs');
+        }
+
+        C9.Store.state.isFetching = false;
+      }
+    };
+</script>
