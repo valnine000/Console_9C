@@ -70,48 +70,39 @@
       initializeApertureControl: function() {
         const apertureInput = document.getElementById('apertureWidthInput');
         const zoomInput = document.getElementById('dateZoomInput');
-        const timeline = document.getElementById('calendarTimeline');
 
-        if (!apertureInput || !zoomInput || !timeline) return;
-
-        const initAperture = apertureInput.innerText.trim();
-        if (initAperture) timeline.style.width = initAperture + 'px';
+        if (!apertureInput || !zoomInput) return;
 
         apertureInput.addEventListener('keydown', (e) => {
           if (e.key === 'Enter') {
             e.preventDefault();
             const container = document.getElementById('calendarTimeLineContainer');
-
             let anchorMs = null;
+
+            // Calculate spatial anchor based on OLD state before mutating
             if (container && C9.Store.state.loadedStartDate) {
-              const oldContainerWidth = parseFloat(container.style.width) || 1000;
-              const oldDateZoom = parseFloat(zoomInput.innerText) || 7;
-              const oldPixelsPerDay = oldContainerWidth / oldDateZoom;
+              const oldPixelsPerDay = C9.Store.state.apertureWidth / C9.Store.state.dateZoom;
               const msPerDay = 24 * 60 * 60 * 1000;
-              const currentScroll = container.scrollLeft;
-              const daysFromZero = currentScroll / oldPixelsPerDay;
+              const daysFromZero = container.scrollLeft / oldPixelsPerDay;
               anchorMs = C9.Store.state.loadedStartDate.getTime() + (daysFromZero * msPerDay);
             }
 
-            const oldContainerWidth = container ? parseFloat(container.style.width) : 1000;
-            const oldDateZoom = parseFloat(zoomInput.innerText) || 7;
-            const baselineScale = oldContainerWidth / oldDateZoom;
-            const newInputValue = parseFloat(apertureInput.innerText);
+            const newAperture = parseFloat(apertureInput.innerText);
+            if (!isNaN(newAperture) && newAperture > 0) {
+              const baselineScale = C9.Store.state.apertureWidth / C9.Store.state.dateZoom;
+              const newDateZoom = newAperture / baselineScale;
 
-            if (!isNaN(baselineScale) && baselineScale !== 0 && !isNaN(newInputValue)) {
-              const newDateZoom = newInputValue / baselineScale;
-              zoomInput.innerText = newDateZoom.toFixed(2);
-              if (container) container.style.width = newInputValue + 'px';
+              C9.Store.update({ apertureWidth: newAperture, dateZoom: newDateZoom });
               apertureInput.blur();
-              if (typeof renderTimeline === 'function') C9.Timeline.render();
 
+              if (typeof C9.Timeline.render === 'function') C9.Timeline.render();
+
+              // Re-anchor scroll based on NEW state
               if (anchorMs !== null && container) {
-                const newDateZoomParsed = parseFloat(zoomInput.innerText);
-                const newPixelsPerDay = newInputValue / newDateZoomParsed;
+                const newPixelsPerDay = C9.Store.state.apertureWidth / C9.Store.state.dateZoom;
                 const msPerDay = 24 * 60 * 60 * 1000;
                 const zeroMs = C9.Store.state.loadedStartDate.getTime();
-                const deltaMs = anchorMs - zeroMs;
-                container.scrollLeft = (deltaMs / msPerDay) * newPixelsPerDay;
+                container.scrollLeft = ((anchorMs - zeroMs) / msPerDay) * newPixelsPerDay;
               }
             }
           }
@@ -121,30 +112,30 @@
           if (e.key === 'Enter') {
             e.preventDefault();
             const container = document.getElementById('calendarTimeLineContainer');
-            const timeline = document.getElementById('calendarTimeline');
             let anchorMs = null;
 
-            if (container && timeline && C9.Store.state.loadedStartDate) {
+            if (container && C9.Store.state.loadedStartDate) {
               const currentScroll = container.scrollLeft;
-              const currentLandscapeWidth = parseFloat(timeline.style.width);
+              const currentPixelsPerDay = C9.Store.state.apertureWidth / C9.Store.state.dateZoom;
               const zeroMs = C9.Store.state.loadedStartDate.getTime();
               const msPerDay = 24 * 60 * 60 * 1000;
-              const totalSpanMs = (C9.Store.state.loadedEndDate ? C9.Store.state.loadedEndDate.getTime() : (zeroMs + 60 * msPerDay)) - zeroMs;
-              const scrollRatio = currentScroll / currentLandscapeWidth;
-              anchorMs = zeroMs + (scrollRatio * totalSpanMs);
+              anchorMs = zeroMs + ((currentScroll / currentPixelsPerDay) * msPerDay);
             }
 
-            zoomInput.blur();
-            if (typeof triggerFetch === 'function') triggerFetch();
+            const newZoom = parseFloat(zoomInput.innerText);
+            if (!isNaN(newZoom) && newZoom > 0) {
+              C9.Store.update({ dateZoom: newZoom });
+              zoomInput.blur();
 
-            if (anchorMs !== null && container) {
-              const apertureWidth = parseFloat(apertureInput.innerText) || 1000;
-              const newDateZoom = parseFloat(zoomInput.innerText) || 7;
-              const pixelsPerDay = apertureWidth / newDateZoom;
-              const msPerDay = 24 * 60 * 60 * 1000;
-              const zeroMs = C9.Store.state.loadedStartDate.getTime();
-              const deltaMs = anchorMs - zeroMs;
-              container.scrollLeft = (deltaMs / msPerDay) * pixelsPerDay;
+              if (typeof triggerFetch === 'function') triggerFetch();
+              if (typeof C9.Timeline.render === 'function') C9.Timeline.render();
+
+              if (anchorMs !== null && container) {
+                const newPixelsPerDay = C9.Store.state.apertureWidth / C9.Store.state.dateZoom;
+                const msPerDay = 24 * 60 * 60 * 1000;
+                const zeroMs = C9.Store.state.loadedStartDate.getTime();
+                container.scrollLeft = ((anchorMs - zeroMs) / msPerDay) * newPixelsPerDay;
+              }
             }
           }
         });
@@ -452,9 +443,9 @@
             const zoomInput = document.getElementById('dateZoomInput');
             const apertureInput = document.getElementById('apertureWidthInput');
 
-            if (container && zoomInput && apertureInput) {
-              const apertureWidth = parseFloat(apertureInput.innerText) || 1000;
-              const dateZoom = parseFloat(zoomInput.innerText) || 7;
+            if (container) {
+              const apertureWidth = C9.Store.state.apertureWidth;
+              const dateZoom = C9.Store.state.dateZoom;
               const pixelsPerDay = apertureWidth / dateZoom;
               const msPerDay = 24 * 60 * 60 * 1000;
               const currentScroll = container.scrollLeft;
