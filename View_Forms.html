@@ -275,6 +275,108 @@
               statusField.style.color = 'var(--c1)';
           }
         }
+      },
+
+      submitNewEvent: function() {
+        const btn = document.getElementById('createNewEntry');
+        const statusField = document.getElementById('calendarEntryStatusField');
+
+        const title = document.getElementById('calendarEntryTitleInput').innerText.trim();
+        const startD = document.getElementById('calendarEntryStartDateInput').innerText.trim();
+        const startT = document.getElementById('calendarEntryStartTimeInput').innerText.trim();
+        const endD = document.getElementById('calendarEntryEndDateInput').innerText.trim();
+        const endT = document.getElementById('calendarEntryEndTimeInput').innerText.trim();
+        const desc = document.getElementById('calendarEntryDescriptionInput').innerText;
+
+        const startDateTime = new Date(`${startD} ${startT}`);
+        const endDateTime = new Date(`${endD} ${endT}`);
+
+        if (isNaN(startDateTime.getTime()) || isNaN(endDateTime.getTime())) {
+          statusField.innerText = "Error: Invalid date/time format.";
+          statusField.style.color = "red";
+          return;
+        }
+
+        btn.style.pointerEvents = 'none';
+        btn.innerText = "Saving...";
+        statusField.innerText = "Creating event...";
+        statusField.style.color = "var(--c1d1)";
+
+        const payload = {
+          title: title,
+          startIso: startDateTime.toISOString(),
+          endIso: endDateTime.toISOString(),
+          description: desc
+        };
+
+        C9.Repository.createEvent(payload)
+          .then((res) => {
+            btn.style.pointerEvents = 'auto';
+            btn.innerText = "New";
+            statusField.innerText = "Event created successfully!";
+            statusField.style.color = "green";
+          })
+          .catch((err) => {
+            btn.style.pointerEvents = 'auto';
+            btn.innerText = "New";
+            statusField.innerText = `Error: ${err.message}`;
+            statusField.style.color = "red";
+          });
+      },
+
+      submitUpdatedEvent: function() {
+        const btn = document.getElementById('updateCalendarEventBtn');
+        const statusField = document.getElementById('calendarEntryStatusField');
+        const eventId = C9.Store.state.stagedGoogleCalendarId;
+
+        if (!eventId || eventId === "-" ) {
+          statusField.innerText = "Error: Invalid or missing Google Event ID.";
+          statusField.style.color = "red";
+          return;
+        }
+
+        const title = document.getElementById('calendarEntryTitleInput').innerText.trim();
+        const startD = document.getElementById('calendarEntryStartDateInput').innerText.trim();
+        const startT = document.getElementById('calendarEntryStartTimeInput').innerText.trim();
+        const endD = document.getElementById('calendarEntryEndDateInput').innerText.trim();
+        const endT = document.getElementById('calendarEntryEndTimeInput').innerText.trim();
+        const desc = document.getElementById('calendarEntryDescriptionInput').innerText;
+
+        const startDateTime = new Date(`${startD} ${startT}`);
+        const endDateTime = new Date(`${endD} ${endT}`);
+
+        if (isNaN(startDateTime.getTime()) || isNaN(endDateTime.getTime())) {
+          statusField.innerText = "Error: Invalid date/time format.";
+          statusField.style.color = "red";
+          return;
+        }
+
+        btn.style.pointerEvents = 'none';
+        btn.innerText = "Updating...";
+        statusField.innerText = "Pushing update to Google...";
+        statusField.style.color = "var(--c1d1)";
+
+        const payload = {
+          eventId: eventId,
+          title: title,
+          startIso: startDateTime.toISOString(),
+          endIso: endDateTime.toISOString(),
+          description: desc
+        };
+
+        C9.Repository.updateEvent(payload)
+          .then((res) => {
+            btn.style.pointerEvents = 'auto';
+            btn.innerText = "Update";
+            statusField.innerText = "Successfully updated on Google!";
+            setTimeout(() => { if (statusField.innerText === 'Successfully updated on Google!') statusField.innerText = '-'; }, 3000);
+          })
+          .catch((err) => {
+            btn.style.pointerEvents = 'auto';
+            btn.innerText = "Update";
+            statusField.innerText = `Error: ${err.message}`;
+            statusField.style.color = "red";
+          });
       }
     };
 </script>

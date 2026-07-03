@@ -12,8 +12,6 @@
         const state = C9.Store.state;
         const timeline = document.getElementById('calendarTimeline');
         const container = document.getElementById('calendarTimeLineContainer');
-        const zoomInput = document.getElementById('dateZoomInput');
-        const apertureInput = document.getElementById('apertureWidthInput');
 
         const TIMELINE_COLLISION_BUFFER = 2;
         const MIN_SQUISH_WIDTH = 12;
@@ -21,17 +19,23 @@
         const GRID_RES = 2;
         const STACK_BOTTOM_PADDING = 4;
 
-        if (!timeline || !container || !zoomInput || !apertureInput || !state.loadedStartDate) return;
+        if (!timeline || !container || !state.loadedStartDate) return;
+
+        // Force UI DOM to reflect true state
+        const zoomInput = document.getElementById('dateZoomInput');
+        const apertureInput = document.getElementById('apertureWidthInput');
+        if (zoomInput && parseFloat(zoomInput.innerText) !== state.dateZoom) zoomInput.innerText = state.dateZoom.toFixed(2);
+        if (apertureInput && parseFloat(apertureInput.innerText) !== state.apertureWidth) apertureInput.innerText = state.apertureWidth;
 
         const currentScroll = container.scrollLeft;
         C9.Store.update({ lastRenderedScrollX: currentScroll });
 
-        const apertureWidth = parseFloat(apertureInput.innerText) || 1000;
+        const apertureWidth = state.apertureWidth;
         container.style.width = apertureWidth + 'px';
         container.style.overflowX = 'auto';
 
         const zeroMs = state.loadedStartDate.getTime();
-        const dateZoom = parseFloat(zoomInput.innerText) || 7;
+        const dateZoom = state.dateZoom;
         const pixelsPerDay = apertureWidth / dateZoom;
         const msPerDay = 24 * 60 * 60 * 1000;
         const totalSpanMs = (state.loadedEndDate ? state.loadedEndDate.getTime() : (zeroMs + 60 * msPerDay)) - zeroMs;
@@ -394,13 +398,11 @@
       updateMonthDisplay: function() {
         const container = document.getElementById('calendarTimeLineContainer');
         const monthDisplay = document.getElementById('currentMonthDisplay');
-        const zoomInput = document.getElementById('dateZoomInput');
-        const apertureInput = document.getElementById('apertureWidthInput');
 
-        if (!container || !monthDisplay || !zoomInput || !apertureInput || !C9.Store.state.loadedStartDate) return;
+        if (!container || !monthDisplay || !C9.Store.state.loadedStartDate) return;
 
-        const apertureWidth = parseFloat(apertureInput.innerText) || 1000;
-        const dateZoom = parseFloat(zoomInput.innerText) || 7;
+        const apertureWidth = C9.Store.state.apertureWidth;
+        const dateZoom = C9.Store.state.dateZoom;
         const pixelsPerDay = apertureWidth / dateZoom;
         const msPerDay = 24 * 60 * 60 * 1000;
 
@@ -418,10 +420,8 @@
       // --- THE NEW MARKER LOGIC ---
       renderNowMarker: function(nowMs) {
         const timeline = document.getElementById('calendarTimeline');
-        const zoomInput = document.getElementById('dateZoomInput');
-        const apertureInput = document.getElementById('apertureWidthInput');
 
-        if (!timeline || !zoomInput || !apertureInput || !C9.Store.state.loadedStartDate) {
+        if (!timeline || !C9.Store.state.loadedStartDate) {
           return;
         }
 
@@ -440,8 +440,8 @@
           timeline.appendChild(nowMarker);
         }
 
-        const apertureWidth = parseFloat(apertureInput.innerText) || 1000;
-        const dateZoom = parseFloat(zoomInput.innerText) || 7;
+        const apertureWidth = C9.Store.state.apertureWidth;
+        const dateZoom = C9.Store.state.dateZoom;
         const pixelsPerDay = apertureWidth / dateZoom;
         const msPerDay = 24 * 60 * 60 * 1000;
 
@@ -467,10 +467,8 @@
       MapsToDate: function(targetDate) {
       console.log("MapsToDate:", targetDate);
         const container = document.getElementById('calendarTimeLineContainer');
-        const zoomInput = document.getElementById('dateZoomInput');
-        const apertureInput = document.getElementById('apertureWidthInput');
 
-        if (!container || !zoomInput || !apertureInput) return;
+        if (!container) return;
 
         targetDate.setHours(0, 0, 0, 0);
 
@@ -480,8 +478,8 @@
 
         if (inBounds) {
         console.log("MapsToDate: in bounds");
-          const apertureWidth = parseFloat(apertureInput.innerText) || 1000;
-          const dateZoom = parseFloat(zoomInput.innerText) || 7;
+          const apertureWidth = C9.Store.state.apertureWidth;
+          const dateZoom = C9.Store.state.dateZoom;
           const pixelsPerDay = apertureWidth / dateZoom;
           const msPerDay = 24 * 60 * 60 * 1000;
 

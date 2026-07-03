@@ -7,10 +7,8 @@
       renderEvents: function() {
         const container = document.getElementById('calendar');
         const timelineContainer = document.getElementById('calendarTimeLineContainer');
-        const zoomInput = document.getElementById('dateZoomInput');
-        const apertureInput = document.getElementById('apertureWidthInput');
 
-        if (!container || !timelineContainer || !zoomInput || !apertureInput || !C9.Store.state.loadedStartDate) return;
+        if (!container || !timelineContainer || !C9.Store.state.loadedStartDate) return;
 
         // === ACTIVE QUERY SPACE LENS PREP ===
         let aqTargetIds = new Set();
@@ -23,8 +21,8 @@
         }
 
         // 1. Calculate Aperture Window
-        const apertureWidth = parseFloat(apertureInput.innerText) || 1000;
-        const dateZoom = parseFloat(zoomInput.innerText) || 7;
+        const apertureWidth = C9.Store.state.apertureWidth;
+        const dateZoom = C9.Store.state.dateZoom;
         const pixelsPerDay = apertureWidth / dateZoom;
         const msPerDay = 24 * 60 * 60 * 1000;
 
@@ -37,8 +35,6 @@
 
         // 2. Filter visible events
         const visibleEvents = C9.Store.state.memoryStore.filter(ev => {
-
-<!--            console.log("renderEvents: function() { -> ", ev);-->
 
           if (!C9.Store.state.showQuerySpace && ev.source === 'queryspace') return false;
 
