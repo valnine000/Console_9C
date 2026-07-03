@@ -379,8 +379,7 @@
         if (parseBtn) parseBtn.addEventListener('click', () => C9.Forms.parseThingPayload());
 
         const updateBtn = document.getElementById('updateCalendarEventBtn');
-        if (updateBtn) updateBtn.addEventListener('click', submitUpdatedCalendarEvent);
-
+        if (updateBtn) updateBtn.addEventListener('click', () => C9.Forms.submitUpdatedEvent());
 
         // ==========================================
         // TIMELINE LIST: COLLAPSE & EXPAND TOGGLE
@@ -408,7 +407,7 @@
         }
 
         const newBtn = document.getElementById('createNewEntry');
-        if (newBtn) newBtn.addEventListener('click', submitNewCalendarEvent);
+        if (newBtn) newBtn.addEventListener('click', () => C9.Forms.submitNewEvent());
 
         const settingsBtn = document.getElementById('settingsShowMenu');
         const settingsPanel = document.getElementById('consoleControlPanelContainer');
