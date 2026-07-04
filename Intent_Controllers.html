@@ -406,6 +406,53 @@
           });
         }
 
+        // ==========================================
+        // Query Space LIST: COLLAPSE & EXPAND TOGGLE
+        // ==========================================
+
+        const toggleQuerySpaceBtn = document.getElementById('toggleQuerySpacesListBtn');
+        if (toggleQuerySpaceBtn) {
+          toggleQuerySpaceBtn.addEventListener('click', () => {
+            const queryspacesListContainer = document.getElementById('queryspacesListContainer');
+
+            if (queryspacesListContainer) {
+              if (queryspacesListContainer.style.display === 'none') {
+                // Expand (Point Up)
+                queryspacesListContainer.style.display = 'block';
+                queryspacesListContainer.style.background = 'var(--backgroundColor3)';
+                toggleQuerySpaceBtn.style.transform = 'rotate(90deg)';
+              } else {
+                // Collapse (Point Right)
+                queryspacesListContainer.style.display = 'none';
+                queryspacesListContainer.style.background = '';
+                toggleQuerySpaceBtn.style.transform = 'rotate(180deg)';
+              }
+            }
+          });
+        }
+
+        // ==========================================
+        // Query Space Entries LIST: COLLAPSE & EXPAND TOGGLE
+        // ==========================================
+
+        const toggleActiveQsBtn = document.getElementById('toggleActiveQueryspaceListBtn');
+        if (toggleActiveQsBtn) {
+          toggleActiveQsBtn.addEventListener('click', () => {
+            const listContainer = document.getElementById('activeQueryspaceListContainer');
+            if (listContainer) {
+              if (listContainer.style.display === 'none') {
+                listContainer.style.display = 'block';
+                listContainer.style.background = 'var(--backgroundColor3)';
+                toggleActiveQsBtn.style.transform = 'rotate(90deg)';
+              } else {
+                listContainer.style.display = 'none';
+                listContainer.style.background = '';
+                toggleActiveQsBtn.style.transform = 'rotate(180deg)';
+              }
+            }
+          });
+        }
+
         const newBtn = document.getElementById('createNewEntry');
         if (newBtn) newBtn.addEventListener('click', () => C9.Forms.submitNewEvent());
 
@@ -525,21 +572,38 @@
             if (!qs) return;
 
             // Set Global State
-            C9.Store.state.activeQuerySpaceId = qs.qsId;
+            C9.Store.update({
+              activeQuerySpaceId: qs.qsId,
+              activeQuerySpaceGoogleCalendarId: qs.googleEventId || null
+            });
 
             // === THE ONE-LINE FIX ===
             if (typeof C9.Compositor !== 'undefined') C9.Compositor.buildRenderQueue();
             // ========================
 
-            // Populate Builder UI
-            const titleInput = document.getElementById('queryspaceEntryTitleInput');
-            // ... (rest remains the same)
+            // Populate Details UI
+            const titleInput = document.getElementById('queryspaceDetailsTitle');
+            const symbolInput = document.getElementById('queryspaceDetailsSymbolInput');
+            const descSpan = document.getElementById('queryspaceDetailsDescription');
+
             if (titleInput) titleInput.textContent = qs.name;
 
-            const descSpan = document.getElementById('queryspaceEntryDescriptionInput');
+            if (symbolInput && qs.rawDescription) {
+              const symbolMatch = qs.rawDescription.match(/symbol:\s*([^\n]+)/);
+              symbolInput.textContent = symbolMatch ? symbolMatch[1].trim() : '○';
+            }
+
             if (descSpan) {
               descSpan.textContent = qs.rawDescription;
               descSpan.style.whiteSpace = 'pre-wrap';
+            }
+
+            // Populate Dev Helper ID
+            const gcalIdField = document.getElementById('queryspaceDetailsGoogleCalendarEventId');
+            if (gcalIdField) {
+              // Usually mapped as googleCalendarId or id depending on the fetch parser
+              gcalIdField.textContent = qs.googleCalendarId || qs.id || '-';
+              gcalIdField.style.color = 'var(--c1d1)';
             }
 
             // Draw the side panel
@@ -549,6 +613,70 @@
             if (C9.Store.state.filterTimelineByAQ) {
               C9.Timeline.render();
               if (typeof C9.Lists !== 'undefined') C9.Lists.renderEvents();
+            }
+          });
+        }
+
+        // 1b. LOAD ACTIVE QS INTO BUILDER
+        const loadQsBuilderBtn = document.getElementById('queryspaceLoadInBuilderWindowBtn');
+        if (loadQsBuilderBtn) {
+          loadQsBuilderBtn.addEventListener('click', () => {
+            if (!C9.Store.state.activeQuerySpaceId) return;
+
+            const qs = C9.Store.state.globalQuerySpaces.find(q => q.qsId === C9.Store.state.activeQuerySpaceId);
+            if (!qs) return;
+
+            const builderTitle = document.getElementById('queryspaceEntryTitleInput');
+            const builderSymbol = document.getElementById('queryspaceEntrySymbolInput');
+            const builderDesc = document.getElementById('queryspaceEntryDescriptionInput');
+
+            if (builderTitle) builderTitle.textContent = qs.name;
+
+            if (builderSymbol && qs.rawDescription) {
+              const symbolMatch = qs.rawDescription.match(/symbol:\s*([^\n]+)/);
+              builderSymbol.textContent = symbolMatch ? symbolMatch[1].trim() : '○';
+            }
+
+            if (builderDesc) {
+              builderDesc.textContent = qs.rawDescription;
+              builderDesc.style.whiteSpace = 'pre-wrap';
+            }
+          });
+        }
+
+        // 1c. LOAD ACTIVE REF INTO DETAILS
+        const activeRefListContainer = document.getElementById('activeQueryspaceLedgerEntriesList');
+        if (activeRefListContainer) {
+          activeRefListContainer.addEventListener('click', (e) => {
+            const clickedRow = e.target.closest('.active-qs-ref-row');
+            if (!clickedRow) return;
+
+            const selectedRefId = clickedRow.dataset.refid;
+            const ref = C9.Store.state.globalQuerySpaceRefs.find(r => r.id === selectedRefId);
+            if (!ref) return;
+
+            const ledgerInput = document.getElementById('addToQueryspaceEntryThingInput');
+            const qsInput = document.getElementById('addToQueryspaceEntryQsTitleInput');
+            const descInput = document.getElementById('addToQueryspaceEntryDescriptionInput');
+            const idInput = document.getElementById('queryspaceEntryDetailsGoogleCalendarEventId');
+
+            if (descInput) {
+              descInput.textContent = ref.rawDescription;
+            }
+
+            if (idInput) {
+              idInput.textContent = ref.googleEventId || '-';
+              idInput.style.color = 'var(--c1d1)';
+            }
+
+            if (ledgerInput) {
+              const ledgerDetails = C9.QuerySpace.getLedgerEntryById(ref.ledgerId);
+              ledgerInput.textContent = ledgerDetails ? ledgerDetails.thing : (ref.title || 'Unknown');
+            }
+
+            if (qsInput) {
+              const parentQs = C9.Store.state.globalQuerySpaces.find(q => q.qsId === ref.qsId);
+              qsInput.textContent = parentQs ? parentQs.name : 'Unknown Space';
             }
           });
         }
@@ -579,7 +707,7 @@
 
             const timestamp = Date.now();
             const qsId = `qs-jtp-${timestamp}`;
-            const formattedDescription = `[#C9QSE]\nsymbol: ${rawSymbol || '*'}\nname: ${rawTitle}\nid: ${qsId}\ntimestamp: ${timestamp}\nlastModified: ${timestamp}\n[/#C9QSE]`;
+            const formattedDescription = C9.Templates.generateNewQuerySpace(rawSymbol, rawTitle, qsId, timestamp);
             const startTime = new Date();
             const endTime = new Date(timestamp + (15 * 60 * 1000));
 
@@ -603,6 +731,94 @@
           });
         }
 
+        // 2b. UPDATE QUERY SPACE BUTTON
+        const updateQsBtn = document.getElementById('queryspaceUpdateBtn');
+        if (updateQsBtn) {
+          updateQsBtn.addEventListener('click', () => {
+            const gcalId = C9.Store.state.activeQuerySpaceGoogleCalendarId;
+            const statusField = document.getElementById('queryspaceEntryStatusField');
+
+            if (!gcalId) {
+              if (statusField) statusField.textContent = 'Error: No Active QS Selected.';
+              return;
+            }
+
+            const titleInput = document.getElementById('queryspaceEntryTitleInput');
+            const symbolInput = document.getElementById('queryspaceEntrySymbolInput');
+            const descInput = document.getElementById('queryspaceEntryDescriptionInput');
+
+            if (!titleInput || !symbolInput || !descInput) {
+              if (statusField) statusField.textContent = 'Error: UI elements missing.';
+              return;
+            }
+
+            const rawTitle = titleInput.textContent.trim();
+            const rawSymbol = symbolInput.textContent.trim();
+            const rawDesc = descInput.textContent;
+
+            if (!rawTitle || !rawTitle || !rawSymbol) {
+              if (statusField) statusField.textContent = 'Error: Title and Symbol cannot be empty.';
+              return;
+            }
+
+            // Extract the strictly immutable core properties
+            const idMatch = rawDesc.match(/id:\s*([^\n]+)/);
+            const tsMatch = rawDesc.match(/timestamp:\s*(\d+)/);
+
+            // Hard abort if immutable data is missing
+            if (!idMatch || !tsMatch) {
+              if (statusField) statusField.textContent = 'Error: Immutable ID or Timestamp missing. Aborting update.';
+              return;
+            }
+
+            const existingId = idMatch[1].trim();
+            const explicitTimestamp = parseInt(tsMatch[1].trim(), 10);
+
+            // Hard abort if the timestamp was corrupted into a NaN
+            if (isNaN(explicitTimestamp)) {
+              if (statusField) statusField.textContent = 'Error: Timestamp is mathematically invalid. Aborting update.';
+              return;
+            }
+
+            const currentModified = Date.now();
+
+            // Reconstruct the payload
+            const updatedDesc = `[#C9QSE]
+symbol: ${rawSymbol}
+name: ${rawTitle}
+id: ${existingId}
+timestamp: ${explicitTimestamp}
+lastModified: ${currentModified}
+[/#C9QSE]`;
+
+            // This line of code gives me the idea of adding
+            // a parse button that does all the previous,
+            // stages it in an object, shows it to the user
+            // before they go out to the Server,
+            // then they press update to send it off to the server.
+            // Update the UI so you can see the reconstruction
+            descInput.textContent = updatedDesc;
+
+            // Send stripped payload to protect calendar temporal coordinates
+            const payload = {
+              eventId: gcalId,
+              title: rawTitle,
+              description: updatedDesc
+            };
+
+            if (statusField) statusField.textContent = 'Updating Google...';
+
+            C9.QuerySpace.updateQuerySpaceEvent(payload)
+              .then(() => {
+                if (statusField) statusField.textContent = 'Successfully updated! Click Refresh.';
+              })
+              .catch(err => {
+                console.error(err);
+                if (statusField) statusField.textContent = 'Error updating QS.';
+              });
+          });
+        }
+
         // 3. STAGE REFERENCE BUTTON
     const loadBtn = document.getElementById('loadEntryInAddToQueryspaceWindow');
     if (loadBtn) {
@@ -620,22 +836,24 @@
         const thingInput = document.getElementById('addToQueryspaceEntryThingInput');
         if (thingInput) thingInput.textContent = targetTitle;
 
+        const qsInput = document.getElementById('addToQueryspaceEntryQsTitleInput');
+        if (qsInput) {
+          const parentQs = C9.Store.state.globalQuerySpaces.find(q => q.qsId === C9.Store.state.activeQuerySpaceId);
+          qsInput.textContent = parentQs ? parentQs.name : 'Unknown Space';
+        }
+
         // Generate strict temporal coordinates at the moment of staging
         const stagingTimestamp = Date.now();
         const stagedId = `qsr-jtp-unk-${stagingTimestamp}`;
 
         const descInput = document.getElementById('addToQueryspaceEntryDescriptionInput');
         if (descInput) {
-          descInput.textContent = `[#C9QSCR]
-id: ${stagedId}
-timestamp: ${stagingTimestamp}
-[#C9QSER]
-id: ${C9.Store.state.activeQuerySpaceId}
-[/#C9QSER]
-[#C9R]
-id: ${C9.Store.state.activeLedgerEntry}
-[/#C9R]
-[/#C9QSCR]`;
+          descInput.textContent = C9.Templates.generateStagedReference(
+            stagedId,
+            stagingTimestamp,
+            C9.Store.state.activeQuerySpaceId,
+            C9.Store.state.activeLedgerEntry
+          );
         }
 
         if (statusField) statusField.textContent = 'Ready to add.';
@@ -686,6 +904,99 @@ id: ${C9.Store.state.activeLedgerEntry}
               .catch(err => {
                 console.error("Failed to add reference:", err);
                 if (statusField) statusField.textContent = 'Error saving to Google.';
+              });
+          });
+        }
+
+        // 5. UPDATE REFERENCE BUTTON
+        const updateRefBtn = document.getElementById('queryspaceLedgerEntryUpdateBtn');
+        if (updateRefBtn) {
+          updateRefBtn.addEventListener('click', () => {
+            const idInput = document.getElementById('queryspaceEntryDetailsGoogleCalendarEventId');
+            const statusField = document.getElementById('addToQueryspaceEntryStatusField');
+
+            if (!idInput) {
+              if (statusField) {
+                 statusField.style.display = 'block';
+                 statusField.textContent = 'Error: Google ID UI element missing. Aborting.';
+              }
+              return;
+            }
+
+            const gcalId = idInput.textContent.trim();
+            if (!gcalId || gcalId === '-') {
+              if (statusField) {
+                 statusField.style.display = 'block';
+                 statusField.textContent = 'Error: No active reference selected. Aborting.';
+              }
+              return;
+            }
+
+            const descInput = document.getElementById('addToQueryspaceEntryDescriptionInput');
+            const thingInput = document.getElementById('addToQueryspaceEntryThingInput');
+
+            if (!descInput || !thingInput) {
+              if (statusField) {
+                 statusField.style.display = 'block';
+                 statusField.textContent = 'Error: Data UI elements missing. Aborting.';
+              }
+              return;
+            }
+
+            const rawDesc = descInput.textContent;
+            if (!rawDesc) {
+              if (statusField) {
+                 statusField.style.display = 'block';
+                 statusField.textContent = 'Error: Description cannot be empty. Aborting.';
+              }
+              return;
+            }
+
+            // Extract the strictly immutable core properties
+            const topIdMatch = rawDesc.match(/\[#C9QSCR\][\s\S]*?id:\s*([^\n\[]+)/i);
+            const tsMatch = rawDesc.match(/timestamp:\s*(\d+)/);
+
+            // Hard abort if immutable data is missing
+            if (!topIdMatch || !tsMatch) {
+              if (statusField) {
+                  statusField.style.display = 'block';
+                  statusField.textContent = 'Error: Immutable ID or Timestamp missing in payload. Aborting.';
+              }
+              return;
+            }
+
+            const explicitTimestamp = parseInt(tsMatch[1].trim(), 10);
+
+            // Hard abort if the timestamp was corrupted into a NaN
+            if (isNaN(explicitTimestamp)) {
+              if (statusField) {
+                  statusField.style.display = 'block';
+                  statusField.textContent = 'Error: Timestamp is mathematically invalid. Aborting.';
+              }
+              return;
+            }
+
+            const title = thingInput.textContent !== '-' ? `QS-REF: ${thingInput.textContent.trim()}` : 'QS-REF';
+
+            if (statusField) {
+                statusField.style.display = 'block';
+                statusField.textContent = 'Updating Google...';
+            }
+
+            // Send stripped payload to protect calendar temporal coordinates
+            const payload = {
+              eventId: gcalId,
+              title: title,
+              description: rawDesc
+            };
+
+            C9.QuerySpace.updateQuerySpaceReferenceEvent(payload)
+              .then(() => {
+                if (statusField) statusField.textContent = 'Successfully updated! Click Refresh.';
+              })
+              .catch(err => {
+                console.error(err);
+                if (statusField) statusField.textContent = 'Error updating reference.';
               });
           });
         }

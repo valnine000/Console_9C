@@ -74,6 +74,46 @@ function fetchQuerySpacesData() {
 }
 
 // ==========================================
+// QUERY SPACE CALENDAR EVENT UPDATER (Server-Side)
+// ==========================================
+function updateQuerySpaceEvent(payload) {
+  try {
+    const qsCalendarId = CONFIG.QUERY_SPACE_CALENDAR_ID;
+    const calendar = CalendarApp.getCalendarById(qsCalendarId);
+
+    if (!calendar) {
+      throw new Error("Could not locate the Query Space calendar.");
+    }
+
+    const event = calendar.getEventById(payload.eventId);
+
+    if (!event) {
+      throw new Error("Event not found on Query Space Calendar. It may have been deleted.");
+    }
+
+    // Conditionally update only what is provided in the payload
+    if (payload.title) {
+      event.setTitle(payload.title);
+    }
+
+    if (payload.description) {
+      event.setDescription(payload.description);
+    }
+
+    if (payload.startIso && payload.endIso) {
+      const startTime = new Date(payload.startIso);
+      const endTime = new Date(payload.endIso);
+      event.setTime(startTime, endTime);
+    }
+
+    return event.getId();
+
+  } catch (error) {
+    throw new Error(error.message);
+  }
+}
+
+// ==========================================
 // CALENDAR EVENT UPDATER (Server-Side)
 // ==========================================
 function updateGoogleCalendarEvent(payload) {

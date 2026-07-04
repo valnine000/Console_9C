@@ -8,4 +8,52 @@
     window.C9.FETCH_CHUNK_DAYS = 90;
     window.C9.MAX_CACHE_DAYS = 365;
     window.C9.MAX_CACHE_MS = window.C9.MAX_CACHE_DAYS * 24 * 60 * 60 * 1000;
+
+    // ==========================================
+    // SYSTEM TEMPLATES (String Store)
+    // ==========================================
+    window.C9.Templates = {
+
+      // Default blank templates
+      THING_BUILDER: `[#C9]
+symbol:○
+thing:
+idt:
+duration:
+id:
+timestamp:
+[#C9D]
+[/#C9D]
+[/#C9]`,
+
+      QS_REFERENCE_BLANK: `[#C9QSCR]
+[#C9QSER]
+id:
+[/#C9QSER]
+[#C9R]
+id:
+[/#C9R]
+[/#C9QSCR]`,
+
+      // Dynamic Generators (Functions returning template literals)
+      generateNewQuerySpace: (symbol, title, id, timestamp) => `[#C9QSE]
+symbol: ${symbol || '*'}
+name: ${title}
+id: ${id}
+timestamp: ${timestamp}
+lastModified: ${timestamp}
+[/#C9QSE]`,
+
+      generateStagedReference: (stagedId, timestamp, qsId, ledgerId) => `[#C9QSCR]
+id: ${stagedId}
+timestamp: ${timestamp}
+[#C9QSER]
+id: ${qsId}
+[/#C9QSER]
+[#C9R]
+id: ${ledgerId}
+[/#C9R]
+[/#C9QSCR]`
+    };
+
 </script>

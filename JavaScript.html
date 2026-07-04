@@ -3,6 +3,9 @@
     // MASTER BOOTLOADER
     // ==========================================
     document.addEventListener('DOMContentLoaded', () => {
+      // 0. Initialize UI
+      C9.UI.initialize();
+
       // 1. Hand off all UI binding to the Intent Controller
       C9.Intent.initializeAll();
 
@@ -19,6 +22,8 @@
 
       // 5. Ignite the Global Clock
       C9.TimeEngine.start();
+
+
     });
 
 </script>
