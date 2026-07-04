@@ -10,7 +10,7 @@
 
         if (targetEvent) {
           // Quarantine the Google ID in the State Store immediately
-          C9.Store.update({ stagedGoogleCalendarId: targetEvent.googleCalendarId });
+          C9.Store.update({ activeLedgerEntryGoogleCalendarId: targetEvent.googleCalendarId });
 
           const titleInput = document.getElementById('calendarEventTitleInput');
           const startDateInput = document.getElementById('calendarEventStartDate');
@@ -79,7 +79,7 @@
 
       clearBuilderGoogleId: function() {
         // 1. Purge the truth
-        C9.Store.update({ stagedGoogleCalendarId: null });
+        C9.Store.update({ activeLedgerEntryGoogleCalendarId: null });
 
         // 2. Purge the visual
         const payloadIdField = document.getElementById('payloadGoogleCalendarEventId');
@@ -327,7 +327,7 @@
       submitUpdatedEvent: function() {
         const btn = document.getElementById('updateCalendarEventBtn');
         const statusField = document.getElementById('calendarEntryStatusField');
-        const eventId = C9.Store.state.stagedGoogleCalendarId;
+        const eventId = C9.Store.state.activeLedgerEntryGoogleCalendarId;
 
         if (!eventId || eventId === "-" ) {
           statusField.innerText = "Error: Invalid or missing Google Event ID.";

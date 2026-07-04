@@ -572,7 +572,10 @@
             if (!qs) return;
 
             // Set Global State
-            C9.Store.state.activeQuerySpaceId = qs.qsId;
+            C9.Store.update({
+              activeQuerySpaceId: qs.qsId,
+              activeQuerySpaceGoogleCalendarId: qs.googleEventId || null
+            });
 
             // === THE ONE-LINE FIX ===
             if (typeof C9.Compositor !== 'undefined') C9.Compositor.buildRenderQueue();
@@ -728,6 +731,94 @@
           });
         }
 
+        // 2b. UPDATE QUERY SPACE BUTTON
+        const updateQsBtn = document.getElementById('queryspaceUpdateBtn');
+        if (updateQsBtn) {
+          updateQsBtn.addEventListener('click', () => {
+            const gcalId = C9.Store.state.activeQuerySpaceGoogleCalendarId;
+            const statusField = document.getElementById('queryspaceEntryStatusField');
+
+            if (!gcalId) {
+              if (statusField) statusField.textContent = 'Error: No Active QS Selected.';
+              return;
+            }
+
+            const titleInput = document.getElementById('queryspaceEntryTitleInput');
+            const symbolInput = document.getElementById('queryspaceEntrySymbolInput');
+            const descInput = document.getElementById('queryspaceEntryDescriptionInput');
+
+            if (!titleInput || !symbolInput || !descInput) {
+              if (statusField) statusField.textContent = 'Error: UI elements missing.';
+              return;
+            }
+
+            const rawTitle = titleInput.textContent.trim();
+            const rawSymbol = symbolInput.textContent.trim();
+            const rawDesc = descInput.textContent;
+
+            if (!rawTitle || !rawTitle || !rawSymbol) {
+              if (statusField) statusField.textContent = 'Error: Title and Symbol cannot be empty.';
+              return;
+            }
+
+            // Extract the strictly immutable core properties
+            const idMatch = rawDesc.match(/id:\s*([^\n]+)/);
+            const tsMatch = rawDesc.match(/timestamp:\s*(\d+)/);
+
+            // Hard abort if immutable data is missing
+            if (!idMatch || !tsMatch) {
+              if (statusField) statusField.textContent = 'Error: Immutable ID or Timestamp missing. Aborting update.';
+              return;
+            }
+
+            const existingId = idMatch[1].trim();
+            const explicitTimestamp = parseInt(tsMatch[1].trim(), 10);
+
+            // Hard abort if the timestamp was corrupted into a NaN
+            if (isNaN(explicitTimestamp)) {
+              if (statusField) statusField.textContent = 'Error: Timestamp is mathematically invalid. Aborting update.';
+              return;
+            }
+
+            const currentModified = Date.now();
+
+            // Reconstruct the payload
+            const updatedDesc = `[#C9QSE]
+symbol: ${rawSymbol}
+name: ${rawTitle}
+id: ${existingId}
+timestamp: ${explicitTimestamp}
+lastModified: ${currentModified}
+[/#C9QSE]`;
+
+            // This line of code gives me the idea of adding
+            // a parse button that does all the previous,
+            // stages it in an object, shows it to the user
+            // before they go out to the Server,
+            // then they press update to send it off to the server.
+            // Update the UI so you can see the reconstruction
+            descInput.textContent = updatedDesc;
+
+            // Send stripped payload to protect calendar temporal coordinates
+            const payload = {
+              eventId: gcalId,
+              title: rawTitle,
+              description: updatedDesc
+            };
+
+            if (statusField) statusField.textContent = 'Updating Google...';
+
+            C9.QuerySpace.updateQuerySpaceEvent(payload)
+              .then(() => {
+                if (statusField) statusField.textContent = 'Successfully updated! Click Refresh.';
+              })
+              .catch(err => {
+                console.error(err);
+                if (statusField) statusField.textContent = 'Error updating QS.';
+              });
+          });
+        }
+
         // 3. STAGE REFERENCE BUTTON
     const loadBtn = document.getElementById('loadEntryInAddToQueryspaceWindow');
     if (loadBtn) {
@@ -813,6 +904,99 @@
               .catch(err => {
                 console.error("Failed to add reference:", err);
                 if (statusField) statusField.textContent = 'Error saving to Google.';
+              });
+          });
+        }
+
+        // 5. UPDATE REFERENCE BUTTON
+        const updateRefBtn = document.getElementById('queryspaceLedgerEntryUpdateBtn');
+        if (updateRefBtn) {
+          updateRefBtn.addEventListener('click', () => {
+            const idInput = document.getElementById('queryspaceEntryDetailsGoogleCalendarEventId');
+            const statusField = document.getElementById('addToQueryspaceEntryStatusField');
+
+            if (!idInput) {
+              if (statusField) {
+                 statusField.style.display = 'block';
+                 statusField.textContent = 'Error: Google ID UI element missing. Aborting.';
+              }
+              return;
+            }
+
+            const gcalId = idInput.textContent.trim();
+            if (!gcalId || gcalId === '-') {
+              if (statusField) {
+                 statusField.style.display = 'block';
+                 statusField.textContent = 'Error: No active reference selected. Aborting.';
+              }
+              return;
+            }
+
+            const descInput = document.getElementById('addToQueryspaceEntryDescriptionInput');
+            const thingInput = document.getElementById('addToQueryspaceEntryThingInput');
+
+            if (!descInput || !thingInput) {
+              if (statusField) {
+                 statusField.style.display = 'block';
+                 statusField.textContent = 'Error: Data UI elements missing. Aborting.';
+              }
+              return;
+            }
+
+            const rawDesc = descInput.textContent;
+            if (!rawDesc) {
+              if (statusField) {
+                 statusField.style.display = 'block';
+                 statusField.textContent = 'Error: Description cannot be empty. Aborting.';
+              }
+              return;
+            }
+
+            // Extract the strictly immutable core properties
+            const topIdMatch = rawDesc.match(/\[#C9QSCR\][\s\S]*?id:\s*([^\n\[]+)/i);
+            const tsMatch = rawDesc.match(/timestamp:\s*(\d+)/);
+
+            // Hard abort if immutable data is missing
+            if (!topIdMatch || !tsMatch) {
+              if (statusField) {
+                  statusField.style.display = 'block';
+                  statusField.textContent = 'Error: Immutable ID or Timestamp missing in payload. Aborting.';
+              }
+              return;
+            }
+
+            const explicitTimestamp = parseInt(tsMatch[1].trim(), 10);
+
+            // Hard abort if the timestamp was corrupted into a NaN
+            if (isNaN(explicitTimestamp)) {
+              if (statusField) {
+                  statusField.style.display = 'block';
+                  statusField.textContent = 'Error: Timestamp is mathematically invalid. Aborting.';
+              }
+              return;
+            }
+
+            const title = thingInput.textContent !== '-' ? `QS-REF: ${thingInput.textContent.trim()}` : 'QS-REF';
+
+            if (statusField) {
+                statusField.style.display = 'block';
+                statusField.textContent = 'Updating Google...';
+            }
+
+            // Send stripped payload to protect calendar temporal coordinates
+            const payload = {
+              eventId: gcalId,
+              title: title,
+              description: rawDesc
+            };
+
+            C9.QuerySpace.updateQuerySpaceReferenceEvent(payload)
+              .then(() => {
+                if (statusField) statusField.textContent = 'Successfully updated! Click Refresh.';
+              })
+              .catch(err => {
+                console.error(err);
+                if (statusField) statusField.textContent = 'Error updating reference.';
               });
           });
         }
