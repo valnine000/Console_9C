@@ -406,6 +406,31 @@
           });
         }
 
+        // ==========================================
+        // Query Space LIST: COLLAPSE & EXPAND TOGGLE
+        // ==========================================
+
+        const toggleQuerySpaceBtn = document.getElementById('toggleQuerySpacesListBtn');
+        if (toggleQuerySpaceBtn) {
+          toggleQuerySpaceBtn.addEventListener('click', () => {
+            const queryspacesListContainer = document.getElementById('queryspacesListContainer');
+
+            if (queryspacesListContainer) {
+              if (queryspacesListContainer.style.display === 'none') {
+                // Expand (Point Up)
+                queryspacesListContainer.style.display = 'block';
+                queryspacesListContainer.style.background = 'var(--backgroundColor3)';
+                toggleQuerySpaceBtn.style.transform = 'rotate(90deg)';
+              } else {
+                // Collapse (Point Right)
+                queryspacesListContainer.style.display = 'none';
+                queryspacesListContainer.style.background = '';
+                toggleQuerySpaceBtn.style.transform = 'rotate(180deg)';
+              }
+            }
+          });
+        }
+
         const newBtn = document.getElementById('createNewEntry');
         if (newBtn) newBtn.addEventListener('click', () => C9.Forms.submitNewEvent());
 
