@@ -15,6 +15,7 @@
 <body class="hasBorder" style="padding: 0px">
 
 <?!= HtmlService.createHtmlOutputFromFile('Config').getContent(); ?>
+<?!= HtmlService.createHtmlOutputFromFile('View_UI').getContent(); ?>
 <?!= HtmlService.createHtmlOutputFromFile('Ontology_Parser').getContent(); ?>
 <?!= HtmlService.createHtmlOutputFromFile('Physics_Engine').getContent(); ?>
 <?!= HtmlService.createHtmlOutputFromFile('State_Store').getContent(); ?>
@@ -93,15 +94,6 @@
                                 </div>
                             </div>
                         </div>
-                        <!--                        <div id="dateRangeContainer" class="hasBorder"-->
-                        <!--                             style="height:auto; width: var(&#45;&#45;defaultMobilWidth); padding:0px; white-space: nowrap;">-->
-                        <!--                            <div style="display: grid; place-items: center; height:100% vertical-align:top;">-->
-                        <!--                                <div>-->
-                        <!--                                    <div id="goToToday" class="control-btn">Today</div>-->
-                        <!--                                    <div id="goToThisWeek" class="control-btn">This Week</div>-->
-                        <!--                                </div>-->
-                        <!--                            </div>-->
-                        <!--                        </div>-->
 
                         <div id="timelineComponentWrapper" style="position: relative; width: 100%;">
 
@@ -254,16 +246,7 @@
                                             <span class="setting-editable-value text-left"
                                                   id="descriptionPayloadInput"
                                                   contenteditable="true"
-                                                  style="white-space: pre-wrap; display: inline-block; width: 100%; min-height: 1.5em;line-height: 1.6;">[#C9]
-symbol:○
-thing:
-idt:
-duration:
-id:
-timestamp:
-[#C9D]
-[/#C9D]
-[/#C9]</span>
+                                                  style="white-space: pre-wrap; display: inline-block; width: 100%; min-height: 1.5em;line-height: 1.6;"></span>
                                         </div>
                                     </div>
                                     <div class="hidden-scrollbar" style="position: absolute; bottom: 8px; left: 4px; width:50%; overflow-x: auto;">
@@ -507,14 +490,7 @@ timestamp:
                                         <div style="padding: 4px 0px 0px 0px;">
                                             <p class="textInputFieldLabel defaultColumn1Width text-right" style="line-height: 1.4;">Details</p>
                                             <div class="textInputFieldContainer defaultColumn2Width" style="height:150px; overflow-y: auto; vertical-align: top; line-height:1.4;">
-                                                <span id="addToQueryspaceEntryDescriptionInput" class="setting-editable-value text-left" contenteditable="true" style="white-space: pre-wrap; display: inline-block; width: 100%; min-height: 1.5em; line-height: 1.4;">[#C9QSCR]
-[#C9QSER]
-id:
-[/#C9QSER]
-[#C9R]
-id:
-[/#C9R]
-[/#C9QSCR]</span>
+                                                <span id="addToQueryspaceEntryDescriptionInput" class="setting-editable-value text-left" contenteditable="true" style="white-space: pre-wrap; display: inline-block; width: 100%; min-height: 1.5em; line-height: 1.4;"></span>
                                             </div>
                                         </div>
                                     </div>
