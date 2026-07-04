@@ -147,18 +147,23 @@
                         <!-- Horizontal scroll track -->
                         <div class="responsive-wrapper hidden-scrollbar" style="margin-top: 4px;">
 
+                            <!-- here -->
                             <!-- Timeline List Detail Window -->
-                            <div id="thingEntityContainer" class="hasBorder" style="display: inline-block; vertical-align: top; white-space: normal; width: var(--defaultMobilWidth); height: 270px; padding: 4px; margin-top: 0px;">
+                            <div id="thingEntityContainer" class="hasBorder"
+                                 style="display: inline-block; vertical-align: top; white-space: normal; width: var(--defaultMobilWidth); height: 270px; padding: 4px; margin-top: 0px;">
                                 <div id="thingEntity" style="height: 100%; position: relative; padding: 4px 0px 4px 0px;">
 
-                                    <div id="calendarListContainer" class="" style="display:none; position: absolute; left: 0px; top: 0px; z-index: 90; width: var(--defaultMobilWidth); padding: 4px 4px 4px 0px; background:var(--backgroundColor3);">
+                                    <div id="calendarListContainer" class=""
+                                         style="display:none; position: absolute; left: 0px; top: 0px; z-index: 90; width: var(--defaultMobilWidth); padding: 4px 4px 4px 0px; background:var(--backgroundColor3);">
                                         <p id="timelineListWindowTitle" style="margin: 0px; padding: 0px 0px 4px 4px; width: 50%;">Timeline List</p>
-                                        <div id="calendarListScrollContainer" class="hidden-scrollbar" style="height: 200px; padding: 0px 0px 0px 4px; overflow-y: auto;">
+                                        <div id="calendarListScrollContainer" class="hidden-scrollbar"
+                                             style="height: 200px; padding: 0px 0px 0px 4px; overflow-y: auto;">
                                             <div id="calendar"></div>
                                         </div>
                                     </div>
 
-                                    <svg id="toggleListBtn" class="setting-action" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                    <svg id="toggleListBtn" class="setting-action" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                         stroke-width="2"
                                          stroke-linecap="round" stroke-linejoin="round"
                                          style="position: absolute; right: 0px; top: 0px; z-index: 95; width: 20px; height: 20px; padding: 4px; box-sizing: border-box; cursor: pointer; transition: transform 0.2s ease; transform: rotate(180deg); transform-origin: center;">
                                         <polyline points="9 18 15 12 9 6"></polyline>
@@ -170,7 +175,8 @@
                                         <div style="padding: 0px 0px 0px 4px;">
                                             <p class="textInputFieldLabel defaultColumn1Width text-right">Title</p>
                                             <div class="textInputFieldContainer defaultColumn2Width">
-                                                <span class="setting-editable-value text-left" id="calendarEventTitleInput" contenteditable="false">-</span>
+                                                <span class="setting-editable-value text-left" id="calendarEventTitleInput"
+                                                      contenteditable="false">-</span>
                                             </div>
                                         </div>
                                         <div style="padding: 4px 0px 0px 4px;">
@@ -192,7 +198,8 @@
                                         <div style="padding: 4px 0px 0px 4px;">
                                             <p class="textInputFieldLabel defaultColumn1Width text-right" style="line-height: 1.6;">Description</p>
 
-                                            <div class="textInputFieldContainer defaultColumn2Width" style="height: 150px; overflow-y: auto; line-height: 1.6; vertical-align: top;">
+                                            <div class="textInputFieldContainer defaultColumn2Width"
+                                                 style="height: 150px; overflow-y: auto; line-height: 1.6; vertical-align: top;">
                                                 <span id="calendarEventDescription">-</span>
                                             </div>
                                         </div>
@@ -378,7 +385,7 @@ timestamp:
                                         <div style="padding: 4px 0px 0px 0px;">
                                             <p class="textInputFieldLabel defaultColumn1Width text-right" style="line-height: 1.4;">Details</p>
                                             <div class="textInputFieldContainer defaultColumn2Width"
-                                                 style="height:90px; overflow-y: auto; vertical-align: top; line-height:1.4;">
+                                                 style="height:150px; overflow-y: auto; vertical-align: top; line-height:1.4;">
                                                 <span id="queryspaceDetailsDescription" class="setting-editable-value text-left"
                                                       contenteditable="false">-</span>
                                             </div>
@@ -386,11 +393,12 @@ timestamp:
                                     </div>
 
                                     <div class="hidden-scrollbar" style="position: absolute; width:50%; bottom: 8px; left: 8px; overflow-x: auto;">
-                                        <div id="queryspaceDetailsWindowStatusField">-</div>
+                                        <p id="queryspaceDetailsGoogleCalendarEventId" style="position: relative; margin: 0px; padding: 0px 0px 0px 0px;">-</p>
+                                        <div id="queryspaceDetailsWindowStatusField" style="display: none;">-</div>
                                     </div>
                                     <div style="position: absolute; bottom: 8px; right: 8px;">
-                                        <div id="queryspaceUpdateBtn2" class="control-btn">QSDW btn1</div>
                                         <div id="queryspaceCreateBtn2" class="control-btn">QSDW btn2</div>
+                                        <div id="queryspaceLoadInBuilderWindowBtn" class="control-btn">Builder</div>
                                     </div>
                                 </div>
                             </div>
@@ -437,7 +445,7 @@ timestamp:
                                         <div style="padding: 4px 0px 0px 0px;">
                                             <p class="textInputFieldLabel defaultColumn1Width text-right" style="line-height: 1.4;">Details</p>
                                             <div class="textInputFieldContainer defaultColumn2Width"
-                                                 style="height:90px; overflow-y: auto; vertical-align: top; line-height:1.4;">
+                                                 style="height:150px; overflow-y: auto; vertical-align: top; line-height:1.4;">
                                                 <span id="queryspaceEntryDescriptionInput"
                                                       class="setting-editable-value text-left"
                                                       contenteditable="true">-</span>

@@ -556,15 +556,29 @@
             if (typeof C9.Compositor !== 'undefined') C9.Compositor.buildRenderQueue();
             // ========================
 
-            // Populate Builder UI
-            const titleInput = document.getElementById('queryspaceEntryTitleInput');
-            // ... (rest remains the same)
+            // Populate Details UI
+            const titleInput = document.getElementById('queryspaceDetailsTitle');
+            const symbolInput = document.getElementById('queryspaceDetailsSymbolInput');
+            const descSpan = document.getElementById('queryspaceDetailsDescription');
+
             if (titleInput) titleInput.textContent = qs.name;
 
-            const descSpan = document.getElementById('queryspaceEntryDescriptionInput');
+            if (symbolInput && qs.rawDescription) {
+              const symbolMatch = qs.rawDescription.match(/symbol:\s*([^\n]+)/);
+              symbolInput.textContent = symbolMatch ? symbolMatch[1].trim() : '○';
+            }
+
             if (descSpan) {
               descSpan.textContent = qs.rawDescription;
               descSpan.style.whiteSpace = 'pre-wrap';
+            }
+
+            // Populate Dev Helper ID
+            const gcalIdField = document.getElementById('queryspaceDetailsGoogleCalendarEventId');
+            if (gcalIdField) {
+              // Usually mapped as googleCalendarId or id depending on the fetch parser
+              gcalIdField.textContent = qs.googleCalendarId || qs.id || '-';
+              gcalIdField.style.color = 'var(--c1d1)';
             }
 
             // Draw the side panel
@@ -574,6 +588,33 @@
             if (C9.Store.state.filterTimelineByAQ) {
               C9.Timeline.render();
               if (typeof C9.Lists !== 'undefined') C9.Lists.renderEvents();
+            }
+          });
+        }
+
+        // 1b. LOAD ACTIVE QS INTO BUILDER
+        const loadQsBuilderBtn = document.getElementById('queryspaceLoadInBuilderWindowBtn');
+        if (loadQsBuilderBtn) {
+          loadQsBuilderBtn.addEventListener('click', () => {
+            if (!C9.Store.state.activeQuerySpaceId) return;
+
+            const qs = C9.Store.state.globalQuerySpaces.find(q => q.qsId === C9.Store.state.activeQuerySpaceId);
+            if (!qs) return;
+
+            const builderTitle = document.getElementById('queryspaceEntryTitleInput');
+            const builderSymbol = document.getElementById('queryspaceEntrySymbolInput');
+            const builderDesc = document.getElementById('queryspaceEntryDescriptionInput');
+
+            if (builderTitle) builderTitle.textContent = qs.name;
+
+            if (builderSymbol && qs.rawDescription) {
+              const symbolMatch = qs.rawDescription.match(/symbol:\s*([^\n]+)/);
+              builderSymbol.textContent = symbolMatch ? symbolMatch[1].trim() : '○';
+            }
+
+            if (builderDesc) {
+              builderDesc.textContent = qs.rawDescription;
+              builderDesc.style.whiteSpace = 'pre-wrap';
             }
           });
         }
