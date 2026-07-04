@@ -704,7 +704,7 @@
 
             const timestamp = Date.now();
             const qsId = `qs-jtp-${timestamp}`;
-            const formattedDescription = `[#C9QSE]\nsymbol: ${rawSymbol || '*'}\nname: ${rawTitle}\nid: ${qsId}\ntimestamp: ${timestamp}\nlastModified: ${timestamp}\n[/#C9QSE]`;
+            const formattedDescription = C9.Templates.generateNewQuerySpace(rawSymbol, rawTitle, qsId, timestamp);
             const startTime = new Date();
             const endTime = new Date(timestamp + (15 * 60 * 1000));
 
@@ -757,16 +757,12 @@
 
         const descInput = document.getElementById('addToQueryspaceEntryDescriptionInput');
         if (descInput) {
-          descInput.textContent = `[#C9QSCR]
-id: ${stagedId}
-timestamp: ${stagingTimestamp}
-[#C9QSER]
-id: ${C9.Store.state.activeQuerySpaceId}
-[/#C9QSER]
-[#C9R]
-id: ${C9.Store.state.activeLedgerEntry}
-[/#C9R]
-[/#C9QSCR]`;
+          descInput.textContent = C9.Templates.generateStagedReference(
+            stagedId,
+            stagingTimestamp,
+            C9.Store.state.activeQuerySpaceId,
+            C9.Store.state.activeLedgerEntry
+          );
         }
 
         if (statusField) statusField.textContent = 'Ready to add.';
