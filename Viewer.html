@@ -465,37 +465,49 @@ timestamp:
                                 </div>
                             </div>
 
-                            <!-- Queryspace Ledger Entries Window -->
+                            <!-- Queryspace Entry Builder Window -->
 
-                            <div id="queryspaceLedgerEntriesWindowContainer" class="hasBorder"
-                                 style="display: inline-block; vertical-align: top; white-space: normal; width: var(--defaultMobilWidth); height: 270px; padding: 4px;">
-                                <div id="addToQueryspaceEntry"
-                                     style="height: 100%; position: relative; padding: 4px 0px 4px 0px; ">
-                                    <p id="addToQueryspaceTitle"
-                                       style="margin: 0px; padding: 0px 0px 4px 4px;">
-                                        Query Space Entries</p>
-                                    <div id="addToQueryspaceEntryFields" style="padding: 8px 0px 0px 4px;">
+                            <div id="queryspaceLedgerEntriesWindowContainer" class="hasBorder" style="display: inline-block; vertical-align: top; white-space: normal; width: var(--defaultMobilWidth); height: 270px; padding: 4px; margin-top: 0px;">
+                                <div id="addToQueryspaceEntry" style="height: 100%; position: relative; padding: 4px 0px 4px 0px;">
 
-                                        <!-- Query Space Reference Entry -->
+                                    <div id="activeQueryspaceListContainer" class="" style="display:none; position: absolute; left: 0px; top: 0px; z-index: 90; width: var(--defaultMobilWidth); padding: 4px 4px 4px 0px; background:var(--backgroundColor3);">
+                                        <p id="activeQueryspaceListWindowTitle" style="margin: 0px; padding: 0px 0px 4px 4px; width: 50%;">Query Space Entries</p>
+                                        <div id="activeQueryspaceListScrollContainer" class="hidden-scrollbar" style="height: 200px; padding: 0px 0px 0px 4px; overflow-y: auto;">
+                                            <div id="activeQueryspaceLedgerEntriesList" style="padding: 0px;"></div>
+                                        </div>
+                                    </div>
+
+                                    <svg id="toggleActiveQueryspaceListBtn" class="setting-action" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                         stroke-linecap="round" stroke-linejoin="round"
+                                         style="position: absolute; right: 0px; top: 0px; z-index: 95; width: 20px; height: 20px; padding: 4px; box-sizing: border-box; cursor: pointer; transition: transform 0.2s ease; transform: rotate(180deg); transform-origin: center;">
+                                        <polyline points="9 18 15 12 9 6"></polyline>
+                                    </svg>
+
+                                    <p id="addToQueryspaceTitle" style="margin: 0px; padding: 0px 0px 4px 4px;">Query Space Entry Details</p>
+                                    <div id="addToQueryspaceEntryFields" style="padding: 4px 0px 0px 4px;">
+
                                         <div>
-                                            <p class="textInputFieldLabel defaultColumn1Width text-right" style="">
-                                                Thing</p>
+                                            <p class="textInputFieldLabel defaultColumn1Width text-right" style="">Ledger Entry</p>
                                             <div class="textInputFieldContainer defaultColumn2Width">
-                                                <div style="vertical-align: top;"><span
-                                                        id="addToQueryspaceEntryThingInput">-</span>
+                                                <div style="vertical-align: top;">
+                                                    <span id="addToQueryspaceEntryThingInput" class="setting-editable-value text-left" contenteditable="false">-</span>
                                                 </div>
                                             </div>
                                         </div>
 
-                                        <div style="padding: 4px 0px 0px 4px;">
-                                            <p class="textInputFieldLabel defaultColumn1Width text-right" style="line-height: 1.6;">Details</p>
-                                            <div class="textInputFieldContainer defaultColumn2Width"
-                                                 style="height:108px; overflow-y: auto; vertical-align: top; line-height:1.6;">
-                                                <span
-                                                        id="addToQueryspaceEntryDescriptionInput"
-                                                        class="setting-editable-value text-left"
-                                                        contenteditable="true"
-                                                        style="white-space: pre-wrap; display: inline-block; width: 100%; min-height: 1.5em;line-height: 1.6;">[#C9QSCR]
+                                        <div>
+                                            <p class="textInputFieldLabel defaultColumn1Width text-right" style="">Query Space</p>
+                                            <div class="textInputFieldContainer defaultColumn2Width">
+                                                <div style="vertical-align: top;">
+                                                    <span id="addToQueryspaceEntryQsTitleInput" class="setting-editable-value text-left" contenteditable="false">-</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div style="padding: 4px 0px 0px 0px;">
+                                            <p class="textInputFieldLabel defaultColumn1Width text-right" style="line-height: 1.4;">Details</p>
+                                            <div class="textInputFieldContainer defaultColumn2Width" style="height:150px; overflow-y: auto; vertical-align: top; line-height:1.4;">
+                                                <span id="addToQueryspaceEntryDescriptionInput" class="setting-editable-value text-left" contenteditable="true" style="white-space: pre-wrap; display: inline-block; width: 100%; min-height: 1.5em; line-height: 1.4;">[#C9QSCR]
 [#C9QSER]
 id:
 [/#C9QSER]
@@ -507,20 +519,9 @@ id:
                                         </div>
                                     </div>
 
-                                    <!-- Active Query Space Ledger Entries List -->
-
-                                    <div id="activeQueryspaceListContainer" class=""
-                                         style="width: var(--defaultMobilWidth); padding: 4px 0px 4px 0px;">
-                                        <div id="activeQueryspaceListScrollContainer" class="hidden-scrollbar hasBorder"
-                                             style="height: 60px; padding: 0px 0px 0px 4px; overflow-y: auto;">
-                                            <div id="activeQueryspaceLedgerEntriesList" style="padding: 0px 0px 0px 0px;"></div>
-                                        </div>
-                                    </div>
-
-                                    <!-- Query Space Window Buttons -->
-
-                                    <div class="hidden-scrollbar" style="position: absolute; width:50%; bottom: 8px; left: 8px; overflow-x: auto;">
-                                        <div id="addToQueryspaceEntryStatusField">-</div>
+                                    <div class="hidden-scrollbar" style="position: absolute; width:50%; bottom: 8px; left: 4px; overflow-x: auto;">
+                                        <p id="queryspaceEntryDetailsGoogleCalendarEventId" style="position: relative; margin: 0px; padding: 0px 0px 0px 0px;">-</p>
+                                        <div id="addToQueryspaceEntryStatusField" style="display: none;">-</div>
                                     </div>
                                     <div style="position: absolute; bottom: 8px; right: 8px;">
                                         <div id="queryspaceLedgerEntryRemoveBtn" class="control-btn">Remove</div>

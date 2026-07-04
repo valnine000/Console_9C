@@ -431,6 +431,28 @@
           });
         }
 
+        // ==========================================
+        // Query Space Entries LIST: COLLAPSE & EXPAND TOGGLE
+        // ==========================================
+
+        const toggleActiveQsBtn = document.getElementById('toggleActiveQueryspaceListBtn');
+        if (toggleActiveQsBtn) {
+          toggleActiveQsBtn.addEventListener('click', () => {
+            const listContainer = document.getElementById('activeQueryspaceListContainer');
+            if (listContainer) {
+              if (listContainer.style.display === 'none') {
+                listContainer.style.display = 'block';
+                listContainer.style.background = 'var(--backgroundColor3)';
+                toggleActiveQsBtn.style.transform = 'rotate(90deg)';
+              } else {
+                listContainer.style.display = 'none';
+                listContainer.style.background = '';
+                toggleActiveQsBtn.style.transform = 'rotate(180deg)';
+              }
+            }
+          });
+        }
+
         const newBtn = document.getElementById('createNewEntry');
         if (newBtn) newBtn.addEventListener('click', () => C9.Forms.submitNewEvent());
 
@@ -619,6 +641,43 @@
           });
         }
 
+        // 1c. LOAD ACTIVE REF INTO DETAILS
+        const activeRefListContainer = document.getElementById('activeQueryspaceLedgerEntriesList');
+        if (activeRefListContainer) {
+          activeRefListContainer.addEventListener('click', (e) => {
+            const clickedRow = e.target.closest('.active-qs-ref-row');
+            if (!clickedRow) return;
+
+            const selectedRefId = clickedRow.dataset.refid;
+            const ref = C9.Store.state.globalQuerySpaceRefs.find(r => r.id === selectedRefId);
+            if (!ref) return;
+
+            const ledgerInput = document.getElementById('addToQueryspaceEntryThingInput');
+            const qsInput = document.getElementById('addToQueryspaceEntryQsTitleInput');
+            const descInput = document.getElementById('addToQueryspaceEntryDescriptionInput');
+            const idInput = document.getElementById('queryspaceEntryDetailsGoogleCalendarEventId');
+
+            if (descInput) {
+              descInput.textContent = ref.rawDescription;
+            }
+
+            if (idInput) {
+              idInput.textContent = ref.googleEventId || '-';
+              idInput.style.color = 'var(--c1d1)';
+            }
+
+            if (ledgerInput) {
+              const ledgerDetails = C9.QuerySpace.getLedgerEntryById(ref.ledgerId);
+              ledgerInput.textContent = ledgerDetails ? ledgerDetails.thing : (ref.title || 'Unknown');
+            }
+
+            if (qsInput) {
+              const parentQs = C9.Store.state.globalQuerySpaces.find(q => q.qsId === ref.qsId);
+              qsInput.textContent = parentQs ? parentQs.name : 'Unknown Space';
+            }
+          });
+        }
+
         // 2. CREATE NEW QUERY SPACE BUTTON
         const createBtn = document.getElementById('queryspaceCreateBtn');
         if (createBtn) {
@@ -685,6 +744,12 @@
 
         const thingInput = document.getElementById('addToQueryspaceEntryThingInput');
         if (thingInput) thingInput.textContent = targetTitle;
+
+        const qsInput = document.getElementById('addToQueryspaceEntryQsTitleInput');
+        if (qsInput) {
+          const parentQs = C9.Store.state.globalQuerySpaces.find(q => q.qsId === C9.Store.state.activeQuerySpaceId);
+          qsInput.textContent = parentQs ? parentQs.name : 'Unknown Space';
+        }
 
         // Generate strict temporal coordinates at the moment of staging
         const stagingTimestamp = Date.now();

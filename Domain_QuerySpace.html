@@ -232,7 +232,11 @@
           const ledgerEntry = item.ledgerEntry;
 
           const row = document.createElement('div');
-          row.style.padding = '4px 4px';
+          row.className = 'active-qs-ref-row';
+          row.dataset.refid = ref.id;
+
+          row.style.padding = '6px 4px';
+          row.style.cursor = 'pointer';
           row.style.borderBottom = '1px solid var(--borderColor1)';
           row.style.display = 'flex';
           row.style.alignItems = 'center';
