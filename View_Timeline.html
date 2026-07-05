@@ -19,6 +19,19 @@
         const GRID_RES = 2;
         const STACK_BOTTOM_PADDING = 4;
 
+        const parseDuration = (durStr) => {
+          if (!durStr) return 900000; // 15 mins in ms
+          const parts = durStr.split(':').map(Number);
+          if (parts.length === 3) {
+            const h = isNaN(parts[0]) ? 0 : Math.abs(parts[0]);
+            const m = isNaN(parts[1]) ? 0 : Math.abs(parts[1]);
+            const s = isNaN(parts[2]) ? 0 : Math.abs(parts[2]);
+            const total = (h * 3600000) + (m * 60000) + (s * 1000);
+            return total === 0 ? 900000 : total;
+          }
+          return 900000;
+        };
+
         if (!timeline || !container || !state.loadedStartDate) return;
 
         // Force UI DOM to reflect true state
@@ -368,32 +381,87 @@
                 totalLinesNeeded += Math.max(1, Math.ceil(lineWidth / MAX_LABEL_WIDTH));
             }
 
-            const boundedWidth = Math.min(Math.max(maxLineWidth, 4), MAX_LABEL_WIDTH);
+            // FIX 1: Add 4px to compensate for DOM text rendering bleed
+            const visualTextWidth = maxLineWidth + 4;
+            const boundedWidth = Math.min(Math.max(visualTextWidth, 4), MAX_LABEL_WIDTH);
+
             const textPixelHeight = Math.min(3, totalLinesNeeded) * laneHeight;
             const estimatedGridLanes = Math.ceil((textPixelHeight + ITEM_GAP) / GRID_RES);
 
-            const layoutResult = C9.Physics[state.activeCollisionStrategy](x, boundedWidth, estimatedGridLanes, currentStackLanes, ev);
+            // === THE DURATION INTERCEPT ===
+            let activeWidth = boundedWidth;
+            let timePixelWidth = 0;
 
-            if (x + boundedWidth >= renderBufferLeft && x <= renderBufferRight) {
+            if (state.activeCollisionStrategy === 'duration_waterfall') {
+              const durStr = C9.Parser.extractC9Field(cleanDesc, 'duration');
+              const durMs = parseDuration(durStr);
+              timePixelWidth = (durMs / msPerDay) * pixelsPerDay;
+
+              // The collision footprint is the larger of the time width OR the buffered text width
+              activeWidth = Math.max(timePixelWidth, boundedWidth);
+            }
+
+            const layoutResult = C9.Physics[state.activeCollisionStrategy](x, activeWidth, estimatedGridLanes, currentStackLanes, ev);
+
+            if (x + activeWidth >= renderBufferLeft && x <= renderBufferRight) {
               if (layoutResult.finalLane + estimatedGridLanes > maxLanesUsedInRenderBuffer) {
                 maxLanesUsedInRenderBuffer = layoutResult.finalLane + estimatedGridLanes;
               }
 
-              // === THE SEPARATION OF CONCERNS ===
-              // We just make the box and place it on the coordinate grid.
+              // 1. The Parent Wrapper (Invisible Spatial Anchor)
               const marker = document.createElement('div');
               if (layoutResult.domId) marker.id = layoutResult.domId;
               marker.style.position = 'absolute';
               marker.style.top = (layoutResult.finalLane * GRID_RES) + 'px';
               marker.style.left = x + 'px';
-              marker.style.maxWidth = layoutResult.finalWidth + 'px';
 
-              // We let the Factory paint it!
-              C9.Nodes.drawTextMarker(marker, displayText, state.currentFontSize, textPixelHeight, laneHeight);
+              // === STRATEGY 4: SIBLING ARCHITECTURE ===
+              if (state.activeCollisionStrategy === 'duration_waterfall') {
+                // Parent is the size of the full collision footprint
+                marker.style.width = layoutResult.finalWidth + 'px';
+
+                // 2. The Text Card (Sibling 1)
+                const textCard = document.createElement('div');
+                textCard.style.position = 'relative';
+
+                // FIX 2: Lock the card strictly to the text width, NOT 100% of the parent
+                textCard.style.width = boundedWidth + 'px';
+
+                // Guarantee enough vertical space to prevent upward scrolling
+                textCard.style.minHeight = (textPixelHeight + 2) + 'px';
+
+                textCard.style.backgroundColor = 'var(--backgroundColor1, #2a1a15)';
+                textCard.style.padding = '0px';
+
+                textCard.style.overflowX = 'auto';
+                textCard.style.overflowY = 'hidden';
+                textCard.classList.add('hidden-scrollbar');
+                textCard.style.whiteSpace = 'nowrap';
+
+                // 3. The True Duration Bar (Sibling 2)
+                const durationBar = document.createElement('div');
+                durationBar.style.position = 'absolute';
+                durationBar.style.bottom = '0px';
+                durationBar.style.left = '0px';
+                durationBar.style.height = '1px';
+                durationBar.style.width = timePixelWidth + 'px'; // Strictly the math duration
+                durationBar.style.backgroundColor = '#ff9000';
+                durationBar.style.pointerEvents = 'none';
+
+                marker.appendChild(textCard);
+                marker.appendChild(durationBar);
+
+                C9.Nodes.drawTextMarker(textCard, displayText, state.currentFontSize, textPixelHeight, laneHeight);
+
+              } else {
+                // === ORIGINAL STRATEGIES (1, 2, 3) ===
+                marker.style.width = layoutResult.finalWidth + 'px';
+                C9.Nodes.drawTextMarker(marker, displayText, state.currentFontSize, textPixelHeight, laneHeight);
+              }
 
               stackLayer.appendChild(marker);
             }
-          });
+          }); // <-- End of the compositor queue loop
 
           const targetHeight = (Math.max(maxLanesUsedInRenderBuffer, 1) * GRID_RES) + STACK_BOTTOM_PADDING;
           newTargetHeights.push(targetHeight);
