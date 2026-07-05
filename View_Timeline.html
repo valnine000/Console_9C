@@ -49,11 +49,45 @@
         timeline.style.width = landscapeWidth + 'px';
         timeline.style.position = 'relative';
         timeline.style.overflow = 'hidden';
+        timeline.style.height = '100%'; // Forces the timeline to span the parent's 250px height
+
+        // 1. Establish the Decoupled Sibling Containers
+        let scaleContainer = document.getElementById('scaleContainer');
+        if (!scaleContainer) {
+          scaleContainer = document.createElement('div');
+          scaleContainer.id = 'scaleContainer';
+          scaleContainer.style.position = 'relative';
+          scaleContainer.style.width = '100%';
+          scaleContainer.style.height = '48px';
+          scaleContainer.style.zIndex = '10';
+          timeline.appendChild(scaleContainer);
+        }
+
+        const scaleDataGap = 8;
+        let dataContainer = document.getElementById('dataContainer');
+        if (!dataContainer) {
+          dataContainer = document.createElement('div');
+          dataContainer.id = 'dataContainer';
+          dataContainer.style.position = 'relative';
+          dataContainer.style.width = '100%';
+          dataContainer.style.marginTop = `${scaleDataGap}px`;
+          dataContainer.style.height = `calc(100% - ${48 + scaleDataGap}px)`;
+          dataContainer.style.overflowY = 'auto';
+          dataContainer.classList.add('hidden-scrollbar');
+          timeline.appendChild(dataContainer);
+        }
 
         // --- DOM VAPORIZATION ---
         const stackCount = state.timelineStackCount > 0 ? state.timelineStackCount : 1;
-        Array.from(timeline.children).forEach(child => {
-          if (!child.classList.contains('persisted-stack') && !child.classList.contains('persisted-now-marker')) {
+
+        Array.from(scaleContainer.children).forEach(child => {
+          if (!child.classList.contains('persisted-now-marker')) {
+            child.remove();
+          }
+        });
+
+        Array.from(dataContainer.children).forEach(child => {
+          if (!child.classList.contains('persisted-stack') && child.id !== 'dataContentHeight') {
             child.remove();
           } else if (child.classList.contains('persisted-stack')) {
             const stackIndex = parseInt(child.id.replace('stackLayer-', ''));
@@ -68,7 +102,7 @@
         baseline.style.width = '100%';
         baseline.style.height = '1px';
         baseline.style.top = timelinePosition + 'px';
-        timeline.appendChild(baseline);
+        scaleContainer.appendChild(baseline);
 
         // --- LOD TICK ENGINE ---
         let minVisibleRank = 1;
@@ -111,7 +145,7 @@
               fourBar.style.height = '4px';
               fourBar.style.top = (timelinePosition - 4) + 'px'; // Sits right above the baseline
               fourBar.style.backgroundColor = segment.color;
-              timeline.appendChild(fourBar);
+              scaleContainer.appendChild(fourBar);
             }
           });
           // ==========================================
@@ -138,7 +172,7 @@
                 tick.style.height = (12 * state.currentTickScale) + 'px';
                 tick.style.top = (timelinePosition - (12 * state.currentTickScale)) + 'px';
               }
-              timeline.appendChild(tick);
+              scaleContainer.appendChild(tick);
 
               let showLabel = false;
               if (pixelsPerDay >= 40) showLabel = true;
@@ -189,7 +223,7 @@
                   dateSpan.style.borderRadius = '3px';
                 }
                 label.appendChild(dateSpan);
-                timeline.appendChild(label);
+                scaleContainer.appendChild(label);
               }
             }
 
@@ -233,7 +267,7 @@
                       subTick.style.borderRadius = '50%';
                       subTick.style.transform = 'translateX(-50%)';
                     }
-                    timeline.appendChild(subTick);
+                    scaleContainer.appendChild(subTick);
                   }
                 }
               }
@@ -244,7 +278,7 @@
 
         // --- THE SPATIAL MATRIX LOOP ---
         const laneHeight = state.currentFontSize * 1.4;
-        let currentStackYFloor = 48;
+        let currentStackYFloor = 0;
 
         if (!window.stableStackHeights) window.stableStackHeights = [];
         const newTargetHeights = [];
@@ -269,7 +303,7 @@
             stackLayer.style.width = '100%';
             stackLayer.style.overflow = 'hidden';
             stackLayer.style.transition = 'height 0.5s cubic-bezier(0, 0, 0.2, 1), top 0.5s cubic-bezier(0, 0, 0.2, 1)';
-            timeline.appendChild(stackLayer);
+            dataContainer.appendChild(stackLayer);
           }
 
           stackLayer.replaceChildren();
@@ -373,6 +407,16 @@
         container.scrollLeft = currentScroll;
         C9.Timeline.updateMonthDisplay();
 
+        // Maintain a spacer to stretch the vertical scrollHeight of the dataContainer
+        let dataSpacer = document.getElementById('dataContentHeight');
+        if (!dataSpacer) {
+          dataSpacer = document.createElement('div');
+          dataSpacer.id = 'dataContentHeight';
+          dataSpacer.style.position = 'absolute';
+          dataSpacer.style.width = '1px';
+          dataContainer.appendChild(dataSpacer);
+        }
+
         // --- DEBOUNCE ENGINE ---
         if (window.heightDebounceTimer) clearTimeout(window.heightDebounceTimer);
         let needsUpdate = false;
@@ -383,7 +427,7 @@
         if (needsUpdate) {
           if (window.stableStackHeights.length === 0) {
             window.stableStackHeights = newTargetHeights;
-            timeline.style.height = (currentStackYFloor + 4) + 'px';
+            dataSpacer.style.height = (currentStackYFloor + 4) + 'px';
           } else {
             window.heightDebounceTimer = setTimeout(() => {
               window.stableStackHeights = newTargetHeights;
@@ -391,7 +435,7 @@
             }, 150);
           }
         } else {
-          timeline.style.height = (currentStackYFloor + 4) + 'px';
+          dataSpacer.style.height = (currentStackYFloor + 4) + 'px';
         }
       },
 
@@ -419,9 +463,8 @@
 
       // --- THE NEW MARKER LOGIC ---
       renderNowMarker: function(nowMs) {
-        const timeline = document.getElementById('calendarTimeline');
-
-        if (!timeline || !C9.Store.state.loadedStartDate) {
+        let scaleContainer = document.getElementById('scaleContainer');
+        if (!scaleContainer || !C9.Store.state.loadedStartDate) {
           return;
         }
 
@@ -437,7 +480,7 @@
           nowMarker.style.height = '14px';
           nowMarker.style.zIndex = '20';
           nowMarker.style.pointerEvents = 'none';
-          timeline.appendChild(nowMarker);
+          scaleContainer.appendChild(nowMarker);
         }
 
         const apertureWidth = C9.Store.state.apertureWidth;
@@ -446,7 +489,6 @@
         const msPerDay = 24 * 60 * 60 * 1000;
 
         const zeroMs = C9.Store.state.loadedStartDate.getTime();
-        // Use the synchronized time from the TimeEngine
         const nowX = ((nowMs - zeroMs) / msPerDay) * pixelsPerDay;
 
         if (isNaN(nowX) || nowX < 0) {
