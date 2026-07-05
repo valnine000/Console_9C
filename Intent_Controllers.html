@@ -337,13 +337,15 @@
         const collisionStrategyMap = {
           'collisionDetection1': 'greedy_pack',
           'collisionDetection2': 'chronological_waterfall',
-          'collisionDetection3': 'extreme_squish'
+          'collisionDetection3': 'extreme_squish',
+          'collisionDetection4': 'duration_waterfall'
         };
 
         const c1Btn = document.getElementById('collisionDetection1');
         const c2Btn = document.getElementById('collisionDetection2');
         const c3Btn = document.getElementById('collisionDetection3');
-        const collisionBtns = [c1Btn, c2Btn, c3Btn];
+        const c4Btn = document.getElementById('collisionDetection4');
+        const collisionBtns = [c1Btn, c2Btn, c3Btn, c4Btn];
 
         function handleCollisionStrategySwitch(buttonId) {
           C9.Store.update({ activeCollisionStrategy: collisionStrategyMap[buttonId] });
@@ -358,6 +360,7 @@
         if (c1Btn) c1Btn.addEventListener('click', () => handleCollisionStrategySwitch('collisionDetection1'));
         if (c2Btn) c2Btn.addEventListener('click', () => handleCollisionStrategySwitch('collisionDetection2'));
         if (c3Btn) c3Btn.addEventListener('click', () => handleCollisionStrategySwitch('collisionDetection3'));
+        if (c4Btn) c4Btn.addEventListener('click', () => handleCollisionStrategySwitch('collisionDetection4'));
 
         handleCollisionStrategySwitch('collisionDetection2');
       },
