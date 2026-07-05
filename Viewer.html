@@ -45,7 +45,8 @@
     <div id="mainAppWrapper" style="height:100%; ">
 
         <!-- Header Panel -->
-        <div id="header" style="position: relative; border: 0px solid #ff9000; width:var(--defaultMobilWidth); max-height: 70px; padding: 4px; text-align: center;">
+        <div id="header"
+             style="position: relative; border: 0px solid #ff9000; width:var(--defaultMobilWidth); max-height: 70px; padding: 4px; text-align: center;">
             <div id="systemDate">...</div>
             <div id="systemClock">--:--:--</div>
             <div id="settingsShowMenu" class="c1d1" style="position: absolute; top: 8px; right: 8px; cursor: pointer;">&#9881;</div>
@@ -98,56 +99,42 @@
         </div>
 
         <!-- Panel Container 1 -->
-        <div id="panelsContainer1" class="panels-container-wrapper hidden-scrollbar hasBorder" style="">
-            <div id="" class="panel-container-wrapper hasBorder" style="width: 100%;">
-                <div id="calendarPanelContainer" class="hidden-scrollbar"
-                     style="width: auto; padding: 4px; overflow-x: auto; overflow-y: hidden; border: 1px solid #aa00aa; margin-right: 4px;">
+        <div id="panelsContainer1" class="panels-container-wrapper hidden-scrollbar " style="">
+            <div id="timelinePanelContent" class="hasBorder panel-container-wrapper " style="position: relative; width: 100%;">
+
+                <!-- Panel Menu -->
+                <div style="position: absolute; left: 4px; top: 4px; z-index: 90; height:0px; width: var(--defaultMobilWidth); padding: 0px 0px;">
+                    <div style="position: absolute; left: 0px; top: 0px; z-index: 90; padding: 20px 4px 0px 4px;">
+                        <div id="currentMonthDisplay"
+                             style="display:inline-block; font-size: var(--button-font-size); padding: 6px; background-color: var(--backgroundColor1);">
+                            --
+                        </div>
+                    </div>
+                    <div style="position: absolute; left: 0px; top: 0px; z-index: 90; padding: 0px 4px 0px 4px;">
+                        <div>
+                            <div id="goToToday" class="control-btn">T</div>
+                            <div id="goToThisWeek" class="control-btn">TW</div>
+                            <div id="displaySymbol" class="control-btn">Sym</div>
+                            <div id="displayThing" class="control-btn">Thing</div>
+                            <div id="displayIdt" class="control-btn">IDT</div>
+                            <div id="displayDescription" class="control-btn">Data</div>
+                            <div id="collisionDetection1" class="control-btn">C1</div>
+                            <div id="collisionDetection2" class="control-btn">C2</div>
+                            <div id="collisionDetection3" class="control-btn">C3</div>
+                            <div id="showHideQueryspaceEntries" class="control-btn">QS</div>
+                            <div id="showHideActiveQueryspaceEntries" class="control-btn">AQ</div>
+                            <div id="showAllLedgerEntries" class="control-btn">All</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="timelineComponentWrapper" style="position: relative; width: 100%; padding:4px;">
 
                     <!-- Panel: Timeline View Engine -->
-                    <div id="calendarPanel" class="" style="width: auto; max-height: auto; padding: 4px; border: 1px solid green;">
-                        <div id="calendarContainer" class="" style=" padding: 4px; border: 1px solid blue;">
-
-
-
-                            <!-- Timeline content -->
-                            <div id="timelineComponentWrapper" style="position: relative; width: 100%;">
-
-                                <div id="calendarTimeLineContainer" class=" hidden-scrollbar"
-                                     style="height: 220px; padding: 4px; overflow-x: auto; overflow-y: auto; border: 1px solid #aa0000;">
-
-                                    <!-- Panel Menu -->
-                                    <div style="position: absolute; left: 0px; top: 0px; z-index: 90; height:0px; width: var(--defaultMobilWidth); padding: 0px 0px;">
-                                        <div style="position: absolute; left: 0px; top: 0px; z-index: 90; padding: 20px 4px 0px 4px;">
-                                            <div id="currentMonthDisplay"
-                                                 style="display:inline-block; font-size: var(--button-font-size); padding: 6px; background-color: var(--backgroundColor1);">
-                                                --
-                                            </div>
-                                        </div>
-                                        <div style="position: absolute; left: 0px; top: 0px; z-index: 90; padding: 0px 4px 0px 4px;">
-                                            <div>
-                                                <div id="goToToday" class="control-btn">T</div>
-                                                <div id="goToThisWeek" class="control-btn">TW</div>
-                                                <div id="displaySymbol" class="control-btn">Sym</div>
-                                                <div id="displayThing" class="control-btn">Thing</div>
-                                                <div id="displayIdt" class="control-btn">IDT</div>
-                                                <div id="displayDescription" class="control-btn">Data</div>
-                                                <div id="collisionDetection1" class="control-btn">C1</div>
-                                                <div id="collisionDetection2" class="control-btn">C2</div>
-                                                <div id="collisionDetection3" class="control-btn">C3</div>
-                                                <div id="showHideQueryspaceEntries" class="control-btn">QS</div>
-                                                <div id="showHideActiveQueryspaceEntries" class="control-btn">AQ</div>
-                                                <div id="showAllLedgerEntries" class="control-btn">All</div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="hasBorder" style="height:0px; padding: 3px 0px;"></div>
-                                    <div class="hasBorder">
-                                        <div id="calendarTimeline" class=""
-                                             style="font-family: inherit; padding: 0px 0px 2px 0px; position: relative;"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                    <div id="calendarTimeLineContainer" class=" hidden-scrollbar"
+                         style="height: 250px; padding: 4px; overflow-x: auto; overflow-y: auto; overscroll-behavior: contain;">
+                        <div id="calendarTimeline" class=""
+                             style="position: relative; margin-top:10px; padding: 0px 0px 2px 0px;"></div>
                     </div>
                 </div>
             </div>
