@@ -101,40 +101,41 @@
         <!-- Panel Container 1 -->
         <div id="panelsContainer1" class="panels-container-wrapper hidden-scrollbar " style="">
             <div id="timelinePanelContent" class="hasBorder panel-container-wrapper " style="position: relative; width: 100%;">
-
-                <!-- Panel Menu -->
-                <div style="position: absolute; left: 4px; top: 4px; z-index: 90; height:0px; width: var(--defaultMobilWidth); padding: 0px 0px;">
-                    <div style="position: absolute; left: 0px; top: 0px; z-index: 90; padding: 20px 4px 0px 4px;">
-                        <div id="currentMonthDisplay"
-                             style="display:inline-block; font-size: var(--button-font-size); padding: 6px; background-color: var(--backgroundColor1);">
-                            --
+                <div id="timelineVisualizationModule">
+                    <!-- Panel Menu -->
+                    <div style="position: absolute; left: 4px; top: 4px; z-index: 90; height:0px; width: var(--defaultMobilWidth); padding: 0px 0px;">
+                        <div style="position: absolute; left: 0px; top: 0px; z-index: 90; padding: 0px 4px 0px 4px;">
+                            <div id="currentMonthDisplay"
+                                 style="display:inline-block; font-size: var(--button-font-size); margin-top:29px; padding-left: 6px; background-color: var(--backgroundColor1);">
+                                --
+                            </div>
+                        </div>
+                        <div style="position: absolute; left: 0px; top: 0px; z-index: 90; padding: 0px 4px 0px 4px;">
+                            <div>
+                                <div id="goToToday" class="control-btn">T</div>
+                                <div id="goToThisWeek" class="control-btn">TW</div>
+                                <div id="displaySymbol" class="control-btn">Sym</div>
+                                <div id="displayThing" class="control-btn">Thing</div>
+                                <div id="displayIdt" class="control-btn">IDT</div>
+                                <div id="displayDescription" class="control-btn">Data</div>
+                                <div id="collisionDetection1" class="control-btn">C1</div>
+                                <div id="collisionDetection2" class="control-btn">C2</div>
+                                <div id="collisionDetection3" class="control-btn">C3</div>
+                                <div id="collisionDetection4" class="control-btn">C4</div>
+                                <div id="showHideQueryspaceEntries" class="control-btn">QS</div>
+                                <div id="showHideActiveQueryspaceEntries" class="control-btn">AQ</div>
+                                <div id="showAllLedgerEntries" class="control-btn">All</div>
+                            </div>
                         </div>
                     </div>
-                    <div style="position: absolute; left: 0px; top: 0px; z-index: 90; padding: 0px 4px 0px 4px;">
-                        <div>
-                            <div id="goToToday" class="control-btn">T</div>
-                            <div id="goToThisWeek" class="control-btn">TW</div>
-                            <div id="displaySymbol" class="control-btn">Sym</div>
-                            <div id="displayThing" class="control-btn">Thing</div>
-                            <div id="displayIdt" class="control-btn">IDT</div>
-                            <div id="displayDescription" class="control-btn">Data</div>
-                            <div id="collisionDetection1" class="control-btn">C1</div>
-                            <div id="collisionDetection2" class="control-btn">C2</div>
-                            <div id="collisionDetection3" class="control-btn">C3</div>
-                            <div id="showHideQueryspaceEntries" class="control-btn">QS</div>
-                            <div id="showHideActiveQueryspaceEntries" class="control-btn">AQ</div>
-                            <div id="showAllLedgerEntries" class="control-btn">All</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div id="timelineComponentWrapper" style="position: relative; width: 100%; padding:4px;">
 
                     <!-- Panel: Timeline View Engine -->
-                    <div id="calendarTimeLineContainer" class=" hidden-scrollbar"
-                         style="height: 250px; padding: 4px; overflow-x: auto; overflow-y: auto; overscroll-behavior: contain;">
-                        <div id="calendarTimeline" class=""
-                             style="position: relative; margin-top:10px; padding: 0px 0px 2px 0px;"></div>
+                    <div id="timelineComponentWrapper" style="position: relative; width: 100%; padding:4px;">
+                        <div id="calendarTimeLineContainer" class=" hidden-scrollbar"
+                             style="height: 250px; padding: 4px; overflow-x: auto; overflow-y: hidden; overscroll-behavior: contain;">
+                            <div id="calendarTimeline" class=""
+                                 style="position: relative; margin-top:10px; padding: 0px 0px 2px 0px;"></div>
+                        </div>
                     </div>
                 </div>
             </div>
