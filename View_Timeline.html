@@ -161,7 +161,6 @@
               scaleContainer.appendChild(fourBar);
             }
           });
-          // ==========================================
 
           if (basePathX + pixelsPerDay >= renderBufferLeft && basePathX <= renderBufferRight) {
             let dayRank = 4;
@@ -296,15 +295,6 @@
         if (!window.stableStackHeights) window.stableStackHeights = [];
         const newTargetHeights = [];
 
-        <!--        let aqTargetIds = new Set();-->
-        <!--        if (state.filterTimelineByAQ && state.activeQuerySpaceId) {-->
-        <!--          state.globalQuerySpaceRefs.forEach(ref => {-->
-        <!--            if (ref.qsId === state.activeQuerySpaceId) {-->
-        <!--              aqTargetIds.add(ref.ledgerId);-->
-        <!--            }-->
-        <!--          });-->
-        <!--        }-->
-
         for (let currentStack = 0; currentStack < stackCount; currentStack++) {
           let stackLayer = document.getElementById('stackLayer-' + currentStack);
           if (!stackLayer) {
@@ -336,132 +326,108 @@
           const currentStackLanes = [];
           let maxLanesUsedInRenderBuffer = 0;
 
-          const queue = state.compositorQueue || [];
-          queue.forEach(function(ev) {
-        <!--          state.memoryStore.forEach(function(ev) {-->
+          // !==========================================
 
-        <!--            if (!state.showQuerySpace && ev.source === 'queryspace') return;-->
-        <!--            if (state.filterTimelineByAQ && (!state.activeQuerySpaceId || !aqTargetIds.has(ev.id))) return;-->
+            const queue = state.compositorQueue || [];
+            queue.forEach(function(ev) {
 
-            const shiftedDate = new Date(ev.startTime);
-            shiftedDate.setDate(shiftedDate.getDate() - daysToShift);
-            const x = ((shiftedDate.getTime() - zeroMs) / msPerDay) * pixelsPerDay;
-            if (x < 0 || x > landscapeWidth) return;
+              const shiftedDate = new Date(ev.startTime);
+              shiftedDate.setDate(shiftedDate.getDate() - daysToShift);
+              const x = ((shiftedDate.getTime() - zeroMs) / msPerDay) * pixelsPerDay;
+              if (x < 0 || x > landscapeWidth) return;
 
-            const d = new Date(ev.startTime);
-            let h = d.getHours();
-            const ampm = h >= 12 ? 'pm' : 'am';
-            const min = d.getMinutes();
-            const timeStr = min === 0 ? (h % 12 || 12) + ampm : (h % 12 || 12) + ":" + min.toString().padStart(2, '0') + ampm;
+              const d = new Date(ev.startTime);
+              let h = d.getHours();
+              const ampm = h >= 12 ? 'pm' : 'am';
+              const min = d.getMinutes();
+              const timeStr = min === 0 ? (h % 12 || 12) + ampm : (h % 12 || 12) + ":" + min.toString().padStart(2, '0') + ampm;
 
-            let cleanDesc = ev.description ? C9.Parser.cleanHtmlText(ev.description) : "";
-            const parts = [];
+              let cleanDesc = ev.description ? C9.Parser.cleanHtmlText(ev.description) : "";
+              const parts = [];
 
-            if (state.showEventSymbol) {
-              let finalSymbol = Array.from((ev.title || "").trim())[0] || '?';
-              if (ev.symbol && ev.symbol !== "") finalSymbol = ev.symbol;
-              else if (ev.thing && ev.thing !== "") finalSymbol = Array.from(ev.thing.trim())[0] || finalSymbol;
-              parts.push(finalSymbol);
-            }
-
-            if (state.showEventTime) parts.push(timeStr);
-            if (state.showEventThing) parts.push((ev.thing || ev.title || "Thing").trim());
-            if (state.showEventDesc && cleanDesc) parts.push(cleanDesc);
-
-            const displayText = parts.join(' ');
-            C9.Timeline.measureCtx.font = state.currentFontSize + 'px serif';
-            const MAX_LABEL_WIDTH = 200;
-            const lines = displayText.split('\n');
-            let maxLineWidth = 0;
-            let totalLinesNeeded = 0;
-
-            for (let i = 0; i < lines.length; i++) {
-                const lineWidth = C9.Timeline.measureCtx.measureText(lines[i]).width;
-                if (lineWidth > maxLineWidth) maxLineWidth = lineWidth;
-                totalLinesNeeded += Math.max(1, Math.ceil(lineWidth / MAX_LABEL_WIDTH));
-            }
-
-            // FIX 1: Add 4px to compensate for DOM text rendering bleed
-            const visualTextWidth = maxLineWidth + 4;
-            const boundedWidth = Math.min(Math.max(visualTextWidth, 4), MAX_LABEL_WIDTH);
-
-            const textPixelHeight = Math.min(3, totalLinesNeeded) * laneHeight;
-            const estimatedGridLanes = Math.ceil((textPixelHeight + ITEM_GAP) / GRID_RES);
-
-            // === THE DURATION INTERCEPT ===
-            let activeWidth = boundedWidth;
-            let timePixelWidth = 0;
-
-            if (state.activeCollisionStrategy === 'duration_waterfall') {
-              const durStr = C9.Parser.extractC9Field(cleanDesc, 'duration');
-              const durMs = parseDuration(durStr);
-              timePixelWidth = (durMs / msPerDay) * pixelsPerDay;
-
-              // The collision footprint is the larger of the time width OR the buffered text width
-              activeWidth = Math.max(timePixelWidth, boundedWidth);
-            }
-
-            const layoutResult = C9.Physics[state.activeCollisionStrategy](x, activeWidth, estimatedGridLanes, currentStackLanes, ev);
-
-            if (x + activeWidth >= renderBufferLeft && x <= renderBufferRight) {
-              if (layoutResult.finalLane + estimatedGridLanes > maxLanesUsedInRenderBuffer) {
-                maxLanesUsedInRenderBuffer = layoutResult.finalLane + estimatedGridLanes;
+              if (state.showEventSymbol) {
+                let finalSymbol = Array.from((ev.title || "").trim())[0] || '?';
+                if (ev.symbol && ev.symbol !== "") finalSymbol = ev.symbol;
+                else if (ev.thing && ev.thing !== "") finalSymbol = Array.from(ev.thing.trim())[0] || finalSymbol;
+                parts.push(finalSymbol);
               }
 
-              // 1. The Parent Wrapper (Invisible Spatial Anchor)
-              const marker = document.createElement('div');
-              if (layoutResult.domId) marker.id = layoutResult.domId;
-              marker.style.position = 'absolute';
-              marker.style.top = (layoutResult.finalLane * GRID_RES) + 'px';
-              marker.style.left = x + 'px';
+              if (state.showEventTime) parts.push(timeStr);
+              if (state.showEventThing) parts.push((ev.thing || ev.title || "Thing").trim());
+              if (state.showEventDesc && cleanDesc) parts.push(cleanDesc);
 
-              // === STRATEGY 4: SIBLING ARCHITECTURE ===
-              if (state.activeCollisionStrategy === 'duration_waterfall') {
-                // Parent is the size of the full collision footprint
-                marker.style.width = layoutResult.finalWidth + 'px';
+              const displayText = parts.join(' ');
+              const MAX_LABEL_WIDTH = 200;
 
-                // 2. The Text Card (Sibling 1)
-                const textCard = document.createElement('div');
-                textCard.style.position = 'relative';
+              // === 1. ASSEMBLE THE ONE TRUE CARD ===
+              const cardNode = document.createElement('div');
+              cardNode.style.position = 'absolute'; // Ready for the timeline coordinate matrix
+              cardNode.style.width = 'max-content'; // Shrink-wraps to the largest child
 
-                // FIX 2: Lock the card strictly to the text width, NOT 100% of the parent
-                textCard.style.width = boundedWidth + 'px';
+              // A. The Text Sibling
+              const textCard = document.createElement('div');
+              textCard.style.maxWidth = MAX_LABEL_WIDTH + 'px'; // Caps the text width
+              textCard.style.backgroundColor = 'var(--backgroundColor1, #2a1a15)';
+              textCard.style.padding = '0px';
+              textCard.style.overflowX = 'auto';
+              textCard.style.overflowY = 'hidden';
+              textCard.classList.add('hidden-scrollbar');
+              textCard.style.whiteSpace = 'nowrap';
 
-                // Guarantee enough vertical space to prevent upward scrolling
-                textCard.style.minHeight = (textPixelHeight + 2) + 'px';
+              C9.Nodes.drawTextMarker(textCard, displayText, state.currentFontSize, null, laneHeight);
+              cardNode.appendChild(textCard);
 
-                textCard.style.backgroundColor = 'var(--backgroundColor1, #2a1a15)';
-                textCard.style.padding = '0px';
+              // B. The Duration Sibling (If active)
+              if (state.showDurationBar) {
+                const durStr = C9.Parser.extractC9Field(cleanDesc, 'duration');
+                const durMs = parseDuration(durStr);
+                const timePixelWidth = (durMs / msPerDay) * pixelsPerDay;
 
-                textCard.style.overflowX = 'auto';
-                textCard.style.overflowY = 'hidden';
-                textCard.classList.add('hidden-scrollbar');
-                textCard.style.whiteSpace = 'nowrap';
+                // CSS TRICK: Force the parent to be at least as wide as the math duration.
+                // This ensures the shadow DOM footprint captures the full time width, even if the text is short.
+                cardNode.style.minWidth = timePixelWidth + 'px';
 
-                // 3. The True Duration Bar (Sibling 2)
                 const durationBar = document.createElement('div');
                 durationBar.style.position = 'absolute';
                 durationBar.style.bottom = '0px';
                 durationBar.style.left = '0px';
                 durationBar.style.height = '1px';
-                durationBar.style.width = timePixelWidth + 'px'; // Strictly the math duration
+                durationBar.style.width = timePixelWidth + 'px';
                 durationBar.style.backgroundColor = '#ff9000';
                 durationBar.style.pointerEvents = 'none';
 
-                marker.appendChild(textCard);
-                marker.appendChild(durationBar);
-
-                C9.Nodes.drawTextMarker(textCard, displayText, state.currentFontSize, textPixelHeight, laneHeight);
-
-              } else {
-                // === ORIGINAL STRATEGIES (1, 2, 3) ===
-                marker.style.width = layoutResult.finalWidth + 'px';
-                C9.Nodes.drawTextMarker(marker, displayText, state.currentFontSize, textPixelHeight, laneHeight);
+                cardNode.appendChild(durationBar);
               }
 
-              stackLayer.appendChild(marker);
-            }
-          }); // <-- End of the compositor queue loop
+              // === 2. SHADOW DOM MEASUREMENT ===
+              // We pass the fully assembled card directly into the shadow arena.
+              // The footprint now contains the exact physical CSS union of the text and the duration math!
+              const footprint = C9.Nodes.getDomDimensions(cardNode);
+
+              const estimatedGridLanes = Math.ceil((footprint.height + ITEM_GAP) / GRID_RES);
+
+              // === 3. PHYSICS ENGINE (COLLIDE) ===
+              const layoutResult = C9.Physics[state.activeCollisionStrategy](x, footprint.width, estimatedGridLanes, currentStackLanes, ev);
+
+              if (x + footprint.width >= renderBufferLeft && x <= renderBufferRight) {
+                if (layoutResult.finalLane + estimatedGridLanes > maxLanesUsedInRenderBuffer) {
+                  maxLanesUsedInRenderBuffer = layoutResult.finalLane + estimatedGridLanes;
+                }
+
+                // === 4. LIVE DOM MOUNTING (PAINT) ===
+                // We take the exact same cardNode we measured, apply the coordinates, and paint it.
+                if (layoutResult.domId) cardNode.id = layoutResult.domId;
+                cardNode.style.top = (layoutResult.finalLane * GRID_RES) + 'px';
+                cardNode.style.left = x + 'px';
+
+                // Lock the final width to guarantee rigid bounds on the screen
+                cardNode.style.width = layoutResult.finalWidth + 'px';
+
+                stackLayer.appendChild(cardNode);
+              }
+            }); // <-- End of the compositor queue loop
+
+            // !==========================================
 
           const targetHeight = (Math.max(maxLanesUsedInRenderBuffer, 1) * GRID_RES) + STACK_BOTTOM_PADDING;
           newTargetHeights.push(targetHeight);

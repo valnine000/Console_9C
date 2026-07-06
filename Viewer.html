@@ -14,6 +14,10 @@
 
 <body class="hasBorder" style="padding: 0px">
 
+<div id="c9-measurement-arena"
+     style="position: absolute; top: -9999px; left: -9999px; visibility: hidden; pointer-events: none;">
+</div>
+
 <?!= HtmlService.createHtmlOutputFromFile('Config').getContent(); ?>
 <?!= HtmlService.createHtmlOutputFromFile('View_UI').getContent(); ?>
 <?!= HtmlService.createHtmlOutputFromFile('Ontology_Parser').getContent(); ?>
@@ -121,7 +125,7 @@
                                 <div id="collisionDetection1" class="control-btn">C1</div>
                                 <div id="collisionDetection2" class="control-btn">C2</div>
                                 <div id="collisionDetection3" class="control-btn">C3</div>
-                                <div id="collisionDetection4" class="control-btn">C4</div>
+                                <div id="showDurationBar" class="control-btn">DB</div>
                                 <div id="showHideQueryspaceEntries" class="control-btn">QS</div>
                                 <div id="showHideActiveQueryspaceEntries" class="control-btn">AQ</div>
                                 <div id="showAllLedgerEntries" class="control-btn">All</div>
@@ -273,6 +277,7 @@
                     <p id="calendarEntryTitle"
                        style="margin: 0px; padding: 0px 0px 4px 4px;">
                         Ledger</p>
+
                     <div id="calendarEntryFields" style="padding: 8px 0px 0px 4px;">
                         <div>
                             <p class="textInputFieldLabel defaultColumn1Width text-right" style="">

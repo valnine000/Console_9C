@@ -33,6 +33,29 @@
 
         // 4. Inject the payload
         container.textContent = displayText;
-      }
+      },
+
+        getDomDimensions: function(domNode) {
+            const arena = document.getElementById('c9-measurement-arena');
+            if (!arena) {
+                console.error("Measurement arena missing!");
+                return { width: 0, height: 0 };
+            }
+
+            // 1. Drop the card into the arena
+            arena.appendChild(domNode);
+
+            // 2. Ask the browser's CSS engine for the exact rendered size
+            const rect = domNode.getBoundingClientRect();
+
+            // 3. Remove the card from the arena immediately
+            arena.removeChild(domNode);
+
+            // 4. Return the calculated footprint
+            return {
+                width: rect.width,
+                height: rect.height
+            };
+        }
     };
 </script>
