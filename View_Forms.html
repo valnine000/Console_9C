@@ -134,13 +134,13 @@
         }
 
         destDesc.innerText = destText;
-        btn.style.outline = "2px solid green";
+        btn.style.outline = "1px solid green";
         setTimeout(() => { btn.style.outline = ""; }, 2000);
       },
 
       parseThingPayload: function() {
         const payloadInput = document.getElementById('descriptionPayloadInput');
-        const entryContainer = document.getElementById('calendarEntryContainer');
+        const entryContainer = document.getElementById('parseEntry');
 
         const rightTitle = document.getElementById('calendarEntryTitleInput');
         const rightStartDate = document.getElementById('calendarEntryStartDateInput');
@@ -156,11 +156,13 @@
 
         if (!payloadInput) return;
 
+        entryContainer.style.border = "0px solid orange";
         entryContainer.style.borderColor = "";
         const rawText = payloadInput.innerText;
 
         if (!rawText.includes('[#C9]') || !rawText.includes('[/#C9]')) {
-          entryContainer.style.borderColor = "orange";
+          entryContainer.style.outline = "1px solid #aa0000";
+          setTimeout(() => { entryContainer.style.outline = ""; }, 2000);
         }
 
         let thingName = C9.Parser.extractC9Field(rawText, 'thing');

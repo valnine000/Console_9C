@@ -81,24 +81,6 @@
           }
 
           return { finalLane: laneIndex, finalWidth: boundedWidth, domId: domId };
-      },
-
-      // STRATEGY 4: Duration-Based Waterfall
-      duration_waterfall: function(x, boundedWidth, estimatedLines, currentStackLanes, memoryData) {
-          let maxActiveLane = -1;
-          for (let i = 0; i < currentStackLanes.length; i++) {
-              if (currentStackLanes[i] !== undefined && x < currentStackLanes[i]) {
-                  if (i > maxActiveLane) maxActiveLane = i;
-              }
-          }
-          const targetLane = maxActiveLane + 1;
-
-          // Tight 1-pixel gap for time-blocks
-          for (let i = 0; i < estimatedLines; i++) {
-              currentStackLanes[targetLane + i] = x + boundedWidth + 1;
-          }
-
-          return { finalLane: targetLane, finalWidth: boundedWidth };
       }
     };
 </script>
