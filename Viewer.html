@@ -107,8 +107,8 @@
             <div id="timelinePanelContent" class="hasBorder panel-container-wrapper " style="position: relative; width: 100%;">
                 <div id="timelineVisualizationModule">
                     <!-- Panel Menu -->
-                    <div style="position: absolute; left: 4px; top: 4px; z-index: 90; height:0px; width: var(--defaultMobilWidth); padding: 0px 0px;">
-                        <div style="position: absolute; left: 0px; top: 0px; z-index: 90; padding: 0px 4px 0px 4px;">
+                    <div style="position: absolute; left: 4px; top: 4px; z-index: 90; height:270px; width: 1px; padding: 0px 0px;">
+                        <div style="position: absolute; left: 0px; bottom: 0px; z-index: 90; padding: 0px 4px 0px 4px;">
                             <div id="currentMonthDisplay"
                                  style="display:inline-block; font-size: var(--button-font-size); margin-top:29px; padding-left: 6px; background-color: var(--backgroundColor1);">
                                 --
@@ -225,33 +225,71 @@
                 <div id="descriptionPayload" style="height: 100%; position: relative; padding: 4px 0px 4px 0px; ">
                     <p id="descriptionPayloadTitle" style="margin: 0px; padding: 0px 0px 4px 4px; ">Builder</p>
 
-                    <div style="padding: 8px 0px 0px 4px;">
-                        <p class="textInputFieldLabel defaultColumn1Width text-right">Title</p>
+                    <div style="padding: 4px 0px 0px 4px;">
+                        <p class="textInputFieldLabel defaultColumn1Width text-right" style="vertical-align: top;">Symbol</p>
                         <div class="textInputFieldContainer defaultColumn2Width">
-                                            <span class="setting-editable-value text-left" id="thingBuilderEventTitleInput"
-                                                  contenteditable="true">-</span>
+                            <span id="symbolInput" class="setting-editable-value text-left" contenteditable="true" style="">○</span>
                         </div>
                     </div>
                     <div style="padding: 4px 0px 0px 4px;">
+                        <p class="textInputFieldLabel defaultColumn1Width text-right">Thing</p>
+                        <div class="textInputFieldContainer defaultColumn2Width">
+                            <span id="thingBuilderEventTitleInput" class="setting-editable-value text-left" contenteditable="true">-</span>
+                        </div>
+                    </div>
+                    <div style="padding: 4px 0px 0px 4px;">
+                        <p class="textInputFieldLabel defaultColumn1Width text-right" style="vertical-align: top;">Idt</p>
+                        <div class="textInputFieldContainer defaultColumn2Width">
+                            <span id="idtInput" class="setting-editable-value text-left" contenteditable="true" style="">-</span>
+                        </div>
+                    </div>
+                    <div style="padding: 4px 0px 0px 4px;">
+                        <p class="textInputFieldLabel defaultColumn1Width text-right" style="vertical-align: top;">Duration</p>
+                        <div class="textInputFieldContainer defaultColumn2Width">
+                            <span id="durationInput" class="setting-editable-value text-left" contenteditable="true" style="">-</span>
+                        </div>
+                    </div>
+                    <div style="padding: 4px 0px 0px 4px;">
+                        <p class="textInputFieldLabel defaultColumn1Width text-right" style="vertical-align: top;">Id</p>
+                        <div class="textInputFieldContainer defaultColumn2Width">
+                            <span id="idInput" class="setting-editable-value text-left" contenteditable="true" style="">-</span>
+                        </div>
+                    </div>
+                    <div style="padding: 4px 0px 0px 4px;">
+                        <p class="textInputFieldLabel defaultColumn1Width text-right" style="vertical-align: top;">Timestamp</p>
+                        <div class="textInputFieldContainer defaultColumn2Width">
+                            <span id="timestampInput" class="setting-editable-value text-left" contenteditable="true" style="">-</span>
+                        </div>
+                    </div>
+                    <div style="padding: 4px 0px 0px 4px;">
+                        <p class="textInputFieldLabel defaultColumn1Width text-right" style="vertical-align: top;">Data</p>
+                        <div class="textInputFieldContainer defaultColumn2Width">
+                            <span id="dataInput" class="setting-editable-value text-left" contenteditable="true" style="">-</span>
+                        </div>
+                    </div>
+                    <!--                    -->
+                    <p style="height:4px; width:10px; margin: 0px; padding: 0px;"></p>
+                    <div style="padding: 4px 0px 0px 4px; color: var(--c1d1);">
                         <p class="textInputFieldLabel defaultColumn1Width text-right" style="vertical-align: top;">Dates</p>
                         <div class="textInputFieldContainer defaultColumn2Width" style="">
                             <div>
-                                <div>
-                                    <span id="thingBuilderEventStartDate">-</span>
-                                    <span id="thingBuilderEventStartTime"></span>
-                                </div>
-                                <div>
-                                    <span id="thingBuilderEventEndDate">-</span>
-                                    <span id="thingBuilderEventEndTime"></span>
-                                </div>
+                                <!--                                <div>-->
+                                <span id="thingBuilderEventStartTime" style="display:inline-block; width: 8ch;text-align: center; ">-</span>
+                                <span id="thingBuilderEventStartDate" style="display:inline-block; width: 8ch;text-align: center; ">-</span>
+                                <!--                                </div>-->
+                                <!--                                <div>-->
+                                <span style="text-align: center; display:inline-block; width: 4ch; color: var(--c1d1)"><em> to </em></span>
+
+                                <span id="thingBuilderEventEndTime" style="display:inline-block; width: 8ch;text-align: center; ">-</span>
+                                <span id="thingBuilderEventEndDate" style="display:inline-block; width: 8ch;text-align: center; ">-</span>
+                                <!--                                </div>-->
                             </div>
                         </div>
                     </div>
-
-                    <div style="padding: 4px 0px 0px 4px;">
+                    <div style="padding: 4px 0px 0px 4px; color: var(--c1d1);">
                         <p class="textInputFieldLabel defaultColumn1Width text-right" style="line-height: 1.6;">Description</p>
                         <div class="textInputFieldContainer defaultColumn2Width"
-                             style="height:150px; min-width:50px; overflow-y: auto; vertical-align: top;">
+                             style="height:50px; min-width:50px; overflow-y: auto; vertical-align: top;">
                                             <span class="setting-editable-value text-left"
                                                   id="descriptionPayloadInput"
                                                   contenteditable="true"
@@ -523,6 +561,22 @@
             </div>
         </div>
 
+        <!-- Panels Container 4 -->
+        <div id="panelsContainer4" class="panels-container-wrapper hidden-scrollbar " style="">
+            <div id="referencePanelContainer" class="panel-container-wrapper hasBorder" style="">
+                <div id="referencePanelContent" class="hasBorder" style="height:250px; padding: 4px; overflow-y: auto; overscroll-behavior: contain;">
+                    <p>Reference</p>
+                    <p>✧ ⚕︎ ⚗︎ ◬ ♨ 🗓 🗄</p>
+                    <p>↦ ⌂ ⩚ ✓ ✗ ⌓ 🕊</p>
+                    <p>⌨ ⛫ 🎞 📽 ✴ ♻</p>
+                    <p>🛏︎ 🖋︎ ☎ ⽕ 🛍 ○</p>
+                    <p>👗 🎵 🍻 🍺 🥤</p>
+                </div>
+            </div>
+
+
+        </div>
+
         <!-- Panels Container -->
         <div id="panelsContainer2D" class="panels-container-wrapper hidden-scrollbar " style="">
             <div id="panelContainerX" class="panel-container-wrapper hasBorder" style="">
@@ -543,7 +597,6 @@
             </div>
         </div>
 
-        <!-- Panels Container  -->
 
         <!-- Panels Container  -->
 

@@ -15,9 +15,10 @@
 
         const TIMELINE_COLLISION_BUFFER = 2;
         const MIN_SQUISH_WIDTH = 12;
-        const ITEM_GAP = 4;
+        const ITEM_GAP = 2;
         const GRID_RES = 2;
-        const STACK_BOTTOM_PADDING = 4;
+        const STACK_BOTTOM_PADDING = 2;
+        const LANE_PADDING_TOP = 6;
 
         const parseDuration = (durStr) => {
           if (!durStr) return 900000; // 15 mins in ms
@@ -317,7 +318,8 @@
             separator.style.left = renderBufferLeft + 'px';
             separator.style.width = (renderBufferRight - renderBufferLeft) + 'px';
             separator.style.height = '1px';
-            separator.style.backgroundColor = 'var(--borderColor1, #420b00)';
+<!--            separator.style.backgroundColor = 'var(borderColor0)';-->
+            separator.style.borderBottom = '1px solid var(--borderColor0)';
             separator.style.top = '0px';
             stackLayer.appendChild(separator);
           }
@@ -367,7 +369,7 @@
               // A. The Text Sibling
               const textCard = document.createElement('div');
               textCard.style.maxWidth = MAX_LABEL_WIDTH + 'px'; // Caps the text width
-              textCard.style.backgroundColor = 'var(--backgroundColor1, #2a1a15)';
+              textCard.style.backgroundColor = 'var(--backgroundColor1)';
               textCard.style.padding = '0px';
               textCard.style.overflowX = 'auto';
               textCard.style.overflowY = 'hidden';
@@ -393,7 +395,7 @@
                 durationBar.style.left = '0px';
                 durationBar.style.height = '1px';
                 durationBar.style.width = timePixelWidth + 'px';
-                durationBar.style.backgroundColor = '#ff9000';
+                durationBar.style.backgroundColor = 'var(--borderColor2)';
                 durationBar.style.pointerEvents = 'none';
 
                 cardNode.appendChild(durationBar);
@@ -404,6 +406,7 @@
               // The footprint now contains the exact physical CSS union of the text and the duration math!
               const footprint = C9.Nodes.getDomDimensions(cardNode);
 
+              // FIX: Add LANE_PADDING_TOP so the physics engine reserves the extra vertical space
               const estimatedGridLanes = Math.ceil((footprint.height + ITEM_GAP) / GRID_RES);
 
               // === 3. PHYSICS ENGINE (COLLIDE) ===
@@ -417,7 +420,9 @@
                 // === 4. LIVE DOM MOUNTING (PAINT) ===
                 // We take the exact same cardNode we measured, apply the coordinates, and paint it.
                 if (layoutResult.domId) cardNode.id = layoutResult.domId;
-                cardNode.style.top = (layoutResult.finalLane * GRID_RES) + 'px';
+
+                // FIX: Shift the card down by LANE_PADDING_TOP to clear the separator border
+                cardNode.style.top = ((layoutResult.finalLane * GRID_RES) + LANE_PADDING_TOP) + 'px';
                 cardNode.style.left = x + 'px';
 
                 // Lock the final width to guarantee rigid bounds on the screen
@@ -429,7 +434,7 @@
 
             // !==========================================
 
-          const targetHeight = (Math.max(maxLanesUsedInRenderBuffer, 1) * GRID_RES) + STACK_BOTTOM_PADDING;
+          const targetHeight = (Math.max(maxLanesUsedInRenderBuffer, 1) * GRID_RES) + STACK_BOTTOM_PADDING + LANE_PADDING_TOP;
           newTargetHeights.push(targetHeight);
           const stableHeight = (window.stableStackHeights[currentStack] !== undefined) ? window.stableStackHeights[currentStack] : targetHeight;
 
