@@ -15,9 +15,9 @@
 
         const TIMELINE_COLLISION_BUFFER = 2;
         const MIN_SQUISH_WIDTH = 12;
-        const ITEM_GAP = 4;
+        const ITEM_GAP = 2;
         const GRID_RES = 2;
-        const STACK_BOTTOM_PADDING = 4;
+        const STACK_BOTTOM_PADDING = 2;
         const LANE_PADDING_TOP = 6;
 
         const parseDuration = (durStr) => {
@@ -318,7 +318,8 @@
             separator.style.left = renderBufferLeft + 'px';
             separator.style.width = (renderBufferRight - renderBufferLeft) + 'px';
             separator.style.height = '1px';
-            separator.style.backgroundColor = 'var(--borderColor1, #420b00)';
+<!--            separator.style.backgroundColor = 'var(borderColor0)';-->
+            separator.style.borderBottom = '1px solid var(--borderColor0)';
             separator.style.top = '0px';
             stackLayer.appendChild(separator);
           }
@@ -394,7 +395,7 @@
                 durationBar.style.left = '0px';
                 durationBar.style.height = '1px';
                 durationBar.style.width = timePixelWidth + 'px';
-                durationBar.style.backgroundColor = 'var(--borderColor3)';
+                durationBar.style.backgroundColor = 'var(--borderColor2)';
                 durationBar.style.pointerEvents = 'none';
 
                 cardNode.appendChild(durationBar);
