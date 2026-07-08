@@ -5,14 +5,18 @@
     window.C9.Forms = {
 
       renderDetails: function(eventId) {
-        C9.Store.update({ activeLedgerEntry: eventId });
+        C9.Store.update({ activeLedgerEntryId: eventId }); // <-- CHANGED
         const targetEvent = C9.Store.state.memoryStore.find(item => item.id === eventId);
 
         if (targetEvent) {
-          // Quarantine the Google ID in the State Store immediately
-          C9.Store.update({ activeLedgerEntryGoogleCalendarId: targetEvent.googleCalendarId });
+          // Quarantine the Google ID and the full event payload in the State Store
+          C9.Store.update({
+            activeLedgerEntryGoogleCalendarId: targetEvent.googleCalendarId,
+            activeLedgerEntryPayload: targetEvent // <-- CHANGED
+          });
 
-          const titleInput = document.getElementById('calendarEventTitleInput');
+          // Grab classic elements
+          const titleInput = document.getElementById('calendarEventTitleInput'); // We map 'Thing' to this below
           const startDateInput = document.getElementById('calendarEventStartDate');
           const startTimeInput = document.getElementById('calendarEventStartTime');
           const endDateInput = document.getElementById('calendarEventEndDate');
@@ -20,13 +24,30 @@
           const descInput = document.getElementById('calendarEventDescription');
           const detailsIdField = document.getElementById('detailsGoogleCalendarEventId');
 
+          // Grab the new Thing Entity fields
+          const symbolInput = document.getElementById('timelineDetailsSymbol');
+          const idtInput = document.getElementById('timelineDetailsIdt');
+          const durationInput = document.getElementById('timelineDetailsDuration');
+          const idInput = document.getElementById('timelineDetailsId');
+          const timestampInput = document.getElementById('timelineDetailsTimestamp');
+          const dataInput = document.getElementById('timelineDetailsData');
+
           const start = new Date(targetEvent.startTime);
           const end = new Date(targetEvent.endTime);
           const formatDate = (d) => `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`;
           const formatTime = (d) => d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
           const rawDescription = C9.Parser.cleanHtmlText(targetEvent.description);
 
-          if (titleInput) titleInput.textContent = targetEvent.title || "No Title";
+          // Populate the specific C9 entity fields with structural glow sticks ("-")
+          if (titleInput) titleInput.textContent = targetEvent.thing || "-";
+          if (symbolInput) symbolInput.textContent = targetEvent.symbol || "-";
+          if (idtInput) idtInput.textContent = targetEvent.idt || "-";
+          if (durationInput) durationInput.textContent = targetEvent.duration || "-";
+          if (idInput) idInput.textContent = targetEvent.id || "-";
+          if (timestampInput) timestampInput.textContent = targetEvent.timestamp || "-";
+          if (dataInput) dataInput.textContent = targetEvent.data || "-";
+
+          // Populate temporal boundaries
           if (startDateInput) startDateInput.textContent = formatDate(start);
           if (startTimeInput) startTimeInput.textContent = formatTime(start);
           if (endDateInput) endDateInput.textContent = formatDate(end);
@@ -46,35 +67,62 @@
       },
 
       loadPayloadForUpdate: function() {
-        const srcTitle = document.getElementById('calendarEventTitleInput');
-        const srcStartDate = document.getElementById('calendarEventStartDate');
-        const srcStartTime = document.getElementById('calendarEventStartTime');
-        const srcEndDate = document.getElementById('calendarEventEndDate');
-        const srcEndTime = document.getElementById('calendarEventEndTime');
-        const srcDesc = document.getElementById('calendarEventDescription');
-        const srcIdField = document.getElementById('detailsGoogleCalendarEventId');
+        // 1. Pull the pristine data directly from the State Store
+        const payload = C9.Store.state.activeLedgerEntryPayload;
 
-        const destTitle = document.getElementById('thingBuilderEventTitleInput');
-        const destStartDate = document.getElementById('thingBuilderEventStartDate');
-        const destStartTime = document.getElementById('thingBuilderEventStartTime');
-        const destEndDate = document.getElementById('thingBuilderEventEndDate');
-        const destEndTime = document.getElementById('thingBuilderEventEndTime');
-        const destDesc = document.getElementById('descriptionPayloadInput');
-        const destIdField = document.getElementById('payloadGoogleCalendarEventId');
-
-        if (!srcDesc || !destDesc) return;
-
-        destDesc.innerText = srcDesc.innerText;
-        if (srcTitle && destTitle) destTitle.innerText = srcTitle.innerText;
-        if (srcStartDate && destStartDate) destStartDate.innerText = srcStartDate.innerText;
-        if (srcStartTime && destStartTime) destStartTime.innerText = srcStartTime.innerText;
-        if (srcEndDate && destEndDate) destEndDate.innerText = srcEndDate.innerText;
-        if (srcEndTime && destEndTime) destEndTime.innerText = srcEndTime.innerText;
-
-        if (srcIdField && destIdField) {
-          destIdField.innerText = srcIdField.innerText;
-          destIdField.style.color = 'var(--c1d1)';
+        if (!payload) {
+          console.warn("No active ledger entry selected to update.");
+          return;
         }
+
+        // 2. Grab the Thing Builder DOM elements
+        const symbolInput = document.getElementById('symbolInput');
+        const titleInput = document.getElementById('thingBuilderEventTitleInput');
+        const idtInput = document.getElementById('idtInput');
+        const durationInput = document.getElementById('durationInput');
+        const idInput = document.getElementById('idInput');
+        const timestampInput = document.getElementById('timestampInput');
+        const dataInput = document.getElementById('dataInput');
+
+        const startDateInput = document.getElementById('thingBuilderEventStartDate');
+        const startTimeInput = document.getElementById('thingBuilderEventStartTime');
+        const endDateInput = document.getElementById('thingBuilderEventEndDate');
+        const endTimeInput = document.getElementById('thingBuilderEventEndTime');
+        const descInput = document.getElementById('descriptionPayloadInput');
+        const googleIdInput = document.getElementById('payloadGoogleCalendarEventId');
+
+        // 3. Inject the core C9 ontology fields with structural glow sticks ("-")
+        if (symbolInput) symbolInput.textContent = payload.symbol || "-";
+        if (titleInput) titleInput.textContent = payload.thing || "-"; // Mapping 'thing' to the builder title
+        if (idtInput) idtInput.textContent = payload.idt || "-";
+        if (durationInput) durationInput.textContent = payload.duration || "-";
+        if (idInput) idInput.textContent = payload.id || "-";
+        if (timestampInput) timestampInput.textContent = payload.timestamp || "-";
+        if (dataInput) dataInput.textContent = payload.data || "-";
+
+        // 4. Format and Inject Temporal Boundaries
+        const start = new Date(payload.startTime);
+        const end = new Date(payload.endTime);
+        const formatDate = (d) => `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`;
+        const formatTime = (d) => d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+        if (startDateInput) startDateInput.textContent = formatDate(start);
+        if (startTimeInput) startTimeInput.textContent = formatTime(start);
+        if (endDateInput) endDateInput.textContent = formatDate(end);
+        if (endTimeInput) endTimeInput.textContent = formatTime(end);
+
+        // 5. Inject Description & Google ID
+        if (descInput) {
+          descInput.style.whiteSpace = 'pre-wrap';
+          descInput.textContent = C9.Parser.cleanHtmlText(payload.description || "");
+        }
+        if (googleIdInput) {
+          googleIdInput.textContent = payload.googleCalendarId;
+          googleIdInput.style.color = 'var(--c1d1)';
+        }
+
+        // (Optional) If you have a function that automatically switches tabs or opens the builder panel,
+        // you would call it here, e.g., C9.UI.openPanel('thingBuilderPanel');
       },
 
       clearBuilderGoogleId: function() {

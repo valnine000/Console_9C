@@ -172,35 +172,70 @@
                     <p id="thingEntityTitle" style="margin: 0px; padding: 0px 0px 4px 4px;">Timeline Detail</p>
 
                     <div id="thingEntityFields" style="padding: 4px 0px 0px 4px;">
-                        <div style="padding: 0px 0px 0px 4px;">
-                            <p class="textInputFieldLabel defaultColumn1Width text-right">Title</p>
+                        <div style="padding: 4px 0px 0px 4px;">
+                            <p class="textInputFieldLabel defaultColumn1Width text-right" style="vertical-align: top;">Symbol</p>
                             <div class="textInputFieldContainer defaultColumn2Width">
-                                                <span class="setting-editable-value text-left" id="calendarEventTitleInput"
-                                                      contenteditable="false">-</span>
+                                <span id="timelineDetailsSymbol" class="setting-editable-value text-left" contenteditable="true" style="line-height: 1.2; display: inline-block;">○</span>
+                            </div>
+                        </div>
+                        <div style="padding: 0px 0px 0px 4px;">
+                            <p class="textInputFieldLabel defaultColumn1Width text-right">Thing</p>
+                            <div class="textInputFieldContainer defaultColumn2Width">
+                                <span id="calendarEventTitleInput" class="setting-editable-value text-left" contenteditable="false">-</span>
+<!--                                <span id="timelineDetailsThing" class="setting-editable-value text-left" contenteditable="false">-</span>-->
                             </div>
                         </div>
                         <div style="padding: 4px 0px 0px 4px;">
+                            <p class="textInputFieldLabel defaultColumn1Width text-right" style="vertical-align: top;">Idt</p>
+                            <div class="textInputFieldContainer defaultColumn2Width">
+                                <span id="timelineDetailsIdt" class="setting-editable-value text-left" contenteditable="true" style="">Id</span>
+                            </div>
+                        </div>
+                        <div style="padding: 4px 0px 0px 4px;">
+                            <p class="textInputFieldLabel defaultColumn1Width text-right" style="vertical-align: top;">Duration</p>
+                            <div class="textInputFieldContainer defaultColumn2Width">
+                                <span id="timelineDetailsDuration" class="setting-editable-value text-left" contenteditable="true" style="">-</span>
+                            </div>
+                        </div>
+                        <div style="padding: 4px 0px 0px 4px;">
+                            <p class="textInputFieldLabel defaultColumn1Width text-right" style="vertical-align: top;">Id</p>
+                            <div class="textInputFieldContainer defaultColumn2Width">
+                                <span id="timelineDetailsId" class="setting-editable-value text-left" contenteditable="true" style="">-</span>
+                            </div>
+                        </div>
+                        <div style="padding: 4px 0px 0px 4px;">
+                            <p class="textInputFieldLabel defaultColumn1Width text-right" style="vertical-align: top;">Timestamp</p>
+                            <div class="textInputFieldContainer defaultColumn2Width">
+                                <span id="timelineDetailsTimestamp" class="setting-editable-value text-left" contenteditable="true" style="">-</span>
+                            </div>
+                        </div>
+                        <div style="padding: 4px 0px 0px 4px;">
+                            <p class="textInputFieldLabel defaultColumn1Width text-right" style="vertical-align: top;">Data</p>
+                            <div class="textInputFieldContainer defaultColumn2Width">
+                                <span id="timelineDetailsData" class="setting-editable-value text-left" contenteditable="true" style="">-</span>
+                            </div>
+                        </div>
+                        <!--                    -->
+                        <p style="height:4px; width:auto; margin: 0px; margin: 0px 16px; border-top:1px solid var(--borderColor1)"></p>
+
+                        <div style="padding: 4px 0px 0px 4px; color: var(--c1d1);">
                             <p class="textInputFieldLabel defaultColumn1Width text-right" style="vertical-align: top;">Dates</p>
                             <div class="textInputFieldContainer defaultColumn2Width" style="">
+
                                 <div>
-                                    <div>
-                                        <span id="calendarEventStartDate">-</span>
-                                        <span id="calendarEventStartTime"></span>
-                                    </div>
-                                    <div>
-                                        <span id="calendarEventEndDate">-</span>
-                                        <span id="calendarEventEndTime"></span>
-                                    </div>
+                                    <span id="calendarEventStartTime">-</span>
+                                    <span id="calendarEventStartDate">-</span>
+                                    <span style="padding: 0px 4px; color: var(--c1d1);"> ... </span>
+                                    <span id="calendarEventEndTime">-</span>
+                                    <span id="calendarEventEndDate">-</span>
                                 </div>
                             </div>
                         </div>
 
-                        <div style="padding: 4px 0px 0px 4px;">
-                            <p class="textInputFieldLabel defaultColumn1Width text-right" style="line-height: 1.6;">
-                                Description</p>
-
+                        <div style="padding: 4px 0px 0px 4px; color: var(--c1d1);">
+                            <p class="textInputFieldLabel defaultColumn1Width text-right" style="line-height: 1.6;">Description</p>
                             <div class="textInputFieldContainer defaultColumn2Width"
-                                 style="height: 150px; overflow-y: auto; line-height: 1.6; vertical-align: top;">
+                                 style="height: 50px; overflow-y: auto; line-height: 1.6; vertical-align: top;">
                                 <span id="calendarEventDescription">-</span>
                             </div>
                         </div>
@@ -208,8 +243,7 @@
 
                     <div class="hidden-scrollbar"
                          style="position: absolute; bottom: 8px; left: 4px; width:50%; overflow-x: auto;">
-                        <p id="detailsGoogleCalendarEventId" style="position: relative; margin: 0px; padding: 0px 0px 0px 0px;">
-                            -</p>
+                        <p id="detailsGoogleCalendarEventId" style="position: relative; margin: 0px; padding: 0px 0px 0px 0px;">-</p>
                     </div>
 
                     <div style="position: absolute; bottom: 8px; right: 8px; display: flex; gap: 8px;">
@@ -228,7 +262,7 @@
                     <div style="padding: 4px 0px 0px 4px;">
                         <p class="textInputFieldLabel defaultColumn1Width text-right" style="vertical-align: top;">Symbol</p>
                         <div class="textInputFieldContainer defaultColumn2Width">
-                            <span id="symbolInput" class="setting-editable-value text-left" contenteditable="true" style="">○</span>
+                            <span id="symbolInput" class="setting-editable-value text-left" contenteditable="true" style="line-height: 1.2; display: inline-block;">○</span>
                         </div>
                     </div>
                     <div style="padding: 4px 0px 0px 4px;">
@@ -268,7 +302,7 @@
                         </div>
                     </div>
                     <!--                    -->
-                    <p style="height:4px; width:10px; margin: 0px; padding: 0px;"></p>
+                    <p style="height:4px; width:auto; margin: 0px; margin: 0px 16px; border-top:1px solid var(--borderColor1)"></p>
                     <div style="padding: 4px 0px 0px 4px; color: var(--c1d1);">
                         <p class="textInputFieldLabel defaultColumn1Width text-right" style="vertical-align: top;">Dates</p>
                         <div class="textInputFieldContainer defaultColumn2Width" style="">
