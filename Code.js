@@ -8,7 +8,7 @@ function doGet(e) {
   return HtmlService
     .createTemplateFromFile('Viewer')
     .evaluate()
-    .setTitle('Console 9 Viewer')
+    .setTitle('Console 9C')
     .addMetaTag('viewport', 'width=device-width, initial-scale=1')
     .setSandboxMode(HtmlService.SandboxMode.IFRAME);
 }
