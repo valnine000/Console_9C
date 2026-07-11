@@ -122,7 +122,7 @@ function updateGoogleCalendarEvent(payload) {
     const event = calendar.getEventById(payload.eventId);
 
     if (!event) {
-      throw new Error("Event not found on Google Calendar. It may have been deleted.");
+      throw new Error("Event not found on Google Calendar.");
     }
 
     const startTime = new Date(payload.startIso);

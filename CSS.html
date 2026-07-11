@@ -79,7 +79,7 @@
     }
 
     .calendar-list-row {
-<!--        color: green;-->
+        /* color: green; */
     }
 
     /* 2-Column Grid for Data Entry Forms */
@@ -94,15 +94,15 @@
 
     /* Modifier to override the center-alignment of our original editable class */
     .text-left {
-      text-align: left !important;
+      text-align: left;
     }
 
     .text-right {
-      text-align: right !important;
+      text-align: right;
     }
 
     .text-center {
-      text-align: center !important;
+      text-align: center;
     }
 
     /* Distinct styling for the non-editable data at the bottom */
@@ -194,37 +194,36 @@
       background-color: var(--backgroundColor4);
     }
 
-    .panel-input-fields {
-        display:inline-block;
-        height:var(--default-font-size);
-        width:30ch;
-<!--        border-bottom:1px solid var(--borderColor1);-->
-    }
-
     /* The editable number field */
     .setting-editable-value {
-
-      text-align: center;
       cursor: text;
       outline: none;
       transition: border-color 0.2s;
-      word-wrap: break-word; /* Wraps long numbers safely */
+      word-wrap: break-word;
     }
 
     .setting-editable-value:focus {
-<!--      border-bottom: 1px solid #ff9000;-->
+        /* border-bottom: 1px solid #ff9000; */
     }
 
-    .textInputFieldContainer {
-        display: inline-block;
+    .panel-input-fields {
+        display:inline-block;
+        min-height: 1.6em;
+        margin: 0px;
+        padding: 0px 0px 0px 4px;
+        vertical-align: top;
+        border-bottom:1px solid var(--borderColor1);
         border-left: 1px solid var(--borderColor1);
-        padding-left: 4px;
-        width:70%;
+    }
+
+        .textInputFieldContainer {
+        display: inline-block;
     }
 
     .textInputFieldLabel {
         display: inline-block;
         margin:0;
+        vertical-align: top;
         word-wrap: break-word;
     }
 

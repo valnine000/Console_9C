@@ -20,6 +20,7 @@
         activeLedgerEntryPayload: null,
         builderLedgerEntryPayload: null,
         builderLedgerEntryGoogleCalendarId: null,
+        builderLedgerEntryGoogleCalendarPayload: null,
 
         // 3. Display Toggles
         showEventTime: false,
@@ -39,7 +40,29 @@
         currentTickScale: 0.5,
         timelineStackCount: 7,
         activeCollisionStrategy: 'extreme_squish',
-        lastRenderedScrollX: 0
+        lastRenderedScrollX: 0,
+
+        // Add this to your C9.Store.state initialization
+        ThingEntityPayload: {
+            isValidated: false,
+            symbol: "",
+            thing: "",
+            idt: "",
+            duration: "",
+            id: "",
+            timestamp: "",
+            data: "",
+            reset: function() {
+                this.isValidated = false;
+                this.symbol = "";
+                this.thing = "";
+                this.idt = "";
+                this.duration = "";
+                this.id = "";
+                this.timestamp = "";
+                this.data = "";
+            }
+        }
       },
 
       // The explicit update cycle.
