@@ -221,162 +221,232 @@
       },
 
       timelineDetailsPanelParseInPlace: function() {
-    const LedgerEntryUpdateCreatePanelPayloadField = document.getElementById('calendarEntryDescriptionInput');
+        // 1. Instantly invalidate any previous state
+        C9.Store.state.ThingEntityPayload.reset();
 
-    const fields = {
-        symbol: document.getElementById('timelineDetailsSymbol'),
-        thing: document.getElementById('calendarEventTitleInput'),
-        idt: document.getElementById('timelineDetailsIdt'),
-        duration: document.getElementById('timelineDetailsDuration'),
-        id: document.getElementById('timelineDetailsId'),
-        timestamp: document.getElementById('timelineDetailsTimestamp'),
-        data: document.getElementById('timelineDetailsData')
-    };
-    const statusField = document.getElementById('timelineDetailsPanelStatusField');
-    statusField.innerText = "";
+        const statusField = document.getElementById('timelineDetailsPanelStatusField');
+        const previewField = document.getElementById('calendarEntryDescriptionInput');
+        statusField.innerText = "";
+        statusField.style.color = "";
 
-    // Helper function to handle validation failures
-    const abortWithError = (element, message) => {
-        statusField.innerText = `${message}`;
-    };
+        const getVal = (id) => {
+            const el = document.getElementById(id);
+            return el ? el.innerText.trim() : "";
+        };
 
-    // Helper function to extract text
-    const getVal = (el) => {
-        return el ? el.innerText.trim() : "";
-    };
+        const abortWithError = (message) => {
+            statusField.innerText = message;
+            statusField.style.color = "#aa0000";
+        };
 
-    // 1. Process ID and Timestamp (Generate and Lock)
-    let idVal = getVal(fields.id);
-    let tsVal = getVal(fields.timestamp);
-    const currentMs = Date.now().toString();
+        // 2. Scrape UI
+        const symVal = getVal('timelineDetailsSymbol');
+        const thingVal = getVal('calendarEventTitleInput');
+        const idtVal = getVal('timelineDetailsIdt');
+        const durVal = getVal('timelineDetailsDuration');
+        const idVal = getVal('timelineDetailsId');
+        const tsVal = getVal('timelineDetailsTimestamp');
+        const dataVal = getVal('timelineDetailsData');
 
-    if (idVal === "" && tsVal === "") {
-        tsVal = currentMs;
-        idVal = `jtp-unk-${currentMs}`;
+        // 3. Validate
+        if ([...symVal].length !== 1) return abortWithError("Symbol must be one character or emoji");
+        if (thingVal === "") return abortWithError("Thing cannot be empty");
 
-        fields.timestamp.innerText = tsVal;
-        fields.id.innerText = idVal;
-    }
-
-    // 2. Validate Symbol
-    const symVal = getVal(fields.symbol);
-    if ([...symVal].length !== 1) {
-        return abortWithError(fields.symbol, "Symbol must be one character or emoji");
-    }
-
-    // 3. Validate Thing
-    const thingVal = getVal(fields.thing);
-    if (thingVal === "") {
-        return abortWithError(fields.thing, "Thing cannot be empty");
-    }
-
-    // 4. Validate Idt (Can be empty)
-    const idtVal = getVal(fields.idt);
-    if (idtVal !== "") {
-        const parsedDate = new Date(idtVal);
-        if (isNaN(parsedDate.getTime())) {
-            return abortWithError(fields.idt, "Idt must be a valid date format");
+        if (idtVal !== "") {
+            const parsedDate = new Date(idtVal);
+            if (isNaN(parsedDate.getTime())) return abortWithError("Idt must be a valid date format");
         }
-    }
 
-    // 5. Validate Duration (Can be empty, can be negative)
-    let durVal = getVal(fields.duration);
-    if (durVal !== "") {
-        let checkDur = durVal;
-        if (checkDur.startsWith('-')) {
-            checkDur = checkDur.substring(1).trim();
+        if (durVal !== "") {
+            let checkDur = durVal.startsWith('-') ? durVal.substring(1).trim() : durVal;
+            const parts = checkDur.split(':');
+            if (parts.length !== 3 || parts.some(p => isNaN(parseInt(p, 10)))) {
+                return abortWithError("Duration must be H:MM:SS format");
+            }
         }
-        const parts = checkDur.split(':');
-        if (parts.length !== 3 || parts.some(p => isNaN(parseInt(p, 10)))) {
-            return abortWithError(fields.duration, "Duration must be H:MM:SS format");
+
+        // 4. Commit to State (Atomic Success)
+        const entity = C9.Store.state.ThingEntityPayload;
+        entity.symbol = symVal;
+        entity.thing = thingVal;
+        entity.idt = idtVal;
+        entity.duration = durVal;
+        entity.id = idVal;
+        entity.timestamp = tsVal;
+        entity.data = dataVal;
+        entity.isValidated = true; // The gate unlocks here
+
+        statusField.innerText = "Parse Successful. Ready to process.";
+        statusField.style.color = "green";
+
+        // Optional: Write a draft preview to the UI so you can see it,
+        // but the actual submission will serialize directly from state.
+        if (previewField) {
+            let draft = `[#C9]\nsymbol:${symVal}\nthing:${thingVal}\nidt:${idtVal}\nduration:${durVal}\n`;
+            draft += `id:${idVal}\ntimestamp:${tsVal}\n[#C9D]\n`;
+            if (dataVal !== "") draft += `${dataVal}\n`;
+            draft += `[/#C9D]\n[/#C9]`;
+            previewField.innerText = draft;
         }
-    }
+    },
 
-    // 6. Validate Data
-    const dataVal = getVal(fields.data);
+      timelineDetailsPanelParseInPlace2: function() {
+            const LedgerEntryUpdateCreatePanelPayloadField = document.getElementById('calendarEntryDescriptionInput');
 
-    // 7. Build Payload
-    let payload = `[#C9]\n`;
-    payload += `symbol:${symVal}\n`;
-    payload += `thing:${thingVal}\n`;
-    payload += `idt:${idtVal}\n`;
-    payload += `duration:${durVal}\n`;
-    payload += `id:${idVal}\n`;
-    payload += `timestamp:${tsVal}\n`;
-    payload += `[#C9D]\n`;
-    if (dataVal !== "") {
-        payload += `${dataVal}\n`;
-    }
-    payload += `[/#C9D]\n`;
-    payload += `[/#C9]`;
+            const fields = {
+                symbol: document.getElementById('timelineDetailsSymbol'),
+                thing: document.getElementById('calendarEventTitleInput'),
+                idt: document.getElementById('timelineDetailsIdt'),
+                duration: document.getElementById('timelineDetailsDuration'),
+                id: document.getElementById('timelineDetailsId'),
+                timestamp: document.getElementById('timelineDetailsTimestamp'),
+                data: document.getElementById('timelineDetailsData')
+            };
+            const statusField = document.getElementById('timelineDetailsPanelStatusField');
+            statusField.innerText = "";
 
-    // 8. Store Payload and Copy Calendar ID to Builder State
-    C9.Store.state.builderLedgerEntryPayload = payload;
-    C9.Store.state.builderLedgerEntryGoogleCalendarId = C9.Store.state.activeLedgerEntryGoogleCalendarId;
+            // Helper function to handle validation failures
+            const abortWithError = (element, message) => {
+                statusField.innerText = `${message}`;
+            };
 
-    // 9. Calculate Google Calendar Temporal Boundaries
-    let baseTime = idtVal !== "" ? new Date(idtVal) : new Date(Number(tsVal));
+            // Helper function to extract text
+            const getVal = (el) => {
+                return el ? el.innerText.trim() : "";
+            };
 
-    let durationMs = 0;
-    let isNegative = false;
+            // 1. Process ID and Timestamp (Generate and Lock)
+            let idVal = getVal(fields.id);
+            let tsVal = getVal(fields.timestamp);
+            const currentMs = Date.now().toString();
 
-    if (durVal !== "") {
-        let checkDur = durVal;
-        if (checkDur.startsWith('-')) {
-            isNegative = true;
-            checkDur = checkDur.substring(1).trim();
-        }
-        const parts = checkDur.split(':');
-        const h = parseInt(parts[0], 10) || 0;
-        const m = parseInt(parts[1], 10) || 0;
-        const s = parseInt(parts[2], 10) || 0;
-        durationMs = (h * 3600000) + (m * 60000) + (s * 1000);
-    }
+            if (idVal === "" && tsVal === "") {
+                tsVal = currentMs;
+                idVal = `jtp-unk-${currentMs}`;
 
-    let startTime, endTime;
-    if (isNegative) {
-        startTime = new Date(baseTime.getTime() - durationMs);
-        endTime = new Date(baseTime.getTime());
-    } else {
-        startTime = new Date(baseTime.getTime());
-        endTime = new Date(baseTime.getTime() + durationMs);
-    }
+                fields.timestamp.innerText = tsVal;
+                fields.id.innerText = idVal;
+            }
 
-    // Enforce 15-minute minimum for Google Calendar representations (900,000 ms)
-    if ((endTime.getTime() - startTime.getTime()) < 900000) {
-        endTime = new Date(startTime.getTime() + 900000);
-    }
+            // 2. Validate Symbol
+            const symVal = getVal(fields.symbol);
+            if ([...symVal].length !== 1) {
+                return abortWithError(fields.symbol, "Symbol must be one character or emoji");
+            }
 
-    // 10. Update the Google Calendar View UI fields
-    const formatDate = (d) => `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`;
-    const formatTime = (d) => d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+            // 3. Validate Thing
+            const thingVal = getVal(fields.thing);
+            if (thingVal === "") {
+                return abortWithError(fields.thing, "Thing cannot be empty");
+            }
 
-    const rightTitle = document.getElementById('calendarEntryTitleInput');
-    const rightStartDate = document.getElementById('calendarEntryStartDateInput');
-    const rightEndDate = document.getElementById('calendarEntryEndDateInput');
-    const rightStartTime = document.getElementById('calendarEntryStartTimeInput');
-    const rightEndTime = document.getElementById('calendarEntryEndTimeInput');
+            // 4. Validate Idt (Can be empty)
+            const idtVal = getVal(fields.idt);
+            if (idtVal !== "") {
+                const parsedDate = new Date(idtVal);
+                if (isNaN(parsedDate.getTime())) {
+                    return abortWithError(fields.idt, "Idt must be a valid date format");
+                }
+            }
 
-    if (rightTitle) rightTitle.innerText = thingVal;
-    if (rightStartDate) rightStartDate.innerText = formatDate(startTime);
-    if (rightEndDate) rightEndDate.innerText = formatDate(endTime);
-    if (rightStartTime) rightStartTime.innerText = formatTime(startTime);
-    if (rightEndTime) rightEndTime.innerText = formatTime(endTime);
+            // 5. Validate Duration (Can be empty, can be negative)
+            let durVal = getVal(fields.duration);
+            if (durVal !== "") {
+                let checkDur = durVal;
+                if (checkDur.startsWith('-')) {
+                    checkDur = checkDur.substring(1).trim();
+                }
+                const parts = checkDur.split(':');
+                if (parts.length !== 3 || parts.some(p => isNaN(parseInt(p, 10)))) {
+                    return abortWithError(fields.duration, "Duration must be H:MM:SS format");
+                }
+            }
 
-    // 11. Create Google Calendar State Payload
-    C9.Store.state.builderLedgerEntryGoogleCalendarPayload = {
-        eventId: C9.Store.state.builderLedgerEntryGoogleCalendarId,
-        title: thingVal,
-        startIso: startTime.toISOString(),
-        endIso: endTime.toISOString(),
-        description: payload
-    };
+            // 6. Validate Data
+            const dataVal = getVal(fields.data);
 
-    // If execution reaches this point, all fields have passed muster.
-    statusField.innerText = "Success";
+            // 7. Build Payload
+            let payload = `[#C9]\n`;
+            payload += `symbol:${symVal}\n`;
+            payload += `thing:${thingVal}\n`;
+            payload += `idt:${idtVal}\n`;
+            payload += `duration:${durVal}\n`;
+            payload += `id:${idVal}\n`;
+            payload += `timestamp:${tsVal}\n`;
+            payload += `[#C9D]\n`;
+            if (dataVal !== "") {
+                payload += `${dataVal}\n`;
+            }
+            payload += `[/#C9D]\n`;
+            payload += `[/#C9]`;
 
-    LedgerEntryUpdateCreatePanelPayloadField.innerText = C9.Store.state.builderLedgerEntryPayload;
-},
+            // 8. Store Payload and Copy Calendar ID to Builder State
+            C9.Store.state.builderLedgerEntryPayload = payload;
+            C9.Store.state.builderLedgerEntryGoogleCalendarId = C9.Store.state.activeLedgerEntryGoogleCalendarId;
+
+            // 9. Calculate Google Calendar Temporal Boundaries
+            let baseTime = idtVal !== "" ? new Date(idtVal) : new Date(Number(tsVal));
+
+            let durationMs = 0;
+            let isNegative = false;
+
+            if (durVal !== "") {
+                let checkDur = durVal;
+                if (checkDur.startsWith('-')) {
+                    isNegative = true;
+                    checkDur = checkDur.substring(1).trim();
+                }
+                const parts = checkDur.split(':');
+                const h = parseInt(parts[0], 10) || 0;
+                const m = parseInt(parts[1], 10) || 0;
+                const s = parseInt(parts[2], 10) || 0;
+                durationMs = (h * 3600000) + (m * 60000) + (s * 1000);
+            }
+
+            let startTime, endTime;
+            if (isNegative) {
+                startTime = new Date(baseTime.getTime() - durationMs);
+                endTime = new Date(baseTime.getTime());
+            } else {
+                startTime = new Date(baseTime.getTime());
+                endTime = new Date(baseTime.getTime() + durationMs);
+            }
+
+            // Enforce 15-minute minimum for Google Calendar representations (900,000 ms)
+            if ((endTime.getTime() - startTime.getTime()) < 900000) {
+                endTime = new Date(startTime.getTime() + 900000);
+            }
+
+            // 10. Update the Google Calendar View UI fields
+            const formatDate = (d) => `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`;
+            const formatTime = (d) => d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+
+            const rightTitle = document.getElementById('calendarEntryTitleInput');
+            const rightStartDate = document.getElementById('calendarEntryStartDateInput');
+            const rightEndDate = document.getElementById('calendarEntryEndDateInput');
+            const rightStartTime = document.getElementById('calendarEntryStartTimeInput');
+            const rightEndTime = document.getElementById('calendarEntryEndTimeInput');
+
+            if (rightTitle) rightTitle.innerText = thingVal;
+            if (rightStartDate) rightStartDate.innerText = formatDate(startTime);
+            if (rightEndDate) rightEndDate.innerText = formatDate(endTime);
+            if (rightStartTime) rightStartTime.innerText = formatTime(startTime);
+            if (rightEndTime) rightEndTime.innerText = formatTime(endTime);
+
+            // 11. Create Google Calendar State Payload
+            C9.Store.state.builderLedgerEntryGoogleCalendarPayload = {
+                eventId: C9.Store.state.builderLedgerEntryGoogleCalendarId,
+                title: thingVal,
+                startIso: startTime.toISOString(),
+                endIso: endTime.toISOString(),
+                description: payload
+            };
+
+            // If execution reaches this point, all fields have passed muster.
+            statusField.innerText = "Success";
+
+            LedgerEntryUpdateCreatePanelPayloadField.innerText = C9.Store.state.builderLedgerEntryPayload;
+        },
 
       parseThingPayload: function() {
         const payloadInput = document.getElementById('descriptionPayloadInput');
@@ -521,6 +591,136 @@
 
       submitNewEvent: function() {
         const btn = document.getElementById('createNewEntry');
+        const statusField = document.getElementById('timelineDetailsPanelStatusField'); // Assuming you want status here now
+        const entity = C9.Store.state.ThingEntityPayload;
+
+        // 1. Safety Gate Checks
+        if (!entity.isValidated) {
+            statusField.innerText = "Error: Please parse the entry successfully first.";
+            statusField.style.color = "red";
+            return;
+        }
+
+        if (entity.id !== "" || entity.timestamp !== "") {
+            statusField.innerText = "Error: This entry already has an ID/Timestamp. Use Update instead.";
+            statusField.style.color = "red";
+            return;
+        }
+
+        btn.style.pointerEvents = 'none';
+        btn.innerText = "Saving...";
+        statusField.innerText = "Minting keys and creating event...";
+        statusField.style.color = "var(--c1d1)";
+
+        // 2. Mint Primary Keys
+        const currentMs = Date.now();
+        entity.timestamp = currentMs.toString();
+        entity.id = `jtp-unk-${entity.timestamp}`;
+
+        // 3. Serialize Final [#C9] Payload
+        let serializedPayload = `[#C9]\n`;
+        serializedPayload += `symbol:${entity.symbol}\n`;
+        serializedPayload += `thing:${entity.thing}\n`;
+        serializedPayload += `idt:${entity.idt}\n`;
+        serializedPayload += `duration:${entity.duration}\n`;
+        serializedPayload += `id:${entity.id}\n`;
+        serializedPayload += `timestamp:${entity.timestamp}\n`;
+        serializedPayload += `[#C9D]\n`;
+        if (entity.data !== "") serializedPayload += `${entity.data}\n`;
+        serializedPayload += `[/#C9D]\n`;
+        serializedPayload += `[/#C9]`;
+
+        // 4. Calculate Google Calendar Arbitrary Boundaries
+        let baseTime = entity.idt !== "" ? new Date(entity.idt) : new Date(currentMs);
+        let durationMs = 0;
+        let isNegative = false;
+
+        if (entity.duration !== "") {
+            let checkDur = entity.duration;
+            if (checkDur.startsWith('-')) {
+                isNegative = true;
+                checkDur = checkDur.substring(1).trim();
+            }
+            const parts = checkDur.split(':');
+            const h = parseInt(parts[0], 10) || 0;
+            const m = parseInt(parts[1], 10) || 0;
+            const s = parseInt(parts[2], 10) || 0;
+            durationMs = (h * 3600000) + (m * 60000) + (s * 1000);
+        }
+
+        let startTime, endTime;
+        if (isNegative) {
+            startTime = new Date(baseTime.getTime() - durationMs);
+            endTime = new Date(baseTime.getTime());
+        } else {
+            startTime = new Date(baseTime.getTime());
+            endTime = new Date(baseTime.getTime() + durationMs);
+        }
+
+        // Enforce 15-minute Google Calendar minimum
+        if ((endTime.getTime() - startTime.getTime()) < 900000) {
+            endTime = new Date(startTime.getTime() + 900000);
+        }
+
+        // 5. Package and Ship to Google
+        const serverPayload = {
+            title: entity.thing,
+            startIso: startTime.toISOString(),
+            endIso: endTime.toISOString(),
+            description: serializedPayload
+        };
+
+        C9.Repository.createEvent(serverPayload)
+            .then((res) => {
+                btn.style.pointerEvents = 'auto';
+                btn.innerText = "New";
+                statusField.innerText = "Ledger Entry created successfully!";
+                statusField.style.color = "green";
+
+                // Optional: push the newly minted keys back to the UI fields so the user sees them
+                document.getElementById('timelineDetailsId').innerText = entity.id;
+                document.getElementById('timelineDetailsTimestamp').innerText = entity.timestamp;
+                document.getElementById('calendarEntryDescriptionInput').innerText = serializedPayload;
+            })
+            .catch((err) => {
+                btn.style.pointerEvents = 'auto';
+                btn.innerText = "New";
+                statusField.innerText = `Server Error: ${err.message}`;
+                statusField.style.color = "red";
+            });
+    },
+
+      submitNewEvent2: function() {
+            const btn = document.getElementById('createNewEntry');
+            const statusField = document.getElementById('calendarEntryStatusField');
+            const payload = C9.Store.state.builderLedgerEntryGoogleCalendarPayload;
+
+            // Safety check: Ensure the entry was parsed and payload exists
+            if (!payload) {
+                statusField.innerText = "Error: No parsed payload found.";
+                return;
+            }
+
+            btn.style.pointerEvents = 'none';
+            btn.innerText = "Saving...";
+            statusField.innerText = "Creating event...";
+            statusField.style.color = "var(--c1d1)";
+
+            C9.Repository.createEvent(payload)
+                .then((res) => {
+                    btn.style.pointerEvents = 'auto';
+                    btn.innerText = "New";
+                    statusField.innerText = "Event created successfully!";
+                })
+                .catch((err) => {
+                    btn.style.pointerEvents = 'auto';
+                    btn.innerText = "New";
+                    statusField.innerText = `Error: ${err.message}`;
+                });
+        },
+
+      submitNewEvent2: function() {
+        const btn = document.getElementById('createNewEntry');
         const statusField = document.getElementById('calendarEntryStatusField');
 
         const title = document.getElementById('calendarEntryTitleInput').innerText.trim();
@@ -567,6 +767,114 @@
       },
 
       submitUpdatedEvent: function() {
+        const btn = document.getElementById('updateEntry'); // Assuming this is the ID for your update button
+        const statusField = document.getElementById('timelineDetailsPanelStatusField');
+        const entity = C9.Store.state.ThingEntityPayload;
+        const eventId = C9.Store.state.activeLedgerEntryGoogleCalendarId;
+
+        // 1. Safety Gate Checks
+        if (!entity.isValidated) {
+            statusField.innerText = "Error: Please parse the entry successfully first.";
+            statusField.style.color = "red";
+            return;
+        }
+
+        if (entity.id === "" || entity.timestamp === "") {
+            statusField.innerText = "Error: Missing ID or Timestamp. This looks like a new entry, not an update.";
+            statusField.style.color = "red";
+            return;
+        }
+
+        if (!eventId || eventId === "-" ) {
+            statusField.innerText = "Error: Invalid or missing Google Event ID in state.";
+            statusField.style.color = "red";
+            return;
+        }
+
+        btn.style.pointerEvents = 'none';
+        btn.innerText = "Updating...";
+        statusField.innerText = "Pushing update to Google...";
+        statusField.style.color = "var(--c1d1)";
+
+        // 2. Serialize Final [#C9] Payload (No minting, just pure translation)
+        let serializedPayload = `[#C9]\n`;
+        serializedPayload += `symbol:${entity.symbol}\n`;
+        serializedPayload += `thing:${entity.thing}\n`;
+        serializedPayload += `idt:${entity.idt}\n`;
+        serializedPayload += `duration:${entity.duration}\n`;
+        serializedPayload += `id:${entity.id}\n`;
+        serializedPayload += `timestamp:${entity.timestamp}\n`;
+        serializedPayload += `[#C9D]\n`;
+        if (entity.data !== "") serializedPayload += `${entity.data}\n`;
+        serializedPayload += `[/#C9D]\n`;
+        serializedPayload += `[/#C9]`;
+
+        // 3. Calculate Google Calendar Arbitrary Boundaries
+        let baseTime = entity.idt !== "" ? new Date(entity.idt) : new Date(Number(entity.timestamp));
+        let durationMs = 0;
+        let isNegative = false;
+
+        if (entity.duration !== "") {
+            let checkDur = entity.duration;
+            if (checkDur.startsWith('-')) {
+                isNegative = true;
+                checkDur = checkDur.substring(1).trim();
+            }
+            const parts = checkDur.split(':');
+            const h = parseInt(parts[0], 10) || 0;
+            const m = parseInt(parts[1], 10) || 0;
+            const s = parseInt(parts[2], 10) || 0;
+            durationMs = (h * 3600000) + (m * 60000) + (s * 1000);
+        }
+
+        let startTime, endTime;
+        if (isNegative) {
+            startTime = new Date(baseTime.getTime() - durationMs);
+            endTime = new Date(baseTime.getTime());
+        } else {
+            startTime = new Date(baseTime.getTime());
+            endTime = new Date(baseTime.getTime() + durationMs);
+        }
+
+        // Enforce 15-minute Google Calendar minimum
+        if ((endTime.getTime() - startTime.getTime()) < 900000) {
+            endTime = new Date(startTime.getTime() + 900000);
+        }
+
+        // 4. Package and Ship to Google
+        const serverPayload = {
+            eventId: eventId,
+            title: entity.thing,
+            startIso: startTime.toISOString(),
+            endIso: endTime.toISOString(),
+            description: serializedPayload
+        };
+
+        C9.Repository.updateEvent(serverPayload)
+            .then((res) => {
+                btn.style.pointerEvents = 'auto';
+                btn.innerText = "Update";
+                statusField.innerText = "Ledger Entry successfully updated!";
+                statusField.style.color = "green";
+
+                // Optional cleanup: reset status field after a few seconds
+                setTimeout(() => {
+                    if (statusField.innerText === 'Ledger Entry successfully updated!') {
+                        statusField.innerText = '';
+                    }
+                }, 3000);
+
+                document.getElementById('calendarEntryDescriptionInput').innerText = serializedPayload;
+            })
+            .catch((err) => {
+                btn.style.pointerEvents = 'auto';
+                btn.innerText = "Update";
+                statusField.innerText = `Server Error: ${err.message}`;
+                statusField.style.color = "red";
+            });
+        },
+
+      submitUpdatedEvent2: function() {
         const btn = document.getElementById('updateCalendarEventBtn');
         const statusField = document.getElementById('calendarEntryStatusField');
         const eventId = C9.Store.state.activeLedgerEntryGoogleCalendarId;
