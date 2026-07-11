@@ -238,12 +238,12 @@
         Object.values(fields).forEach(el => {
             if (el) el.style.outline = "";
         });
-        statusField.innerText = ".";
+        statusField.innerText = "";
 
         // Helper function to handle validation failures
         const abortWithError = (element, message) => {
-            element.style.outline = "1px solid #aa0000";
-            statusField.innerText = `Abort: ${message}`;
+            <!--element.style.outline = "1px solid #aa0000";-->
+            statusField.innerText = `${message}`;
         };
 
         // Helper function to extract text
@@ -265,19 +265,19 @@
         }
 
         // Lock ID and Timestamp to ensure existing ledger data is not altered
-        fields.id.setAttribute("contenteditable", "false");
-        fields.timestamp.setAttribute("contenteditable", "false");
+<!--        fields.id.setAttribute("contenteditable", "false");-->
+<!--        fields.timestamp.setAttribute("contenteditable", "false");-->
 
         // 2. Validate Symbol
         const symVal = getVal(fields.symbol);
         if ([...symVal].length !== 1) {
-            return abortWithError(fields.symbol, "Symbol must be exactly one character or emoji.");
+            return abortWithError(fields.symbol, "Symbol must be one character or emoji");
         }
 
         // 3. Validate Thing
         const thingVal = getVal(fields.thing);
         if (thingVal === "") {
-            return abortWithError(fields.thing, "Thing cannot be empty.");
+            return abortWithError(fields.thing, "Thing cannot be empty");
         }
 
         // 4. Validate Idt (Can be empty)
@@ -285,7 +285,7 @@
         if (idtVal !== "") {
             const parsedDate = new Date(idtVal);
             if (isNaN(parsedDate.getTime())) {
-                return abortWithError(fields.idt, "Idt must be a valid date format.");
+                return abortWithError(fields.idt, "Idt must be a valid date format");
             }
         }
 
@@ -298,7 +298,7 @@
             }
             const parts = checkDur.split(':');
             if (parts.length !== 3 || parts.some(p => isNaN(parseInt(p, 10)))) {
-                return abortWithError(fields.duration, "Duration must be formatted as H:MM:SS.");
+                return abortWithError(fields.duration, "Duration must be H:MM:SS format");
             }
         }
 
@@ -325,7 +325,7 @@
         C9.Store.state.builderLedgerEntryGoogleCalendarId = C9.Store.state.activeLedgerEntryGoogleCalendarId;
 
         // If execution reaches this point, all fields have passed muster.
-        statusField.innerText = "Ledger entry parsed, verified, and payload built.";
+        statusField.innerText = "Success";
 
         LedgerEntryUpdateCreatePanelPayloadField.innerText = C9.Store.state.builderLedgerEntryPayload;
 
