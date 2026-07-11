@@ -39,13 +39,13 @@
           const rawDescription = C9.Parser.cleanHtmlText(targetEvent.description);
 
           // Populate the specific C9 entity fields with structural glow sticks ("-")
-          if (titleInput) titleInput.textContent = targetEvent.thing || "-";
-          if (symbolInput) symbolInput.textContent = targetEvent.symbol || "-";
-          if (idtInput) idtInput.textContent = targetEvent.idt || "-";
-          if (durationInput) durationInput.textContent = targetEvent.duration || "-";
-          if (idInput) idInput.textContent = targetEvent.id || "-";
-          if (timestampInput) timestampInput.textContent = targetEvent.timestamp || "-";
-          if (dataInput) dataInput.textContent = targetEvent.data || "-";
+          if (titleInput) titleInput.textContent = targetEvent.thing || "";
+          if (symbolInput) symbolInput.textContent = targetEvent.symbol || "";
+          if (idtInput) idtInput.textContent = targetEvent.idt || "";
+          if (durationInput) durationInput.textContent = targetEvent.duration || "";
+          if (idInput) idInput.textContent = targetEvent.id || "";
+          if (timestampInput) timestampInput.textContent = targetEvent.timestamp || "";
+          if (dataInput) dataInput.textContent = targetEvent.data || "";
 
           // Populate temporal boundaries
           if (startDateInput) startDateInput.textContent = formatDate(start);
@@ -187,97 +187,111 @@
       },
 
       timelineDetailValidationParse: function() {
-        document.getElementById('parseEntryinPlace').addEventListener('click', function() {
-            const fields = {
-                symbol: document.getElementById('timelineDetailsSymbol'),
-                thing: document.getElementById('calendarEventTitleInput'),
-                idt: document.getElementById('timelineDetailsIdt'),
-                duration: document.getElementById('timelineDetailsDuration'),
-                id: document.getElementById('timelineDetailsId'),
-                timestamp: document.getElementById('timelineDetailsTimestamp'),
-                data: document.getElementById('timelineDetailsData')
-            };
-            const statusField = document.getElementById('timelineDetailsPanelStatusField');
+        console.log("timelineDetailValidationParse");
+        const fields = {
+            symbol: document.getElementById('timelineDetailsSymbol'),
+            thing: document.getElementById('calendarEventTitleInput'),
+            idt: document.getElementById('timelineDetailsIdt'),
+            duration: document.getElementById('timelineDetailsDuration'),
+            id: document.getElementById('timelineDetailsId'),
+            timestamp: document.getElementById('timelineDetailsTimestamp'),
+            data: document.getElementById('timelineDetailsData')
+        };
+        const statusField = document.getElementById('timelineDetailsPanelStatusField');
 
-            // Reset all field outlines before starting validation
-            Object.values(fields).forEach(el => {
-                if (el) el.style.outline = "";
-            });
-            statusField.innerText = ".";
-
-            // Helper function to handle validation failures
-            const abortWithError = (element, message) => {
-                element.style.outline = "1px solid #aa0000";
-                statusField.innerText = `Abort: ${message}`;
-            };
-
-            // Helper function to extract text and handle default placeholders
-            const getVal = (el) => {
-                if (!el) return "";
-                const val = el.innerText.trim();
-                return (val === "-" || val.toLowerCase() === "id") ? "" : val;
-            };
-
-            // 1. Process ID and Timestamp (Generate and Lock)
-            let idVal = getVal(fields.id);
-            let tsVal = getVal(fields.timestamp);
-            const currentMs = Date.now().toString();
-
-            if (idVal === "" && tsVal === "") {
-                tsVal = currentMs;
-                idVal = `jtp-unk-${currentMs}`;
-
-                fields.timestamp.innerText = tsVal;
-                fields.id.innerText = idVal;
-            }
-
-            // Lock ID and Timestamp to ensure existing ledger data is not altered
-            fields.id.setAttribute("contenteditable", "false");
-            fields.timestamp.setAttribute("contenteditable", "false");
-
-            // 2. Validate Symbol
-            const symVal = getVal(fields.symbol) || fields.symbol.innerText.trim();
-            // Using the spread operator correctly counts surrogate pairs for emojis
-            if ([...symVal].length !== 1) {
-                return abortWithError(fields.symbol, "Symbol must be exactly one character or emoji.");
-            }
-
-            // 3. Validate Thing
-            const thingVal = getVal(fields.thing);
-            if (thingVal === "") {
-                return abortWithError(fields.thing, "Thing cannot be empty.");
-            }
-
-            // 4. Validate Idt (Can be empty)
-            const idtVal = getVal(fields.idt);
-            if (idtVal !== "") {
-                const parsedDate = new Date(idtVal);
-                if (isNaN(parsedDate.getTime())) {
-                    return abortWithError(fields.idt, "Idt must be a valid date format.");
-                }
-            }
-
-            // 5. Validate Duration (Can be empty, can be negative)
-            let durVal = getVal(fields.duration);
-            if (durVal !== "") {
-                let checkDur = durVal;
-                if (checkDur.startsWith('-')) {
-                    checkDur = checkDur.substring(1).trim();
-                }
-                const parts = checkDur.split(':');
-                if (parts.length !== 3 || parts.some(p => isNaN(parseInt(p, 10)))) {
-                    return abortWithError(fields.duration, "Duration must be formatted as H:MM:SS.");
-                }
-            }
-
-            // 6. Validate Data
-            // As established, this is strictly a string and requires no specific parsing.
-            const dataVal = getVal(fields.data);
-
-            // If execution reaches this point, all fields have passed muster.
-            statusField.innerText = "Ledger entry parsed and verified.";
+        // Reset all field outlines before starting validation
+        Object.values(fields).forEach(el => {
+            if (el) el.style.outline = "";
         });
-      },
+        statusField.innerText = ".";
+
+        // Helper function to handle validation failures
+        const abortWithError = (element, message) => {
+            element.style.outline = "1px solid #aa0000";
+            statusField.innerText = `Abort: ${message}`;
+        };
+
+        // Helper function to extract text
+        const getVal = (el) => {
+            return el ? el.innerText.trim() : "";
+        };
+
+        // 1. Process ID and Timestamp (Generate and Lock)
+        let idVal = getVal(fields.id);
+        let tsVal = getVal(fields.timestamp);
+        const currentMs = Date.now().toString();
+
+        if (idVal === "" && tsVal === "") {
+            tsVal = currentMs;
+            idVal = `jtp-unk-${currentMs}`;
+
+            fields.timestamp.innerText = tsVal;
+            fields.id.innerText = idVal;
+        }
+
+        // Lock ID and Timestamp to ensure existing ledger data is not altered
+        fields.id.setAttribute("contenteditable", "false");
+        fields.timestamp.setAttribute("contenteditable", "false");
+
+        // 2. Validate Symbol
+        const symVal = getVal(fields.symbol);
+        if ([...symVal].length !== 1) {
+            return abortWithError(fields.symbol, "Symbol must be exactly one character or emoji.");
+        }
+
+        // 3. Validate Thing
+        const thingVal = getVal(fields.thing);
+        if (thingVal === "") {
+            return abortWithError(fields.thing, "Thing cannot be empty.");
+        }
+
+        // 4. Validate Idt (Can be empty)
+        const idtVal = getVal(fields.idt);
+        if (idtVal !== "") {
+            const parsedDate = new Date(idtVal);
+            if (isNaN(parsedDate.getTime())) {
+                return abortWithError(fields.idt, "Idt must be a valid date format.");
+            }
+        }
+
+        // 5. Validate Duration (Can be empty, can be negative)
+        let durVal = getVal(fields.duration);
+        if (durVal !== "") {
+            let checkDur = durVal;
+            if (checkDur.startsWith('-')) {
+                checkDur = checkDur.substring(1).trim();
+            }
+            const parts = checkDur.split(':');
+            if (parts.length !== 3 || parts.some(p => isNaN(parseInt(p, 10)))) {
+                return abortWithError(fields.duration, "Duration must be formatted as H:MM:SS.");
+            }
+        }
+
+        // 6. Validate Data
+        const dataVal = getVal(fields.data);
+
+        // 7. Build Payload
+        let payload = `[#C9]\n`;
+        payload += `symbol:${symVal}\n`;
+        payload += `thing:${thingVal}\n`;
+        payload += `idt:${idtVal}\n`;
+        payload += `duration:${durVal}\n`;
+        payload += `id:${idVal}\n`;
+        payload += `timestamp:${tsVal}\n`;
+        payload += `[#C9D]\n`;
+        if (dataVal !== "") {
+            payload += `${dataVal}\n`;
+        }
+        payload += `[/#C9D]\n`;
+        payload += `[/#C9]`;
+
+        // 8. Store Payload and Copy Calendar ID to Builder State
+        C9.Store.state.builderLedgerEntryPayload = payload;
+        C9.Store.state.builderLedgerEntryGoogleCalendarId = C9.Store.state.activeLedgerEntryGoogleCalendarId;
+
+        // If execution reaches this point, all fields have passed muster.
+        statusField.innerText = "Ledger entry parsed, verified, and payload built.";
+    },
 
       parseThingPayload: function() {
         const payloadInput = document.getElementById('descriptionPayloadInput');
