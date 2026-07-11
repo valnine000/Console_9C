@@ -221,115 +221,162 @@
       },
 
       timelineDetailsPanelParseInPlace: function() {
-        const LedgerEntryUpdateCreatePanelPayloadField = document.getElementById('calendarEntryDescriptionInput');
+    const LedgerEntryUpdateCreatePanelPayloadField = document.getElementById('calendarEntryDescriptionInput');
 
-        const fields = {
-            symbol: document.getElementById('timelineDetailsSymbol'),
-            thing: document.getElementById('calendarEventTitleInput'),
-            idt: document.getElementById('timelineDetailsIdt'),
-            duration: document.getElementById('timelineDetailsDuration'),
-            id: document.getElementById('timelineDetailsId'),
-            timestamp: document.getElementById('timelineDetailsTimestamp'),
-            data: document.getElementById('timelineDetailsData')
-        };
-        const statusField = document.getElementById('timelineDetailsPanelStatusField');
+    const fields = {
+        symbol: document.getElementById('timelineDetailsSymbol'),
+        thing: document.getElementById('calendarEventTitleInput'),
+        idt: document.getElementById('timelineDetailsIdt'),
+        duration: document.getElementById('timelineDetailsDuration'),
+        id: document.getElementById('timelineDetailsId'),
+        timestamp: document.getElementById('timelineDetailsTimestamp'),
+        data: document.getElementById('timelineDetailsData')
+    };
+    const statusField = document.getElementById('timelineDetailsPanelStatusField');
+    statusField.innerText = "";
 
-        // Reset all field outlines before starting validation
-        Object.values(fields).forEach(el => {
-            if (el) el.style.outline = "";
-        });
-        statusField.innerText = "";
+    // Helper function to handle validation failures
+    const abortWithError = (element, message) => {
+        statusField.innerText = `${message}`;
+    };
 
-        // Helper function to handle validation failures
-        const abortWithError = (element, message) => {
-            <!--element.style.outline = "1px solid #aa0000";-->
-            statusField.innerText = `${message}`;
-        };
+    // Helper function to extract text
+    const getVal = (el) => {
+        return el ? el.innerText.trim() : "";
+    };
 
-        // Helper function to extract text
-        const getVal = (el) => {
-            return el ? el.innerText.trim() : "";
-        };
+    // 1. Process ID and Timestamp (Generate and Lock)
+    let idVal = getVal(fields.id);
+    let tsVal = getVal(fields.timestamp);
+    const currentMs = Date.now().toString();
 
-        // 1. Process ID and Timestamp (Generate and Lock)
-        let idVal = getVal(fields.id);
-        let tsVal = getVal(fields.timestamp);
-        const currentMs = Date.now().toString();
+    if (idVal === "" && tsVal === "") {
+        tsVal = currentMs;
+        idVal = `jtp-unk-${currentMs}`;
 
-        if (idVal === "" && tsVal === "") {
-            tsVal = currentMs;
-            idVal = `jtp-unk-${currentMs}`;
+        fields.timestamp.innerText = tsVal;
+        fields.id.innerText = idVal;
+    }
 
-            fields.timestamp.innerText = tsVal;
-            fields.id.innerText = idVal;
+    // 2. Validate Symbol
+    const symVal = getVal(fields.symbol);
+    if ([...symVal].length !== 1) {
+        return abortWithError(fields.symbol, "Symbol must be one character or emoji");
+    }
+
+    // 3. Validate Thing
+    const thingVal = getVal(fields.thing);
+    if (thingVal === "") {
+        return abortWithError(fields.thing, "Thing cannot be empty");
+    }
+
+    // 4. Validate Idt (Can be empty)
+    const idtVal = getVal(fields.idt);
+    if (idtVal !== "") {
+        const parsedDate = new Date(idtVal);
+        if (isNaN(parsedDate.getTime())) {
+            return abortWithError(fields.idt, "Idt must be a valid date format");
         }
+    }
 
-        // Lock ID and Timestamp to ensure existing ledger data is not altered
-<!--        fields.id.setAttribute("contenteditable", "false");-->
-<!--        fields.timestamp.setAttribute("contenteditable", "false");-->
-
-        // 2. Validate Symbol
-        const symVal = getVal(fields.symbol);
-        if ([...symVal].length !== 1) {
-            return abortWithError(fields.symbol, "Symbol must be one character or emoji");
+    // 5. Validate Duration (Can be empty, can be negative)
+    let durVal = getVal(fields.duration);
+    if (durVal !== "") {
+        let checkDur = durVal;
+        if (checkDur.startsWith('-')) {
+            checkDur = checkDur.substring(1).trim();
         }
-
-        // 3. Validate Thing
-        const thingVal = getVal(fields.thing);
-        if (thingVal === "") {
-            return abortWithError(fields.thing, "Thing cannot be empty");
+        const parts = checkDur.split(':');
+        if (parts.length !== 3 || parts.some(p => isNaN(parseInt(p, 10)))) {
+            return abortWithError(fields.duration, "Duration must be H:MM:SS format");
         }
+    }
 
-        // 4. Validate Idt (Can be empty)
-        const idtVal = getVal(fields.idt);
-        if (idtVal !== "") {
-            const parsedDate = new Date(idtVal);
-            if (isNaN(parsedDate.getTime())) {
-                return abortWithError(fields.idt, "Idt must be a valid date format");
-            }
+    // 6. Validate Data
+    const dataVal = getVal(fields.data);
+
+    // 7. Build Payload
+    let payload = `[#C9]\n`;
+    payload += `symbol:${symVal}\n`;
+    payload += `thing:${thingVal}\n`;
+    payload += `idt:${idtVal}\n`;
+    payload += `duration:${durVal}\n`;
+    payload += `id:${idVal}\n`;
+    payload += `timestamp:${tsVal}\n`;
+    payload += `[#C9D]\n`;
+    if (dataVal !== "") {
+        payload += `${dataVal}\n`;
+    }
+    payload += `[/#C9D]\n`;
+    payload += `[/#C9]`;
+
+    // 8. Store Payload and Copy Calendar ID to Builder State
+    C9.Store.state.builderLedgerEntryPayload = payload;
+    C9.Store.state.builderLedgerEntryGoogleCalendarId = C9.Store.state.activeLedgerEntryGoogleCalendarId;
+
+    // 9. Calculate Google Calendar Temporal Boundaries
+    let baseTime = idtVal !== "" ? new Date(idtVal) : new Date(Number(tsVal));
+
+    let durationMs = 0;
+    let isNegative = false;
+
+    if (durVal !== "") {
+        let checkDur = durVal;
+        if (checkDur.startsWith('-')) {
+            isNegative = true;
+            checkDur = checkDur.substring(1).trim();
         }
+        const parts = checkDur.split(':');
+        const h = parseInt(parts[0], 10) || 0;
+        const m = parseInt(parts[1], 10) || 0;
+        const s = parseInt(parts[2], 10) || 0;
+        durationMs = (h * 3600000) + (m * 60000) + (s * 1000);
+    }
 
-        // 5. Validate Duration (Can be empty, can be negative)
-        let durVal = getVal(fields.duration);
-        if (durVal !== "") {
-            let checkDur = durVal;
-            if (checkDur.startsWith('-')) {
-                checkDur = checkDur.substring(1).trim();
-            }
-            const parts = checkDur.split(':');
-            if (parts.length !== 3 || parts.some(p => isNaN(parseInt(p, 10)))) {
-                return abortWithError(fields.duration, "Duration must be H:MM:SS format");
-            }
-        }
+    let startTime, endTime;
+    if (isNegative) {
+        startTime = new Date(baseTime.getTime() - durationMs);
+        endTime = new Date(baseTime.getTime());
+    } else {
+        startTime = new Date(baseTime.getTime());
+        endTime = new Date(baseTime.getTime() + durationMs);
+    }
 
-        // 6. Validate Data
-        const dataVal = getVal(fields.data);
+    // Enforce 15-minute minimum for Google Calendar representations (900,000 ms)
+    if ((endTime.getTime() - startTime.getTime()) < 900000) {
+        endTime = new Date(startTime.getTime() + 900000);
+    }
 
-        // 7. Build Payload
-        let payload = `[#C9]\n`;
-        payload += `symbol:${symVal}\n`;
-        payload += `thing:${thingVal}\n`;
-        payload += `idt:${idtVal}\n`;
-        payload += `duration:${durVal}\n`;
-        payload += `id:${idVal}\n`;
-        payload += `timestamp:${tsVal}\n`;
-        payload += `[#C9D]\n`;
-        if (dataVal !== "") {
-            payload += `${dataVal}\n`;
-        }
-        payload += `[/#C9D]\n`;
-        payload += `[/#C9]`;
+    // 10. Update the Google Calendar View UI fields
+    const formatDate = (d) => `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`;
+    const formatTime = (d) => d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
 
-        // 8. Store Payload and Copy Calendar ID to Builder State
-        C9.Store.state.builderLedgerEntryPayload = payload;
-        C9.Store.state.builderLedgerEntryGoogleCalendarId = C9.Store.state.activeLedgerEntryGoogleCalendarId;
+    const rightTitle = document.getElementById('calendarEntryTitleInput');
+    const rightStartDate = document.getElementById('calendarEntryStartDateInput');
+    const rightEndDate = document.getElementById('calendarEntryEndDateInput');
+    const rightStartTime = document.getElementById('calendarEntryStartTimeInput');
+    const rightEndTime = document.getElementById('calendarEntryEndTimeInput');
 
-        // If execution reaches this point, all fields have passed muster.
-        statusField.innerText = "Success";
+    if (rightTitle) rightTitle.innerText = thingVal;
+    if (rightStartDate) rightStartDate.innerText = formatDate(startTime);
+    if (rightEndDate) rightEndDate.innerText = formatDate(endTime);
+    if (rightStartTime) rightStartTime.innerText = formatTime(startTime);
+    if (rightEndTime) rightEndTime.innerText = formatTime(endTime);
 
-        LedgerEntryUpdateCreatePanelPayloadField.innerText = C9.Store.state.builderLedgerEntryPayload;
+    // 11. Create Google Calendar State Payload
+    C9.Store.state.builderLedgerEntryGoogleCalendarPayload = {
+        eventId: C9.Store.state.builderLedgerEntryGoogleCalendarId,
+        title: thingVal,
+        startIso: startTime.toISOString(),
+        endIso: endTime.toISOString(),
+        description: payload
+    };
 
-    },
+    // If execution reaches this point, all fields have passed muster.
+    statusField.innerText = "Success";
+
+    LedgerEntryUpdateCreatePanelPayloadField.innerText = C9.Store.state.builderLedgerEntryPayload;
+},
 
       parseThingPayload: function() {
         const payloadInput = document.getElementById('descriptionPayloadInput');
