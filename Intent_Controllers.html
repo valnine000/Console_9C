@@ -380,7 +380,10 @@
         if (parseBtn) parseBtn.addEventListener('click', () => C9.Forms.parseThingPayload());
 
         const parseInPlaceBtn = document.getElementById('parseEntryInPlace');
-        if (parseInPlaceBtn) parseInPlaceBtn.addEventListener('click', () => C9.Forms.timelineDetailValidationParse());
+        if (parseInPlaceBtn) parseInPlaceBtn.addEventListener('click', () => C9.Forms.timelineDetailsPanelParseInPlace());
+
+        const timelineEntryDetailsPanelClearFormBtn = document.getElementById('timelineEntryDetailsPanelClearFormBtn');
+        if (timelineEntryDetailsPanelClearFormBtn) timelineEntryDetailsPanelClearFormBtn.addEventListener('click', () => C9.Forms.timelineEntryDetailsPanelClearForm());
 
         const updateBtn = document.getElementById('updateCalendarEventBtn');
         if (updateBtn) updateBtn.addEventListener('click', () => C9.Forms.submitUpdatedEvent());
