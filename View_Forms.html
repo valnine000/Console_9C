@@ -16,13 +16,7 @@
           });
 
           // Grab classic elements
-          const titleInput = document.getElementById('calendarEventTitleInput'); // We map 'Thing' to this below
-          const startDateInput = document.getElementById('calendarEventStartDate');
-          const startTimeInput = document.getElementById('calendarEventStartTime');
-          const endDateInput = document.getElementById('calendarEventEndDate');
-          const endTimeInput = document.getElementById('calendarEventEndTime');
-          const descInput = document.getElementById('calendarEventDescription');
-          const detailsIdField = document.getElementById('detailsGoogleCalendarEventId');
+          const thingInput = document.getElementById('calendarEventTitleInput');
 
           // Grab the new Thing Entity fields
           const symbolInput = document.getElementById('timelineDetailsSymbol');
@@ -32,37 +26,14 @@
           const timestampInput = document.getElementById('timelineDetailsTimestamp');
           const dataInput = document.getElementById('timelineDetailsData');
 
-          const start = new Date(targetEvent.startTime);
-          const end = new Date(targetEvent.endTime);
-          const formatDate = (d) => `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`;
-          const formatTime = (d) => d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-          const rawDescription = C9.Parser.cleanHtmlText(targetEvent.description);
-
-          // Populate the specific C9 entity fields with structural glow sticks ("-")
-          if (titleInput) titleInput.textContent = targetEvent.thing || "";
+          // Populate the specific C9 entity fields
+          if (thingInput) thingInput.textContent = targetEvent.thing || "";
           if (symbolInput) symbolInput.textContent = targetEvent.symbol || "";
           if (idtInput) idtInput.textContent = targetEvent.idt || "";
           if (durationInput) durationInput.textContent = targetEvent.duration || "";
           if (idInput) idInput.textContent = targetEvent.id || "";
           if (timestampInput) timestampInput.textContent = targetEvent.timestamp || "";
           if (dataInput) dataInput.textContent = targetEvent.data || "";
-
-          // Populate temporal boundaries
-          if (startDateInput) startDateInput.textContent = formatDate(start);
-          if (startTimeInput) startTimeInput.textContent = formatTime(start);
-          if (endDateInput) endDateInput.textContent = formatDate(end);
-          if (endTimeInput) endTimeInput.textContent = formatTime(end);
-
-          if (descInput) {
-            descInput.style.whiteSpace = 'pre-wrap';
-            descInput.textContent = rawDescription;
-          }
-
-          // Purely visual update for confirmation
-          if (detailsIdField) {
-            detailsIdField.textContent = targetEvent.googleCalendarId;
-            detailsIdField.style.color = 'var(--c1d1)';
-          }
         }
       },
 
@@ -117,8 +88,8 @@
         const extractedId = idMatch ? idMatch[1].trim() : null;
 
         if (!extractedId || extractedId === "") {
-          btn.style.outline = "2px solid red";
-          setTimeout(() => { btn.style.outline = ""; }, 2000);
+          btn.style.color = "var(--c1d1)";
+          setTimeout(() => { btn.style.color = "var(--c1)"; }, 2000);
           return;
         }
 
@@ -130,8 +101,8 @@
         }
 
         destDesc.innerText = destText;
-        btn.style.outline = "1px solid green";
-        setTimeout(() => { btn.style.outline = ""; }, 2000);
+        btn.style.color = "var(--c1d1)";
+        setTimeout(() => { btn.style.color = "var(--c1)"; }, 2000);
       },
 
       timelineDetailsPanelParseInPlace: function() {
