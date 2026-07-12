@@ -5,14 +5,14 @@
     window.C9.Forms = {
 
       renderDetails: function(eventId) {
-        C9.Store.update({ activeLedgerEntryId: eventId }); // <-- CHANGED
+        C9.Store.update({ activeLedgerEntryId: eventId });
         const targetEvent = C9.Store.state.memoryStore.find(item => item.id === eventId);
 
         if (targetEvent) {
           // Quarantine the Google ID and the full event payload in the State Store
           C9.Store.update({
             activeLedgerEntryGoogleCalendarId: targetEvent.googleCalendarId,
-            activeLedgerEntryPayload: targetEvent // <-- CHANGED
+            activeLedgerEntryPayload: targetEvent
           });
 
           // Grab classic elements
@@ -66,77 +66,6 @@
         }
       },
 
-      loadPayloadForUpdate: function() {
-        // 1. Pull the pristine data directly from the State Store
-        const payload = C9.Store.state.activeLedgerEntryPayload;
-
-        if (!payload) {
-          console.warn("No active ledger entry selected to update.");
-          return;
-        }
-
-        // 2. Grab the Thing Builder DOM elements
-        const symbolInput = document.getElementById('symbolInput');
-        const titleInput = document.getElementById('thingBuilderEventTitleInput');
-        const idtInput = document.getElementById('idtInput');
-        const durationInput = document.getElementById('durationInput');
-        const idInput = document.getElementById('idInput');
-        const timestampInput = document.getElementById('timestampInput');
-        const dataInput = document.getElementById('dataInput');
-
-        const startDateInput = document.getElementById('thingBuilderEventStartDate');
-        const startTimeInput = document.getElementById('thingBuilderEventStartTime');
-        const endDateInput = document.getElementById('thingBuilderEventEndDate');
-        const endTimeInput = document.getElementById('thingBuilderEventEndTime');
-        const descInput = document.getElementById('descriptionPayloadInput');
-        const googleIdInput = document.getElementById('payloadGoogleCalendarEventId');
-
-        // 3. Inject the core C9 ontology fields with structural glow sticks ("-")
-        if (symbolInput) symbolInput.textContent = payload.symbol || "-";
-        if (titleInput) titleInput.textContent = payload.thing || "-"; // Mapping 'thing' to the builder title
-        if (idtInput) idtInput.textContent = payload.idt || "-";
-        if (durationInput) durationInput.textContent = payload.duration || "-";
-        if (idInput) idInput.textContent = payload.id || "-";
-        if (timestampInput) timestampInput.textContent = payload.timestamp || "-";
-        if (dataInput) dataInput.textContent = payload.data || "-";
-
-        // 4. Format and Inject Temporal Boundaries
-        const start = new Date(payload.startTime);
-        const end = new Date(payload.endTime);
-        const formatDate = (d) => `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`;
-        const formatTime = (d) => d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-        if (startDateInput) startDateInput.textContent = formatDate(start);
-        if (startTimeInput) startTimeInput.textContent = formatTime(start);
-        if (endDateInput) endDateInput.textContent = formatDate(end);
-        if (endTimeInput) endTimeInput.textContent = formatTime(end);
-
-        // 5. Inject Description & Google ID
-        if (descInput) {
-          descInput.style.whiteSpace = 'pre-wrap';
-          descInput.textContent = C9.Parser.cleanHtmlText(payload.description || "");
-        }
-        if (googleIdInput) {
-          googleIdInput.textContent = payload.googleCalendarId;
-          googleIdInput.style.color = 'var(--c1d1)';
-        }
-
-        // (Optional) If you have a function that automatically switches tabs or opens the builder panel,
-        // you would call it here, e.g., C9.UI.openPanel('thingBuilderPanel');
-      },
-
-      clearBuilderGoogleId: function() {
-        // 1. Purge the truth
-        C9.Store.update({ activeLedgerEntryGoogleCalendarId: null });
-
-        // 2. Purge the visual
-        const payloadIdField = document.getElementById('payloadGoogleCalendarEventId');
-        if (payloadIdField) {
-          payloadIdField.innerText = '-';
-          payloadIdField.style.color = '';
-        }
-      },
-
       timelineEntryDetailsPanelClearBuilderLedgerEntryGoogleCalendarId: function() {
         C9.Store.update({ builderLedgerEntryGoogleCalendarId: null });
       },
@@ -173,27 +102,10 @@
         C9.Store.state.ThingEntityPayload.reset()
       },
 
-      clearBuilderForm: function() {
-        const title = document.getElementById('thingBuilderEventTitleInput');
-        const startD = document.getElementById('thingBuilderEventStartDate');
-        const startT = document.getElementById('thingBuilderEventStartTime');
-        const endD = document.getElementById('thingBuilderEventEndDate');
-        const endT = document.getElementById('thingBuilderEventEndTime');
-        const descInput = document.getElementById('descriptionPayloadInput');
-
-        if (title) title.innerText = '-';
-        if (startD) startD.innerText = '-';
-        if (startT) startT.innerText = '';
-        if (endD) endD.innerText = '-';
-        if (endT) endT.innerText = '';
-
-        if (descInput) {
-          descInput.textContent = C9.Templates.THING_BUILDER;
-        }
-        this.clearBuilderGoogleId();
-      },
-
       loadAsReference: function() {
+        console.log('loadAsReference and return');
+        return
+
         const srcDesc = document.getElementById('calendarEventDescription');
         const destDesc = document.getElementById('descriptionPayloadInput');
         const btn = document.getElementById('loadEntryAsReference');
@@ -278,8 +190,7 @@
         entity.data = dataVal;
         entity.isValidated = true; // The gate unlocks here
 
-        statusField.innerText = "Parse Successful. Ready to process.";
-        statusField.style.color = "green";
+        statusField.innerText = "Successful parse";
 
         // Optional: Write a draft preview to the UI so you can see it,
         // but the actual submission will serialize directly from state.
@@ -292,325 +203,24 @@
         }
     },
 
-      timelineDetailsPanelParseInPlace2: function() {
-            const LedgerEntryUpdateCreatePanelPayloadField = document.getElementById('calendarEntryDescriptionInput');
-
-            const fields = {
-                symbol: document.getElementById('timelineDetailsSymbol'),
-                thing: document.getElementById('calendarEventTitleInput'),
-                idt: document.getElementById('timelineDetailsIdt'),
-                duration: document.getElementById('timelineDetailsDuration'),
-                id: document.getElementById('timelineDetailsId'),
-                timestamp: document.getElementById('timelineDetailsTimestamp'),
-                data: document.getElementById('timelineDetailsData')
-            };
-            const statusField = document.getElementById('timelineDetailsPanelStatusField');
-            statusField.innerText = "";
-
-            // Helper function to handle validation failures
-            const abortWithError = (element, message) => {
-                statusField.innerText = `${message}`;
-            };
-
-            // Helper function to extract text
-            const getVal = (el) => {
-                return el ? el.innerText.trim() : "";
-            };
-
-            // 1. Process ID and Timestamp (Generate and Lock)
-            let idVal = getVal(fields.id);
-            let tsVal = getVal(fields.timestamp);
-            const currentMs = Date.now().toString();
-
-            if (idVal === "" && tsVal === "") {
-                tsVal = currentMs;
-                idVal = `jtp-unk-${currentMs}`;
-
-                fields.timestamp.innerText = tsVal;
-                fields.id.innerText = idVal;
-            }
-
-            // 2. Validate Symbol
-            const symVal = getVal(fields.symbol);
-            if ([...symVal].length !== 1) {
-                return abortWithError(fields.symbol, "Symbol must be one character or emoji");
-            }
-
-            // 3. Validate Thing
-            const thingVal = getVal(fields.thing);
-            if (thingVal === "") {
-                return abortWithError(fields.thing, "Thing cannot be empty");
-            }
-
-            // 4. Validate Idt (Can be empty)
-            const idtVal = getVal(fields.idt);
-            if (idtVal !== "") {
-                const parsedDate = new Date(idtVal);
-                if (isNaN(parsedDate.getTime())) {
-                    return abortWithError(fields.idt, "Idt must be a valid date format");
-                }
-            }
-
-            // 5. Validate Duration (Can be empty, can be negative)
-            let durVal = getVal(fields.duration);
-            if (durVal !== "") {
-                let checkDur = durVal;
-                if (checkDur.startsWith('-')) {
-                    checkDur = checkDur.substring(1).trim();
-                }
-                const parts = checkDur.split(':');
-                if (parts.length !== 3 || parts.some(p => isNaN(parseInt(p, 10)))) {
-                    return abortWithError(fields.duration, "Duration must be H:MM:SS format");
-                }
-            }
-
-            // 6. Validate Data
-            const dataVal = getVal(fields.data);
-
-            // 7. Build Payload
-            let payload = `[#C9]\n`;
-            payload += `symbol:${symVal}\n`;
-            payload += `thing:${thingVal}\n`;
-            payload += `idt:${idtVal}\n`;
-            payload += `duration:${durVal}\n`;
-            payload += `id:${idVal}\n`;
-            payload += `timestamp:${tsVal}\n`;
-            payload += `[#C9D]\n`;
-            if (dataVal !== "") {
-                payload += `${dataVal}\n`;
-            }
-            payload += `[/#C9D]\n`;
-            payload += `[/#C9]`;
-
-            // 8. Store Payload and Copy Calendar ID to Builder State
-            C9.Store.state.builderLedgerEntryPayload = payload;
-            C9.Store.state.builderLedgerEntryGoogleCalendarId = C9.Store.state.activeLedgerEntryGoogleCalendarId;
-
-            // 9. Calculate Google Calendar Temporal Boundaries
-            let baseTime = idtVal !== "" ? new Date(idtVal) : new Date(Number(tsVal));
-
-            let durationMs = 0;
-            let isNegative = false;
-
-            if (durVal !== "") {
-                let checkDur = durVal;
-                if (checkDur.startsWith('-')) {
-                    isNegative = true;
-                    checkDur = checkDur.substring(1).trim();
-                }
-                const parts = checkDur.split(':');
-                const h = parseInt(parts[0], 10) || 0;
-                const m = parseInt(parts[1], 10) || 0;
-                const s = parseInt(parts[2], 10) || 0;
-                durationMs = (h * 3600000) + (m * 60000) + (s * 1000);
-            }
-
-            let startTime, endTime;
-            if (isNegative) {
-                startTime = new Date(baseTime.getTime() - durationMs);
-                endTime = new Date(baseTime.getTime());
-            } else {
-                startTime = new Date(baseTime.getTime());
-                endTime = new Date(baseTime.getTime() + durationMs);
-            }
-
-            // Enforce 15-minute minimum for Google Calendar representations (900,000 ms)
-            if ((endTime.getTime() - startTime.getTime()) < 900000) {
-                endTime = new Date(startTime.getTime() + 900000);
-            }
-
-            // 10. Update the Google Calendar View UI fields
-            const formatDate = (d) => `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`;
-            const formatTime = (d) => d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-
-            const rightTitle = document.getElementById('calendarEntryTitleInput');
-            const rightStartDate = document.getElementById('calendarEntryStartDateInput');
-            const rightEndDate = document.getElementById('calendarEntryEndDateInput');
-            const rightStartTime = document.getElementById('calendarEntryStartTimeInput');
-            const rightEndTime = document.getElementById('calendarEntryEndTimeInput');
-
-            if (rightTitle) rightTitle.innerText = thingVal;
-            if (rightStartDate) rightStartDate.innerText = formatDate(startTime);
-            if (rightEndDate) rightEndDate.innerText = formatDate(endTime);
-            if (rightStartTime) rightStartTime.innerText = formatTime(startTime);
-            if (rightEndTime) rightEndTime.innerText = formatTime(endTime);
-
-            // 11. Create Google Calendar State Payload
-            C9.Store.state.builderLedgerEntryGoogleCalendarPayload = {
-                eventId: C9.Store.state.builderLedgerEntryGoogleCalendarId,
-                title: thingVal,
-                startIso: startTime.toISOString(),
-                endIso: endTime.toISOString(),
-                description: payload
-            };
-
-            // If execution reaches this point, all fields have passed muster.
-            statusField.innerText = "Success";
-
-            LedgerEntryUpdateCreatePanelPayloadField.innerText = C9.Store.state.builderLedgerEntryPayload;
-        },
-
-      parseThingPayload: function() {
-        const payloadInput = document.getElementById('descriptionPayloadInput');
-        const entryContainer = document.getElementById('parseEntry');
-
-        const rightTitle = document.getElementById('calendarEntryTitleInput');
-        const rightStartDate = document.getElementById('calendarEntryStartDateInput');
-        const rightEndDate = document.getElementById('calendarEntryEndDateInput');
-        const rightStartTime = document.getElementById('calendarEntryStartTimeInput');
-        const rightEndTime = document.getElementById('calendarEntryEndTimeInput');
-        const rightDesc = document.getElementById('calendarEntryDescriptionInput');
-
-        const bStartDInput = document.getElementById('thingBuilderEventStartDate');
-        const bStartTInput = document.getElementById('thingBuilderEventStartTime');
-        const bEndDInput = document.getElementById('thingBuilderEventEndDate');
-        const bEndTInput = document.getElementById('thingBuilderEventEndTime');
-
-        if (!payloadInput) return;
-
-        entryContainer.style.border = "0px solid orange";
-        entryContainer.style.borderColor = "";
-        const rawText = payloadInput.innerText;
-
-        if (!rawText.includes('[#C9]') || !rawText.includes('[/#C9]')) {
-          entryContainer.style.outline = "1px solid #aa0000";
-          setTimeout(() => { entryContainer.style.outline = ""; }, 2000);
-        }
-
-        let thingName = C9.Parser.extractC9Field(rawText, 'thing');
-        if (!thingName || thingName === "") thingName = "Thing";
-
-        let rawIdt = C9.Parser.extractC9Field(rawText, 'idt');
-        const idtStr = rawIdt ? rawIdt.trim() : "";
-        let durationStr = C9.Parser.extractC9Field(rawText, 'duration');
-
-        let existingId = C9.Parser.extractC9Field(rawText, 'id');
-        let existingTimestamp = C9.Parser.extractC9Field(rawText, 'timestamp');
-        const nowMs = Date.now();
-
-        const finalId = (existingId && existingId.trim() !== "") ? existingId.trim() : `JTP-${nowMs}`;
-        const finalTimestamp = (existingTimestamp && existingTimestamp.trim() !== "") ? existingTimestamp.trim() : `${nowMs}`;
-
-        const getValidText = (el, ignoreVal) => {
-          if (!el) return "";
-          const txt = el.innerText.trim();
-          return (txt.toLowerCase() === ignoreVal) ? "" : txt;
-        };
-
-        const bStartD = getValidText(bStartDInput, "start");
-        const bStartT = getValidText(bStartTInput, "time");
-        const bEndD = getValidText(bEndDInput, "end");
-        const bEndT = getValidText(bEndTInput, "time");
-
-        let baseTime;
-        let usedBuilderStart = false;
-
-        if (idtStr !== "") {
-          baseTime = new Date(idtStr);
-          if (isNaN(baseTime.getTime())) {
-             entryContainer.style.borderColor = "red";
-             baseTime = new Date(nowMs);
-          }
-        } else if (bStartD !== "" && bStartT !== "") {
-          baseTime = new Date(`${bStartD} ${bStartT}`);
-          if (isNaN(baseTime.getTime())) {
-             baseTime = new Date(nowMs);
-          } else {
-             usedBuilderStart = true;
-          }
-        } else {
-          baseTime = new Date(nowMs);
-        }
-
-        let durationMs = null;
-        let isNegative = false;
-        if (durationStr && durationStr !== "") {
-          if (durationStr.startsWith('-')) {
-            isNegative = true;
-            durationStr = durationStr.substring(1).trim();
-          }
-          const parts = durationStr.split(':');
-          if (parts.length === 3) {
-            const h = parseInt(parts[0]) || 0;
-            const m = parseInt(parts[1]) || 0;
-            const s = parseInt(parts[2]) || 0;
-            durationMs = (h * 3600000) + (m * 60000) + (s * 1000);
-          }
-        }
-
-        let startTime, endTime;
-        if (durationMs === null || isNaN(durationMs)) {
-           if (usedBuilderStart && bEndD !== "" && bEndT !== "") {
-               startTime = new Date(baseTime);
-               endTime = new Date(`${bEndD} ${bEndT}`);
-               if (isNaN(endTime.getTime())) {
-                   endTime = new Date(baseTime.getTime() + (15 * 60000));
-               }
-           } else {
-               startTime = new Date(baseTime);
-               endTime = new Date(baseTime.getTime() + (15 * 60000));
-           }
-        } else if (isNegative) {
-           endTime = new Date(baseTime);
-           startTime = new Date(baseTime.getTime() - durationMs);
-        } else {
-           startTime = new Date(baseTime);
-           endTime = new Date(baseTime.getTime() + durationMs);
-        }
-
-        const formatDate = (d) => `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`;
-        const formatTime = (d) => d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-        if (rightTitle) rightTitle.innerText = thingName;
-        if (rightStartDate) rightStartDate.innerText = formatDate(startTime);
-        if (rightEndDate) rightEndDate.innerText = formatDate(endTime);
-        if (rightStartTime) rightStartTime.innerText = formatTime(startTime);
-        if (rightEndTime) rightEndTime.innerText = formatTime(endTime);
-
-        let updatedPayload = rawText;
-        updatedPayload = updatedPayload.replace(/id:(.*)/i, `id:${finalId}`);
-        updatedPayload = updatedPayload.replace(/timestamp:(.*)/i, `timestamp:${finalTimestamp}`);
-
-        if (rightDesc) {
-           rightDesc.innerText = updatedPayload;
-           rightDesc.style.whiteSpace = "pre-wrap";
-        }
-
-        const payloadIdField = document.getElementById('payloadGoogleCalendarEventId');
-        const statusField = document.getElementById('calendarEntryStatusField');
-
-        if (payloadIdField && statusField) {
-          const currentGoogleId = payloadIdField.innerText.trim();
-          if (currentGoogleId && currentGoogleId !== "-") {
-              statusField.innerText = currentGoogleId;
-              statusField.style.color = 'var(--c1d1)';
-          } else {
-              statusField.innerText = "-";
-              statusField.style.color = 'var(--c1)';
-          }
-        }
-      },
-
       submitNewEvent: function() {
         const btn = document.getElementById('createNewEntry');
-        const statusField = document.getElementById('timelineDetailsPanelStatusField'); // Assuming you want status here now
+        const statusField = document.getElementById('calendarEntryStatusField'); // Assuming you want status here now
         const entity = C9.Store.state.ThingEntityPayload;
 
         // 1. Safety Gate Checks
         if (!entity.isValidated) {
-            statusField.innerText = "Error: Please parse the entry successfully first.";
-            statusField.style.color = "red";
+            statusField.innerText = "Parse successfully first";
             return;
         }
 
         if (entity.id !== "" || entity.timestamp !== "") {
-            statusField.innerText = "Error: This entry already has an ID/Timestamp. Use Update instead.";
-            statusField.style.color = "red";
+            statusField.innerText = "ID/Timestamp already exists";
             return;
         }
 
         btn.style.pointerEvents = 'none';
-        btn.innerText = "Saving...";
+        btn.style.color = "var(--c1d1)";
         statusField.innerText = "Minting keys and creating event...";
         statusField.style.color = "var(--c1d1)";
 
@@ -675,9 +285,8 @@
         C9.Repository.createEvent(serverPayload)
             .then((res) => {
                 btn.style.pointerEvents = 'auto';
-                btn.innerText = "New";
-                statusField.innerText = "Ledger Entry created successfully!";
-                statusField.style.color = "green";
+                btn.style.color = "var(--c1)";
+                statusField.innerText = "Ledger Entry created successfully";
 
                 // Optional: push the newly minted keys back to the UI fields so the user sees them
                 document.getElementById('timelineDetailsId').innerText = entity.id;
@@ -686,115 +295,36 @@
             })
             .catch((err) => {
                 btn.style.pointerEvents = 'auto';
-                btn.innerText = "New";
+                btn.style.color = "var(--c1)";
                 statusField.innerText = `Server Error: ${err.message}`;
-                statusField.style.color = "red";
             });
     },
 
-      submitNewEvent2: function() {
-            const btn = document.getElementById('createNewEntry');
-            const statusField = document.getElementById('calendarEntryStatusField');
-            const payload = C9.Store.state.builderLedgerEntryGoogleCalendarPayload;
-
-            // Safety check: Ensure the entry was parsed and payload exists
-            if (!payload) {
-                statusField.innerText = "Error: No parsed payload found.";
-                return;
-            }
-
-            btn.style.pointerEvents = 'none';
-            btn.innerText = "Saving...";
-            statusField.innerText = "Creating event...";
-            statusField.style.color = "var(--c1d1)";
-
-            C9.Repository.createEvent(payload)
-                .then((res) => {
-                    btn.style.pointerEvents = 'auto';
-                    btn.innerText = "New";
-                    statusField.innerText = "Event created successfully!";
-                })
-                .catch((err) => {
-                    btn.style.pointerEvents = 'auto';
-                    btn.innerText = "New";
-                    statusField.innerText = `Error: ${err.message}`;
-                });
-        },
-
-      submitNewEvent2: function() {
-        const btn = document.getElementById('createNewEntry');
-        const statusField = document.getElementById('calendarEntryStatusField');
-
-        const title = document.getElementById('calendarEntryTitleInput').innerText.trim();
-        const startD = document.getElementById('calendarEntryStartDateInput').innerText.trim();
-        const startT = document.getElementById('calendarEntryStartTimeInput').innerText.trim();
-        const endD = document.getElementById('calendarEntryEndDateInput').innerText.trim();
-        const endT = document.getElementById('calendarEntryEndTimeInput').innerText.trim();
-        const desc = document.getElementById('calendarEntryDescriptionInput').innerText;
-
-        const startDateTime = new Date(`${startD} ${startT}`);
-        const endDateTime = new Date(`${endD} ${endT}`);
-
-        if (isNaN(startDateTime.getTime()) || isNaN(endDateTime.getTime())) {
-          statusField.innerText = "Error: Invalid date/time format.";
-          statusField.style.color = "red";
-          return;
-        }
-
-        btn.style.pointerEvents = 'none';
-        btn.innerText = "Saving...";
-        statusField.innerText = "Creating event...";
-        statusField.style.color = "var(--c1d1)";
-
-        const payload = {
-          title: title,
-          startIso: startDateTime.toISOString(),
-          endIso: endDateTime.toISOString(),
-          description: desc
-        };
-
-        C9.Repository.createEvent(payload)
-          .then((res) => {
-            btn.style.pointerEvents = 'auto';
-            btn.innerText = "New";
-            statusField.innerText = "Event created successfully!";
-            statusField.style.color = "green";
-          })
-          .catch((err) => {
-            btn.style.pointerEvents = 'auto';
-            btn.innerText = "New";
-            statusField.innerText = `Error: ${err.message}`;
-            statusField.style.color = "red";
-          });
-      },
-
       submitUpdatedEvent: function() {
-        const btn = document.getElementById('updateEntry'); // Assuming this is the ID for your update button
-        const statusField = document.getElementById('timelineDetailsPanelStatusField');
+        const btn = document.getElementById('updateCalendarEventBtn');
+        const statusField = document.getElementById('calendarEntryStatusField');
         const entity = C9.Store.state.ThingEntityPayload;
         const eventId = C9.Store.state.activeLedgerEntryGoogleCalendarId;
 
         // 1. Safety Gate Checks
         if (!entity.isValidated) {
-            statusField.innerText = "Error: Please parse the entry successfully first.";
-            statusField.style.color = "red";
+            statusField.innerText = "Please parse the entry successfully first.";
             return;
         }
 
         if (entity.id === "" || entity.timestamp === "") {
-            statusField.innerText = "Error: Missing ID or Timestamp. This looks like a new entry, not an update.";
-            statusField.style.color = "red";
+            statusField.innerText = "Missing ID or Timestamp. This looks like a new entry";
+
             return;
         }
 
-        if (!eventId || eventId === "-" ) {
-            statusField.innerText = "Error: Invalid or missing Google Event ID in state.";
-            statusField.style.color = "red";
+        if (!eventId ) {
+            statusField.innerText = "Invalid or missing Google Event ID";
             return;
         }
 
         btn.style.pointerEvents = 'none';
-        btn.innerText = "Updating...";
+        btn.style.color = "var(--c1d1)";
         statusField.innerText = "Pushing update to Google...";
         statusField.style.color = "var(--c1d1)";
 
@@ -855,13 +385,12 @@
         C9.Repository.updateEvent(serverPayload)
             .then((res) => {
                 btn.style.pointerEvents = 'auto';
-                btn.innerText = "Update";
-                statusField.innerText = "Ledger Entry successfully updated!";
-                statusField.style.color = "green";
+                btn.style.color = "var(--c1)";
+                statusField.innerText = "Update successfull";
 
                 // Optional cleanup: reset status field after a few seconds
                 setTimeout(() => {
-                    if (statusField.innerText === 'Ledger Entry successfully updated!') {
+                    if (statusField.innerText === 'Update successfully') {
                         statusField.innerText = '';
                     }
                 }, 3000);
@@ -870,65 +399,9 @@
             })
             .catch((err) => {
                 btn.style.pointerEvents = 'auto';
-                btn.innerText = "Update";
+                btn.style.color = "var(--c1)";
                 statusField.innerText = `Server Error: ${err.message}`;
-                statusField.style.color = "red";
             });
-        },
-
-      submitUpdatedEvent2: function() {
-        const btn = document.getElementById('updateCalendarEventBtn');
-        const statusField = document.getElementById('calendarEntryStatusField');
-        const eventId = C9.Store.state.activeLedgerEntryGoogleCalendarId;
-
-        if (!eventId || eventId === "-" ) {
-          statusField.innerText = "Error: Invalid or missing Google Event ID.";
-          statusField.style.color = "red";
-          return;
         }
-
-        const title = document.getElementById('calendarEntryTitleInput').innerText.trim();
-        const startD = document.getElementById('calendarEntryStartDateInput').innerText.trim();
-        const startT = document.getElementById('calendarEntryStartTimeInput').innerText.trim();
-        const endD = document.getElementById('calendarEntryEndDateInput').innerText.trim();
-        const endT = document.getElementById('calendarEntryEndTimeInput').innerText.trim();
-        const desc = document.getElementById('calendarEntryDescriptionInput').innerText;
-
-        const startDateTime = new Date(`${startD} ${startT}`);
-        const endDateTime = new Date(`${endD} ${endT}`);
-
-        if (isNaN(startDateTime.getTime()) || isNaN(endDateTime.getTime())) {
-          statusField.innerText = "Error: Invalid date/time format.";
-          statusField.style.color = "red";
-          return;
-        }
-
-        btn.style.pointerEvents = 'none';
-        btn.innerText = "Updating...";
-        statusField.innerText = "Pushing update to Google...";
-        statusField.style.color = "var(--c1d1)";
-
-        const payload = {
-          eventId: eventId,
-          title: title,
-          startIso: startDateTime.toISOString(),
-          endIso: endDateTime.toISOString(),
-          description: desc
-        };
-
-        C9.Repository.updateEvent(payload)
-          .then((res) => {
-            btn.style.pointerEvents = 'auto';
-            btn.innerText = "Update";
-            statusField.innerText = "Successfully updated on Google!";
-            setTimeout(() => { if (statusField.innerText === 'Successfully updated on Google!') statusField.innerText = '-'; }, 3000);
-          })
-          .catch((err) => {
-            btn.style.pointerEvents = 'auto';
-            btn.innerText = "Update";
-            statusField.innerText = `Error: ${err.message}`;
-            statusField.style.color = "red";
-          });
-      }
     };
 </script>
