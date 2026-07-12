@@ -112,7 +112,7 @@
         const statusField = document.getElementById('timelineDetailsPanelStatusField');
         const previewField = document.getElementById('calendarEntryDescriptionInput');
         statusField.innerText = "";
-        statusField.style.color = "";
+        statusField.style.color = "var(--c1d1)";
 
         const getVal = (id) => {
             const el = document.getElementById(id);
@@ -121,7 +121,6 @@
 
         const abortWithError = (message) => {
             statusField.innerText = message;
-            statusField.style.color = "#aa0000";
         };
 
         // 2. Scrape UI
