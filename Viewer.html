@@ -217,11 +217,12 @@
                                class="panel-input-fields defaultColumn2Width setting-editable-value text-left"
                                contenteditable="false"></p>
                         </div>
-                        <div style="padding: 4px 0px 0px 4px;">
+                        <div class=" " style="padding: 4px 0px 0px 4px; ">
                             <p class="textInputFieldLabel defaultColumn1Width text-right" style="">Data</p>
-                            <p id="timelineDetailsData"
-                               class="panel-input-fields defaultColumn2Width setting-editable-value text-left"
-                               contenteditable="true"></p>
+                            <div id="timelineDetailsData"
+                               class="panel-input-fields defaultColumn2Width setting-editable-value text-left hidden-scrollbar"
+                               style="max-height: 3lh; overflow-y: auto; white-space: pre-wrap"
+                               contenteditable="true"></div>
                         </div>
                         <!--                    -->
                         <!-- <p style="height:4px; width:auto; margin: 0px; margin: 0px 16px; border-top:1px solid var(&#45;&#45;borderColor1)"></p>-->
@@ -301,7 +302,7 @@
                     </div>
                     <div style="padding: 4px 0px 0px 4px;">
                         <p class="textInputFieldLabel defaultColumn1Width text-right" style="">Description</p>
-                        <div class="textInputFieldContainer defaultColumn2Width"
+                        <div class="textInputFieldContainer defaultColumn2Width hidden-scrollbar"
                              style="height:190px; overflow-y: auto; vertical-align: top; "><span
                                 id="calendarEntryDescriptionInput">-</span>
                         </div>
