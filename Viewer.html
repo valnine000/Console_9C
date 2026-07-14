@@ -147,7 +147,7 @@
 
         <div id="panelsContainer1B" class="panels-container-wrapper hidden-scrollbar " style="">
 
-            <!-- Timeline List Detail Window -->
+            <!-- Timeline List Window -->
             <div id="" class="panel-container-wrapper hasBorder" style="">
                 <div id="thingEntity2" style="height: 100%; position: relative; padding: 4px 0px 4px 0px;">
 
@@ -321,11 +321,12 @@
 
         <div id="panelsContainer2C" class="panels-container-wrapper hidden-scrollbar " style="">
 
+            <!-- QUERY SPACES LIST PANEL -->
             <div id="querySpacesListPanelContainer" class="panel-container-wrapper hasBorder" style="">
                 <div id="querySpacesListPanelContent" style="height: 100%; position: relative; padding: 4px 0px 4px 0px;">
 
                     <div id="queryspacesListContainer" class=""
-                         style="display:none; position: absolute; left: 0px; top: 0px; z-index: 90; width: var(--defaultMobilWidth); padding: 4px 4px 4px 0px; background:var(--backgroundColor1);">
+                         style="position: absolute; left: 0px; top: 0px; z-index: 90; width: var(--defaultMobilWidth); padding: 4px 4px 4px 0px; background:var(--backgroundColor1);">
                         <p id="queryspacesListWindowTitle" style="margin: 0px; padding: 0px 0px 4px 4px; width: 50%;">Query Spaces List</p>
                         <div id="queryspacesListScrollContainer" class="hidden-scrollbar "
                              style="height: 200px; padding: 0px 0px 0px 4px; overflow-y: auto;">
@@ -337,14 +338,34 @@
                          stroke="var(--c1d1)"
                          stroke-width="2"
                          stroke-linecap="round" stroke-linejoin="round"
-                         style="position: absolute; right: 0px; top: 0px; z-index: 95; width: 20px; height: 20px; padding: 4px; box-sizing: border-box; cursor: pointer; transition: transform 0.2s ease; transform: rotate(180deg); transform-origin: center;">
+                         style="position: absolute; right: 0px; top: 0px; z-index: 95; width: 20px; height: 20px; padding: 4px; box-sizing: border-box; cursor: pointer; transition: transform 0.2s ease; transform: rotate(90deg); transform-origin: center;">
+                        <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- ACTIVE QUERY SPACE ENTRIES LIST PANEL-->
+            <div id="activeQuerySpaceEntriesListPanelContainer" class="panel-container-wrapper hasBorder" style="">
+                <div id="activeQuerySpaceEntriesListPanelContent" style="height: 100%; position: relative; padding: 4px 0px 4px 0px;">
+                    <div id="activeQueryspaceListContainer" class=""
+                         style="position: absolute; left: 0px; top: 0px; z-index: 90; width: var(--defaultMobilWidth); padding: 4px 4px 4px 0px; background:var(--backgroundColor1);">
+                        <p id="activeQueryspaceListWindowTitle" style="margin: 0px; padding: 0px 0px 4px 4px; width: 50%;">Query Space Entries</p>
+                        <div id="activeQueryspaceListScrollContainer" class="hidden-scrollbar"
+                             style="height: 200px; padding: 0px 0px 0px 4px; overflow-y: auto;">
+                            <div id="activeQueryspaceLedgerEntriesList" style="padding: 0px;"></div>
+                        </div>
+                    </div>
+                    <svg id="toggleActiveQueryspaceListBtn" class="setting-action" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2"
+                         stroke-linecap="round" stroke-linejoin="round"
+                         style="position: absolute; right: 0px; top: 0px; z-index: 95; width: 20px; height: 20px; padding: 4px; box-sizing: border-box; cursor: pointer; transition: transform 0.2s ease; transform: rotate(90deg); transform-origin: center;">
                         <polyline points="9 18 15 12 9 6"></polyline>
                     </svg>
                 </div>
             </div>
 
             <!-- Query Space Details Panel -->
-            <div id="querySpaceDetailsPanelContainer" class="panel-container-wrapper hasBorder" style="">
+            <div id="querySpaceDetailsPanelContainer" class="panel-container-wrapper hasBorder" style="display:none;">
 
                 <!-- content wrapper, specific to this panel's needs -->
                 <div id="querySpaceDetailsPanelContent" style="height: 100%; position: relative; padding: 4px 0px 4px 0px;">
@@ -357,8 +378,8 @@
                             <p class="textInputFieldLabel defaultColumn1Width text-right" style="">Title</p>
                             <div class="textInputFieldContainer defaultColumn2Width">
                                 <div style="vertical-align: top;">
-                                                    <span id="queryspaceDetailsTitle" class="setting-editable-value text-left"
-                                                          contenteditable="false">-</span>
+                                    <span id="queryspaceDetailsTitle" class="setting-editable-value text-left"
+                                          contenteditable="false">-</span>
                                 </div>
                             </div>
                         </div>
@@ -376,7 +397,8 @@
                             <p class="textInputFieldLabel defaultColumn1Width text-right" style="line-height: 1.4;">Details</p>
                             <div class="textInputFieldContainer defaultColumn2Width"
                                  style="height:150px; overflow-y: auto; vertical-align: top; line-height:1.4;">
-                                <span id="queryspaceDetailsDescription" class="setting-editable-value text-left" contenteditable="false">-</span>
+                                <span id="queryspaceDetailsDescription" class="setting-editable-value text-left"
+                                      contenteditable="false">-</span>
                             </div>
                         </div>
                     </div>
@@ -389,12 +411,12 @@
                     </div>
                     <div style="position: absolute; bottom: 8px; right: 8px;">
                         <div id="queryspaceCreateBtn2" class="control-btn">QSDW btn2</div>
-                        <div id="queryspaceLoadInBuilderWindowBtn" class="control-btn">Builder</div>
+
                     </div>
                 </div>
             </div>
 
-            <!-- Queryspace Builder Window -->
+            <!-- Query Space Builder Panel -->
             <div id="querySpaceBuilderPanelContainer" class="panel-container-wrapper hasBorder" style="">
                 <div id="queryspaceEntry" style="height: 100%; position: relative; padding: 4px 0px 4px 0px; ">
                     <p id="queryspaceEntryTitle" style="margin: 0px; padding: 0px 0px 4px 4px;">Query Space Builder</p>
@@ -437,37 +459,24 @@
 
                     <!-- Query Space Window Buttons -->
 
-                    <div class="hidden-scrollbar hasBorder"
-                         style="position: absolute; width:60%; top: 8px; right: 8px; overflow-x: auto;">
+                    <div class="hidden-scrollbar "
+                         style="position: absolute; width:60%; top: 4px; right: 8px; overflow-x: auto;">
                         <div id="queryspaceEntryStatusField"
-                             style="text-align: right;">X</div>
+                             style="text-align: right;">X
+                        </div>
                     </div>
                     <div style="position: absolute; bottom: 8px; right: 8px;">
+                        <div id="queryspaceLoadInBuilderWindowBtn" class="control-btn">Builder</div>
                         <div id="queryspaceUpdateBtn" class="control-btn">Update QS</div>
                         <div id="queryspaceCreateBtn" class="control-btn">Create QS</div>
                     </div>
                 </div>
             </div>
 
-            <!-- Queryspace Entry Builder Window -->
+            <!-- Query Space Entry Builder Window -->
             <div id="querySpaceEntryBuilderPanelContainer" class="panel-container-wrapper hasBorder" style="">
                 <div id="addToQueryspaceEntry" style="height: 100%; position: relative; padding: 4px 0px 4px 0px;">
-                    <div id="activeQueryspaceListContainer" class=""
-                         style="display:none; position: absolute; left: 0px; top: 0px; z-index: 90; width: var(--defaultMobilWidth); padding: 4px 4px 4px 0px; background:var(--backgroundColor3);">
-                        <p id="activeQueryspaceListWindowTitle" style="margin: 0px; padding: 0px 0px 4px 4px; width: 50%;">Query
-                            Space Entries</p>
-                        <div id="activeQueryspaceListScrollContainer" class="hidden-scrollbar"
-                             style="height: 200px; padding: 0px 0px 0px 4px; overflow-y: auto;">
-                            <div id="activeQueryspaceLedgerEntriesList" style="padding: 0px;"></div>
-                        </div>
-                    </div>
 
-                    <svg id="toggleActiveQueryspaceListBtn" class="setting-action" viewBox="0 0 24 24" fill="none"
-                         stroke="currentColor" stroke-width="2"
-                         stroke-linecap="round" stroke-linejoin="round"
-                         style="position: absolute; right: 0px; top: 0px; z-index: 95; width: 20px; height: 20px; padding: 4px; box-sizing: border-box; cursor: pointer; transition: transform 0.2s ease; transform: rotate(180deg); transform-origin: center;">
-                        <polyline points="9 18 15 12 9 6"></polyline>
-                    </svg>
 
                     <p id="addToQueryspaceTitle" style="margin: 0px; padding: 0px 0px 4px 4px;">Query Space Entry Details</p>
                     <div id="addToQueryspaceEntryFields" style="padding: 4px 0px 0px 4px;">
@@ -476,8 +485,8 @@
                             <p class="textInputFieldLabel defaultColumn1Width text-right" style="">Ledger Entry</p>
                             <div class="textInputFieldContainer defaultColumn2Width">
                                 <div style="vertical-align: top;">
-                                                        <span id="addToQueryspaceEntryThingInput" class="setting-editable-value text-left"
-                                                              contenteditable="false">-</span>
+                                    <span id="addToQueryspaceEntryThingInput" class="setting-editable-value text-left"
+                                          contenteditable="false">-</span>
                                 </div>
                             </div>
                         </div>
@@ -516,6 +525,8 @@
                     </div>
                 </div>
             </div>
+
+
         </div>
 
         <!-- Panels Container 4 -->
