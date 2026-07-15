@@ -582,8 +582,8 @@
             const symbolInput1 = document.getElementById('queryspaceDetailsSymbolInput');
             const descSpan1 = document.getElementById('queryspaceDetailsDescription');
 
-            const titleInput = document.getElementById('queryspaceEntryTitleInput');
-            const symbolInput = document.getElementById('queryspaceEntrySymbolInput');
+            const titleInput = document.getElementById('querySpaceBuilderPanelNameField');
+            const symbolInput = document.getElementById('querySpaceBuilderPanelSymbolField');
             const descSpan = document.getElementById('queryspaceEntryDescriptionInput');
 
             if (titleInput) titleInput.textContent = qs.name;
@@ -626,8 +626,8 @@
             const qs = C9.Store.state.globalQuerySpaces.find(q => q.qsId === C9.Store.state.activeQuerySpaceId);
             if (!qs) return;
 
-            const builderTitle = document.getElementById('queryspaceEntryTitleInput');
-            const builderSymbol = document.getElementById('queryspaceEntrySymbolInput');
+            const builderTitle = document.getElementById('querySpaceBuilderPanelNameField');
+            const builderSymbol = document.getElementById('querySpaceBuilderPanelSymbolField');
             const builderDesc = document.getElementById('queryspaceEntryDescriptionInput');
 
             if (builderTitle) builderTitle.textContent = qs.name;
@@ -686,8 +686,8 @@
         if (createBtn) {
           createBtn.addEventListener('click', () => {
             const statusField = document.getElementById('queryspaceEntryStatusField');
-            const titleInput = document.getElementById('queryspaceEntryTitleInput');
-            const symbolInput = document.getElementById('queryspaceEntrySymbolInput');
+            const titleInput = document.getElementById('querySpaceBuilderPanelNameField');
+            const symbolInput = document.getElementById('querySpaceBuilderPanelSymbolField');
 
             if (!titleInput || !symbolInput) return;
 
@@ -743,8 +743,8 @@
               return;
             }
 
-            const titleInput = document.getElementById('queryspaceEntryTitleInput');
-            const symbolInput = document.getElementById('queryspaceEntrySymbolInput');
+            const titleInput = document.getElementById('querySpaceBuilderPanelNameField');
+            const symbolInput = document.getElementById('querySpaceBuilderPanelSymbolField');
             const descInput = document.getElementById('queryspaceEntryDescriptionInput');
 
             if (!titleInput || !symbolInput || !descInput) {

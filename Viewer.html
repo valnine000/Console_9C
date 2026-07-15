@@ -419,31 +419,29 @@
             <!-- Query Space Builder Panel -->
             <div id="querySpaceBuilderPanelContainer" class="panel-container-wrapper hasBorder" style="">
                 <div id="queryspaceEntry" style="height: 100%; position: relative; padding: 4px 0px 4px 0px; ">
-                    <p id="queryspaceEntryTitle" style="margin: 0px; padding: 0px 0px 4px 4px;">Query Space Builder</p>
-                    <div id="queryspaceEntryFields" style="padding: 8px 0px 0px 4px;">
 
-                        <!-- Query Space Entry Title -->
-                        <div>
-                            <p class="textInputFieldLabel defaultColumn1Width text-right" style="">Title</p>
-                            <div class="textInputFieldContainer defaultColumn2Width">
-                                <div style="vertical-align: top;">
-                                    <span id="queryspaceEntryTitleInput"
-                                          class="setting-editable-value text-left" contenteditable="true">-</span>
-                                </div>
-                            </div>
-                        </div>
-
+                    <div id="querySpaceBuilderPanelFields" style="padding: 4px 0px 0px 4px;">
+                        <p id="queryspaceEntryTitle" style="margin: 0px; padding: 0px 0px 4px 4px;">Active Query Space</p>
                         <!-- Query Space Entry Symbol -->
-
-                        <div>
+                        <div style="padding: 4px 0px 0px 4px;">
                             <p class="textInputFieldLabel defaultColumn1Width text-right" style="">Symbol</p>
-                            <div class="textInputFieldContainer defaultColumn2Width">
-                                <div style="vertical-align: top;">
-                                    <span id="queryspaceEntrySymbolInput"
-                                          class="setting-editable-value text-left" contenteditable="true">○</span>
-                                </div>
-                            </div>
+                            <p id="querySpaceBuilderPanelSymbolField"
+                               class="panel-input-fields defaultColumn2Width setting-editable-value text-left"
+                               contenteditable="true">○</p>
                         </div>
+
+                        <!-- Query Space Entry Name -->
+                        <div style="padding: 4px 0px 0px 4px;">
+                            <p class="textInputFieldLabel defaultColumn1Width text-right" style="">Name</p>
+                            <p id="querySpaceBuilderPanelNameField"
+                               class="panel-input-fields defaultColumn2Width setting-editable-value text-left"
+                               contenteditable="true">○</p>
+                        </div>
+
+                    </div>
+
+
+                    <div id="queryspaceEntryFields" style="display: none; padding: 8px 0px 0px 4px;">
 
                         <!-- Query Details  -->
 
@@ -457,7 +455,42 @@
                         </div>
                     </div>
 
-                    <!-- Query Space Window Buttons -->
+                    <div style="height:1px; margin:11px 24px; border-top:1px solid var(--borderColor1);">
+                    </div>
+
+                    <p id="addToQueryspaceTitle" style="margin: 0px; padding: 0px 0px 4px 4px;">Active Query Space Entry</p>
+                    <div id="addToQueryspaceEntryFields" style="padding: 4px 0px 0px 4px;">
+                        <div>
+                            <!-- Query Space Reference Entry - Ledger Entry -->
+                            <div style="padding: 4px 0px 0px 4px;">
+                                <p class="textInputFieldLabel defaultColumn1Width text-right" style="">Ledger Entry</p>
+                                <p id="addToQueryspaceEntryThingInput"
+                                   class="panel-input-fields defaultColumn2Width setting-editable-value text-left"
+                                   contenteditable="true">○</p>
+                            </div>
+
+                            <!-- Query Space Reference Entry - Query Space -->
+                            <div style="padding: 4px 0px 0px 4px;">
+                                <p class="textInputFieldLabel defaultColumn1Width text-right" style="">Query Space</p>
+                                <p id="addToQueryspaceEntryQsTitleInput"
+                                   class="panel-input-fields defaultColumn2Width setting-editable-value text-left"
+                                   contenteditable="true">○</p>
+                            </div>
+
+                        </div>
+
+                        <div style="display:none; padding: 4px 0px 0px 0px;">
+                            <p class="textInputFieldLabel defaultColumn1Width text-right" style="line-height: 1.4;">Details</p>
+                            <div class="textInputFieldContainer defaultColumn2Width"
+                                 style="height:150px; overflow-y: auto; vertical-align: top; line-height:1.4;">
+                                <span id="addToQueryspaceEntryDescriptionInput" class="setting-editable-value text-left"
+                                      contenteditable="true"
+                                      style="white-space: pre-wrap; display: inline-block; width: 100%; min-height: 1.5em; line-height: 1.4;"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Query Space Builder Panel Buttons -->
 
                     <div class="hidden-scrollbar "
                          style="position: absolute; width:60%; top: 4px; right: 8px; overflow-x: auto;">
@@ -477,40 +510,6 @@
             <div id="querySpaceEntryBuilderPanelContainer" class="panel-container-wrapper hasBorder" style="">
                 <div id="addToQueryspaceEntry" style="height: 100%; position: relative; padding: 4px 0px 4px 0px;">
 
-
-                    <p id="addToQueryspaceTitle" style="margin: 0px; padding: 0px 0px 4px 4px;">Query Space Entry Details</p>
-                    <div id="addToQueryspaceEntryFields" style="padding: 4px 0px 0px 4px;">
-
-                        <div>
-                            <p class="textInputFieldLabel defaultColumn1Width text-right" style="">Ledger Entry</p>
-                            <div class="textInputFieldContainer defaultColumn2Width">
-                                <div style="vertical-align: top;">
-                                    <span id="addToQueryspaceEntryThingInput" class="setting-editable-value text-left"
-                                          contenteditable="false">-</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div>
-                            <p class="textInputFieldLabel defaultColumn1Width text-right" style="">Query Space</p>
-                            <div class="textInputFieldContainer defaultColumn2Width">
-                                <div style="vertical-align: top;">
-                                                        <span id="addToQueryspaceEntryQsTitleInput" class="setting-editable-value text-left"
-                                                              contenteditable="false">-</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div style="padding: 4px 0px 0px 0px;">
-                            <p class="textInputFieldLabel defaultColumn1Width text-right" style="line-height: 1.4;">Details</p>
-                            <div class="textInputFieldContainer defaultColumn2Width"
-                                 style="height:150px; overflow-y: auto; vertical-align: top; line-height:1.4;">
-                                                    <span id="addToQueryspaceEntryDescriptionInput" class="setting-editable-value text-left"
-                                                          contenteditable="true"
-                                                          style="white-space: pre-wrap; display: inline-block; width: 100%; min-height: 1.5em; line-height: 1.4;"></span>
-                            </div>
-                        </div>
-                    </div>
 
                     <div class="hidden-scrollbar hasBorder"
                          style="position: absolute; width:40%; bottom: 8px; left: 4px; overflow-x: auto;">
