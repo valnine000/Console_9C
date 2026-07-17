@@ -149,23 +149,22 @@
 
             <!-- Timeline List Window -->
             <div id="" class="panel-container-wrapper hasBorder" style="">
-                <div id="thingEntity2" style="height: 100%; position: relative; padding: 4px 0px 4px 0px;">
+                <div id="thingEntity2" class="" style="position: relative; height: 100%; padding: 4px 0px 4px 0px; box-sizing: border-box;">
 
                     <!-- Timeline List Window -->
                     <div id="calendarListContainer" class=""
-                         style="position: absolute; left: 0px; top: 0px; z-index: 90; width: var(--defaultMobilWidth); padding: 4px 4px 4px 0px; ">
-                        <p id="timelineListWindowTitle" style="margin: 0px; padding: 0px 0px 4px 4px; width: 50%;">Timeline
-                            List</p>
+                         style="position: absolute; left: 0px; top: 0px; z-index: 90; height: 100%; width: 100%; padding: 4px 0px 4px 0px; box-sizing: border-box;">
+                        <p id="timelineListWindowTitle" style="margin: 0px; padding: 0px 0px 0px 4px; width: 50%;">Timeline List</p>
                         <div id="calendarListScrollContainer" class="hidden-scrollbar"
-                             style="height: 200px; padding: 0px 0px 0px 4px; overflow-y: auto;">
+                             style="height: 200px; padding: 4px 0px 0px 4px; overflow-y: auto;">
                             <div id="calendar"></div>
                         </div>
                     </div>
 
-                    <svg id="toggleListBtn" class="setting-action" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    <svg id="toggleListBtn" class="setting-action" viewBox="0 0 24 24" fill="none" stroke="var(--c1d1)"
                          stroke-width="2"
                          stroke-linecap="round" stroke-linejoin="round"
-                         style="position: absolute; right: 0px; top: 0px; z-index: 95; width: 20px; height: 20px; padding: 4px; box-sizing: border-box; cursor: pointer; transition: transform 0.2s ease; transform: rotate(90deg); transform-origin: center;">
+                         style="position: absolute; right: 0px; top: 4px; z-index: 95; width: 20px; height: 20px; padding: 4px; box-sizing: border-box; cursor: pointer; transition: transform 0.2s ease; transform: rotate(90deg); transform-origin: center;">
                         <polyline points="9 18 15 12 9 6"></polyline>
                     </svg>
                 </div>
@@ -173,102 +172,114 @@
 
             <!-- Timeline List Detail Window -->
             <div id="" class="panel-container-wrapper hasBorder" style="">
-                <div id="thingEntity" style="height: 100%; position: relative; padding: 4px 0px 4px 0px;">
+                <div id="thingEntity" class="" style="height: 100%; position: relative; padding: 4px 0px 4px 0px; box-sizing: border-box;">
 
-                    <p id="thingEntityTitle" style="margin: 0px; padding: 0px 0px 4px 4px;">Timeline Detail</p>
+                    <svg id="toggleTimelineListDetailBtn" class="setting-action" viewBox="0 0 24 24" fill="none" stroke="var(--c1d1)"
+                         stroke-width="2"
+                         stroke-linecap="round" stroke-linejoin="round"
+                         style="position: absolute; right: 0px; top: 4px; z-index: 95; width: 20px; height: 20px; padding: 4px; box-sizing: border-box; cursor: pointer; transition: transform 0.2s ease; transform: rotate(90deg); transform-origin: center;">
+                        <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
 
-                    <div id="thingEntityFields" style="padding: 4px 0px 0px 4px;">
-                        <div style="padding: 4px 0px 0px 4px;">
-                            <p class="textInputFieldLabel defaultColumn1Width text-right" style="">Symbol</p>
-                            <p id="timelineDetailsSymbol"
-                               class="panel-input-fields defaultColumn2Width setting-editable-value text-left"
-                               contenteditable="true">○</p>
-                        </div>
-                        <div style="padding: 4px 0px 0px 4px;">
-                            <p class="textInputFieldLabel defaultColumn1Width text-right">Thing</p>
-                            <p id="calendarEventTitleInput"
-                               class="panel-input-fields defaultColumn2Width setting-editable-value text-left"
-                               contenteditable="true"></p>
-                            <!--                                <span id="timelineDetailsThing" class="setting-editable-value text-left" contenteditable="false">-</span>-->
-                        </div>
-                        <div style="padding: 4px 0px 0px 4px;">
-                            <p class="textInputFieldLabel defaultColumn1Width text-right" style="">Idt</p>
-                            <p id="timelineDetailsIdt"
-                               class="panel-input-fields defaultColumn2Width setting-editable-value text-left"
-                               contenteditable="true"></p>
-                        </div>
+                    <div id="timelineListDetailContainer" class=""
+                         style="position: absolute; left: 0px; top: 0px; z-index: 90; height:100%; width: 100%; padding: 4px 0px 4px 0px; box-sizing: border-box;">
+                        <p id="thingEntityTitle" style="margin: 0px; padding: 0px 0px 4px 4px;">Timeline Detail</p>
 
-                        <div style="padding: 4px 0px 0px 4px;">
-                            <p class="textInputFieldLabel defaultColumn1Width text-right" style="">Duration</p>
-                            <p id="timelineDetailsDuration"
-                               class="panel-input-fields defaultColumn2Width setting-editable-value text-left"
-                               contenteditable="true"></p>
-                        </div>
+                        <div id="thingEntityFields" style="padding: 4px 0px 0px 4px;">
+                            <div style="padding: 4px 0px 0px 4px;">
+                                <p class="textInputFieldLabel defaultColumn1Width text-right" style="">Symbol</p>
+                                <p id="timelineDetailsSymbol"
+                                   class="panel-input-fields defaultColumn2Width setting-editable-value text-left"
+                                   contenteditable="true">○</p>
+                            </div>
+                            <div style="padding: 4px 0px 0px 4px;">
+                                <p class="textInputFieldLabel defaultColumn1Width text-right">Thing</p>
+                                <p id="calendarEventTitleInput"
+                                   class="panel-input-fields defaultColumn2Width setting-editable-value text-left"
+                                   contenteditable="true"></p>
+                                <!--                                <span id="timelineDetailsThing" class="setting-editable-value text-left" contenteditable="false">-</span>-->
+                            </div>
+                            <div style="padding: 4px 0px 0px 4px;">
+                                <p class="textInputFieldLabel defaultColumn1Width text-right" style="">Idt</p>
+                                <p id="timelineDetailsIdt"
+                                   class="panel-input-fields defaultColumn2Width setting-editable-value text-left"
+                                   contenteditable="true"></p>
+                            </div>
 
-                        <div style="padding: 4px 0px 0px 4px;">
-                            <p class="textInputFieldLabel defaultColumn1Width text-right" style="">Id</p>
-                            <p id="timelineDetailsId"
-                               class="panel-input-fields defaultColumn2Width setting-editable-value text-left"
-                               contenteditable="false"></p>
-                        </div>
-                        <div style="padding: 4px 0px 0px 4px;">
-                            <p class="textInputFieldLabel defaultColumn1Width text-right" style="">Timestamp</p>
-                            <p id="timelineDetailsTimestamp"
-                               class="panel-input-fields defaultColumn2Width setting-editable-value text-left"
-                               contenteditable="false"></p>
-                        </div>
-                        <div class=" " style="padding: 4px 0px 0px 4px; ">
-                            <p class="textInputFieldLabel defaultColumn1Width text-right" style="">Data</p>
-                            <div id="timelineDetailsData"
-                                 class="panel-input-fields defaultColumn2Width setting-editable-value text-left hidden-scrollbar"
-                                 style="max-height: 3lh; overflow-y: auto; white-space: pre-wrap"
-                                 contenteditable="true"></div>
-                        </div>
-                        <!--                    -->
-                        <!-- <p style="height:4px; width:auto; margin: 0px; margin: 0px 16px; border-top:1px solid var(&#45;&#45;borderColor1)"></p>-->
+                            <div style="padding: 4px 0px 0px 4px;">
+                                <p class="textInputFieldLabel defaultColumn1Width text-right" style="">Duration</p>
+                                <p id="timelineDetailsDuration"
+                                   class="panel-input-fields defaultColumn2Width setting-editable-value text-left"
+                                   contenteditable="true"></p>
+                            </div>
 
-                        <div style="display:none; padding: 4px 0px 0px 4px; color: var(--c1d1);">
-                            <p class="textInputFieldLabel defaultColumn1Width text-right" style="vertical-align: top;">Dates</p>
-                            <div class="textInputFieldContainer defaultColumn2Width" style="">
+                            <div style="padding: 4px 0px 0px 4px;">
+                                <p class="textInputFieldLabel defaultColumn1Width text-right" style="">Id</p>
+                                <p id="timelineDetailsId"
+                                   class="panel-input-fields defaultColumn2Width setting-editable-value text-left"
+                                   contenteditable="false"></p>
+                            </div>
+                            <div style="padding: 4px 0px 0px 4px;">
+                                <p class="textInputFieldLabel defaultColumn1Width text-right" style="">Timestamp</p>
+                                <p id="timelineDetailsTimestamp"
+                                   class="panel-input-fields defaultColumn2Width setting-editable-value text-left"
+                                   contenteditable="false"></p>
+                            </div>
+                            <div class=" " style="padding: 4px 0px 0px 4px; ">
+                                <p class="textInputFieldLabel defaultColumn1Width text-right" style="">Data</p>
+                                <div id="timelineDetailsData"
+                                     class="panel-input-fields defaultColumn2Width setting-editable-value text-left hidden-scrollbar"
+                                     style="max-height: 3lh; overflow-y: auto; white-space: pre-wrap"
+                                     contenteditable="true"></div>
+                            </div>
+                            <!--                    -->
+                            <!-- <p style="height:4px; width:auto; margin: 0px; margin: 0px 16px; border-top:1px solid var(&#45;&#45;borderColor1)"></p>-->
 
-                                <div>
-                                    <span id="calendarEventStartTime">-</span>
-                                    <span id="calendarEventStartDate">-</span>
-                                    <span style="padding: 0px 4px; color: var(--c1d1);"> ... </span>
-                                    <span id="calendarEventEndTime">-</span>
-                                    <span id="calendarEventEndDate">-</span>
+                            <div style="display:none; padding: 4px 0px 0px 4px; color: var(--c1d1);">
+                                <p class="textInputFieldLabel defaultColumn1Width text-right" style="vertical-align: top;">Dates</p>
+                                <div class="textInputFieldContainer defaultColumn2Width" style="">
+
+                                    <div>
+                                        <span id="calendarEventStartTime">-</span>
+                                        <span id="calendarEventStartDate">-</span>
+                                        <span style="padding: 0px 4px; color: var(--c1d1);"> ... </span>
+                                        <span id="calendarEventEndTime">-</span>
+                                        <span id="calendarEventEndDate">-</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div style="display:none; padding: 4px 0px 0px 4px; color: var(--c1d1);">
+                                <p class="textInputFieldLabel defaultColumn1Width text-right" style="line-height: 1.6;">Description</p>
+                                <div class="textInputFieldContainer defaultColumn2Width"
+                                     style="height: 50px; overflow-y: auto; line-height: 1.6; vertical-align: top;">
+                                    <span id="calendarEventDescription">-</span>
                                 </div>
                             </div>
                         </div>
 
-                        <div style="display:none; padding: 4px 0px 0px 4px; color: var(--c1d1);">
-                            <p class="textInputFieldLabel defaultColumn1Width text-right" style="line-height: 1.6;">Description</p>
-                            <div class="textInputFieldContainer defaultColumn2Width"
-                                 style="height: 50px; overflow-y: auto; line-height: 1.6; vertical-align: top;">
-                                <span id="calendarEventDescription">-</span>
+                        <div style="position: absolute; bottom: 8px; right: 8px; width: 100%;">
+                            <div class="" style="white-space: normal; text-align: right;">
+                                <div id="timelineEntryDetailsPanelClearFormBtn" class="control-btn">Clear Form</div>
+                                <div id="loadEntryInAddToQueryspaceWindow" class="control-btn">Add to QS</div>
+                                <div id="loadEntryAsReference" class="control-btn">Reference</div>
+                                <div id="parseEntryInPlace" class="control-btn">Parse</div>
+                                <div id="updateCalendarEventBtn" class="control-btn">Update</div>
+                                <div id="createNewEntry" class="control-btn">Log</div>
                             </div>
                         </div>
                     </div>
 
                     <div class="hidden-scrollbar "
-                         style="position: absolute; top: 4px; right: 0px; width:60%; overflow-x: auto;">
+                         style="position: absolute; top: 4px; right: 24px; width:60%; overflow-x: auto;">
                         <p id="detailsGoogleCalendarEventId"
                            style="display:none; position: relative; margin: 0px; padding: 0px 0px 0px 0px;">-</p>
                         <p id="timelineDetailsPanelStatusField"
                            class="text-right"
-                           style="position: relative; margin: 0px; padding: 0px 4px 0px 0px; color:var(--c1d1); font-style: italic;"></p>
+                           style="position: relative; margin: 0px; padding: 0px 4px 0px 0px; z-index: 100; color:var(--c1d1); font-style: italic;"></p>
                     </div>
 
-                    <div style="position: absolute; bottom: 8px; right: 8px; width: 100%;">
-                        <div class="" style="white-space: normal; text-align: right;">
-                            <div id="timelineEntryDetailsPanelClearFormBtn" class="control-btn">Clear Form</div>
-                            <div id="loadEntryInAddToQueryspaceWindow" class="control-btn">Add to QS</div>
-                            <div id="loadEntryAsReference" class="control-btn">Reference</div>
-                            <div id="parseEntryInPlace" class="control-btn">Parse</div>
-                            <div id="updateCalendarEventBtn" class="control-btn">Update</div>
-                            <div id="createNewEntry" class="control-btn">Log</div>
-                        </div>
-                    </div>
+
                 </div>
             </div>
 
@@ -325,14 +336,32 @@
 
             <!-- QUERY SPACES LIST PANEL -->
             <div id="querySpacesListPanelContainer" class="panel-container-wrapper hasBorder" style="">
-                <div id="querySpacesListPanelContent" style="height: 100%; position: relative; padding: 4px 0px 4px 0px;">
+                <div id="querySpacesListPanelContent" class="" style="height: 100%; position: relative; padding: 4px 0px 4px 0px; box-sizing: border-box;">
 
                     <div id="queryspacesListContainer" class=""
-                         style="position: absolute; left: 0px; top: 0px; z-index: 90; width: var(--defaultMobilWidth); padding: 4px 4px 4px 0px; background:var(--backgroundColor1);">
-                        <p id="queryspacesListWindowTitle" style="margin: 0px; padding: 0px 0px 4px 4px; width: 50%;">Query Spaces List</p>
+                         style="position: absolute; left: 0px; top: 0px; z-index: 90; height:100%; width: 100%; padding: 4px 4px 4px 0px; box-sizing: border-box;">
+                        <p id="queryspacesListWindowTitle" style="margin: 0px; padding: 0px 0px 4px 4px; width: 50%; color: var(--c1d1);">Query Spaces</p>
                         <div id="queryspacesListScrollContainer" class="hidden-scrollbar "
-                             style="height: 200px; padding: 0px 0px 0px 4px; overflow-y: auto;">
+                             style="height: 150px; width: 100%; padding: 0px 0px 0px 5ch; overflow-y: auto;">
                             <div id="queryspacesList"></div>
+                        </div>
+
+                        <div class="" style="height:60px; width: 100%; padding: 4px 0px 0px 4px; margin-top: 4px;">
+                            <p id="queryspaceEntryTitle" style="margin: 0px; padding: 0px 0px 4px 0px; color: var(--c1d1);">Active Query Space</p>
+                            <div style="padding: 4px 0px 0px 9px;">
+                                <p id="querySpaceBuilderPanelSymbolField"
+                                   class="input-field-1 defaultColumn3Width setting-editable-value text-right"
+                                   contenteditable="true">○</p>
+
+                                <p id="querySpaceBuilderPanelNameField"
+                                   class="input-field-1 defaultColumn2Width setting-editable-value text-left"
+                                   contenteditable="true">_</p>
+                            </div>
+
+                        </div>
+
+                        <div class=" hasBorder" style="position: absolute; height:20px; width: 100%; bottom: 0px; right: 0px; padding: 0px 0px 0px 0px; ">
+
                         </div>
                     </div>
 
@@ -340,7 +369,7 @@
                          stroke="var(--c1d1)"
                          stroke-width="2"
                          stroke-linecap="round" stroke-linejoin="round"
-                         style="position: absolute; right: 0px; top: 0px; z-index: 95; width: 20px; height: 20px; padding: 4px; box-sizing: border-box; cursor: pointer; transition: transform 0.2s ease; transform: rotate(90deg); transform-origin: center;">
+                         style="position: absolute; right: 0px; top: 4px; z-index: 95; width: 20px; height: 20px; padding: 4px; box-sizing: border-box; cursor: pointer; transition: transform 0.2s ease; transform: rotate(90deg); transform-origin: center;">
                         <polyline points="9 18 15 12 9 6"></polyline>
                     </svg>
                 </div>
@@ -348,19 +377,20 @@
 
             <!-- ACTIVE QUERY SPACE ENTRIES LIST PANEL-->
             <div id="activeQuerySpaceEntriesListPanelContainer" class="panel-container-wrapper hasBorder" style="">
-                <div id="activeQuerySpaceEntriesListPanelContent" style="height: 100%; position: relative; padding: 4px 0px 4px 0px;">
+                <div id="activeQuerySpaceEntriesListPanelContent" style="position: relative; height: 100%; padding: 4px 0px 4px 0px; box-sizing: border-box;">
+
                     <div id="activeQueryspaceListContainer" class=""
-                         style="position: absolute; left: 0px; top: 0px; z-index: 90; width: var(--defaultMobilWidth); padding: 4px 4px 4px 0px; background:var(--backgroundColor1);">
-                        <p id="activeQueryspaceListWindowTitle" style="margin: 0px; padding: 0px 0px 4px 4px; width: 50%;">Query Space Entries</p>
+                         style="position: absolute; left: 0px; top: 0px; z-index: 90; height:100%; width: 100%; padding: 4px 0px 4px 0px; box-sizing: border-box;">
+                        <p id="activeQueryspaceListWindowTitle" style="margin: 0px; padding: 0px 0px 0px 4px; width: 50%;">Query Space Entries</p>
                         <div id="activeQueryspaceListScrollContainer" class="hidden-scrollbar"
                              style="height: 200px; padding: 0px 0px 0px 4px; overflow-y: auto;">
                             <div id="activeQueryspaceLedgerEntriesList" style="padding: 0px;"></div>
                         </div>
                     </div>
                     <svg id="toggleActiveQueryspaceListBtn" class="setting-action" viewBox="0 0 24 24" fill="none"
-                         stroke="currentColor" stroke-width="2"
+                         stroke="var(--c1d1)" stroke-width="2"
                          stroke-linecap="round" stroke-linejoin="round"
-                         style="position: absolute; right: 0px; top: 0px; z-index: 95; width: 20px; height: 20px; padding: 4px; box-sizing: border-box; cursor: pointer; transition: transform 0.2s ease; transform: rotate(90deg); transform-origin: center;">
+                         style="position: absolute; right: 0px; top: 4px; z-index: 95; width: 20px; height: 20px; padding: 4px; box-sizing: border-box; cursor: pointer; transition: transform 0.2s ease; transform: rotate(90deg); transform-origin: center;">
                         <polyline points="9 18 15 12 9 6"></polyline>
                     </svg>
                 </div>
@@ -423,22 +453,22 @@
                 <div id="queryspaceEntry" style="height: 100%; position: relative; padding: 4px 0px 4px 0px; ">
 
                     <div id="querySpaceBuilderPanelFields" style="padding: 4px 0px 0px 4px;">
-                        <p id="queryspaceEntryTitle" style="margin: 0px; padding: 0px 0px 4px 4px;">Active Query Space</p>
+<!--                        <p id="queryspaceEntryTitle" style="margin: 0px; padding: 0px 0px 4px 4px;">Active Query Space</p>-->
                         <!-- Query Space Entry Symbol -->
-                        <div style="padding: 4px 0px 0px 4px;">
-                            <p class="textInputFieldLabel defaultColumn1Width text-right" style="">Symbol</p>
-                            <p id="querySpaceBuilderPanelSymbolField"
-                               class="panel-input-fields defaultColumn2Width setting-editable-value text-left"
-                               contenteditable="true">○</p>
-                        </div>
+<!--                        <div style="padding: 4px 0px 0px 4px;">-->
+<!--                            <p class="textInputFieldLabel defaultColumn1Width text-right" style="">Symbol</p>-->
+<!--                            <p id="querySpaceBuilderPanelSymbolField"-->
+<!--                               class="panel-input-fields defaultColumn2Width setting-editable-value text-left"-->
+<!--                               contenteditable="true">○</p>-->
+<!--                        </div>-->
 
-                        <!-- Query Space Entry Name -->
-                        <div style="padding: 4px 0px 0px 4px;">
-                            <p class="textInputFieldLabel defaultColumn1Width text-right" style="">Name</p>
-                            <p id="querySpaceBuilderPanelNameField"
-                               class="panel-input-fields defaultColumn2Width setting-editable-value text-left"
-                               contenteditable="true">○</p>
-                        </div>
+<!--                        &lt;!&ndash; Query Space Entry Name &ndash;&gt;-->
+<!--                        <div style="padding: 4px 0px 0px 4px;">-->
+<!--                            <p class="textInputFieldLabel defaultColumn1Width text-right" style="">Name</p>-->
+<!--                            <p id="querySpaceBuilderPanelNameField"-->
+<!--                               class="panel-input-fields defaultColumn2Width setting-editable-value text-left"-->
+<!--                               contenteditable="true">○</p>-->
+<!--                        </div>-->
 
                     </div>
 

@@ -402,6 +402,31 @@
           });
         }
 
+// ==========================================
+        // TIMELINE LIST: COLLAPSE & EXPAND TOGGLE
+        // ==========================================
+
+        const toggleListDetailBtn = document.getElementById('toggleTimelineListDetailBtn');
+        if (toggleListBtn) {
+          toggleListDetailBtn.addEventListener('click', () => {
+            const timelineListDetailContainer = document.getElementById('timelineListDetailContainer');
+
+            if (timelineListDetailContainer) {
+              if (timelineListDetailContainer.style.display === 'none') {
+                // Expand (Point Up)
+                timelineListDetailContainer.style.display = 'block';
+                timelineListDetailContainer.style.background = 'var(--backgroundColor1)';
+                toggleListDetailBtn.style.transform = 'rotate(90deg)';
+              } else {
+                // Collapse (Point Right)
+                timelineListDetailContainer.style.display = 'none';
+                timelineListDetailContainer.style.background = '';
+                toggleListDetailBtn.style.transform = 'rotate(180deg)';
+              }
+            }
+          });
+        }
+
         // ==========================================
         // Query Space LIST: COLLAPSE & EXPAND TOGGLE
         // ==========================================
