@@ -175,7 +175,7 @@
 
       submitNewEvent: function() {
         const btn = document.getElementById('createNewEntry');
-        const statusField = document.getElementById('calendarEntryStatusField'); // Assuming you want status here now
+        const statusField = document.getElementById('timelineDetailsPanelStatusField'); // Assuming you want status here now
         const entity = C9.Store.state.ThingEntityPayload;
 
         // 1. Safety Gate Checks
@@ -272,7 +272,7 @@
 
       submitUpdatedEvent: function() {
         const btn = document.getElementById('updateCalendarEventBtn');
-        const statusField = document.getElementById('calendarEntryStatusField');
+        const statusField = document.getElementById('timelineDetailsPanelStatusField');
         const entity = C9.Store.state.ThingEntityPayload;
         const eventId = C9.Store.state.activeLedgerEntryGoogleCalendarId;
 

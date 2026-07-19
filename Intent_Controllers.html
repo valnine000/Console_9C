@@ -403,6 +403,31 @@
         }
 
         // ==========================================
+        // TIMELINE LIST: COLLAPSE & EXPAND TOGGLE
+        // ==========================================
+
+        const toggleListDetailBtn = document.getElementById('toggleTimelineListDetailBtn');
+        if (toggleListBtn) {
+          toggleListDetailBtn.addEventListener('click', () => {
+            const timelineListDetailContainer = document.getElementById('timelineListDetailContainer');
+
+            if (timelineListDetailContainer) {
+              if (timelineListDetailContainer.style.display === 'none') {
+                // Expand (Point Up)
+                timelineListDetailContainer.style.display = 'block';
+                timelineListDetailContainer.style.background = 'var(--backgroundColor1)';
+                toggleListDetailBtn.style.transform = 'rotate(90deg)';
+              } else {
+                // Collapse (Point Right)
+                timelineListDetailContainer.style.display = 'none';
+                timelineListDetailContainer.style.background = '';
+                toggleListDetailBtn.style.transform = 'rotate(180deg)';
+              }
+            }
+          });
+        }
+
+        // ==========================================
         // Query Space LIST: COLLAPSE & EXPAND TOGGLE
         // ==========================================
 
@@ -444,6 +469,31 @@
                 listContainer.style.display = 'none';
                 listContainer.style.background = '';
                 toggleActiveQsBtn.style.transform = 'rotate(180deg)';
+              }
+            }
+          });
+        }
+
+        // ==========================================
+        // Query Space REF: COLLAPSE & EXPAND TOGGLE
+        // ==========================================
+
+        const toggleQuerySpaceRefPanelBtn = document.getElementById('toggleQuerySpaceRefPanelBtn');
+        if (toggleQuerySpaceRefPanelBtn) {
+          toggleQuerySpaceRefPanelBtn.addEventListener('click', () => {
+            const querySpaceRefPanelContentContainer = document.getElementById('querySpaceRefPanelContent');
+
+            if (querySpaceRefPanelContentContainer) {
+              if (querySpaceRefPanelContentContainer.style.display === 'none') {
+                // Expand (Point Up)
+                querySpaceRefPanelContentContainer.style.display = 'block';
+                querySpaceRefPanelContentContainer.style.background = 'var(--backgroundColor1)';
+                toggleQuerySpaceRefPanelBtn.style.transform = 'rotate(90deg)';
+              } else {
+                // Collapse (Point Right)
+                querySpaceRefPanelContentContainer.style.display = 'none';
+                querySpaceRefPanelContentContainer.style.background = '';
+                toggleQuerySpaceRefPanelBtn.style.transform = 'rotate(180deg)';
               }
             }
           });
@@ -578,9 +628,13 @@
             // ========================
 
             // Populate Details UI
-            const titleInput = document.getElementById('queryspaceDetailsTitle');
-            const symbolInput = document.getElementById('queryspaceDetailsSymbolInput');
-            const descSpan = document.getElementById('queryspaceDetailsDescription');
+            const titleInput1 = document.getElementById('queryspaceDetailsTitle');
+            const symbolInput1 = document.getElementById('queryspaceDetailsSymbolInput');
+            const descSpan1 = document.getElementById('queryspaceDetailsDescription');
+
+            const titleInput = document.getElementById('querySpaceBuilderPanelNameField');
+            const symbolInput = document.getElementById('querySpaceBuilderPanelSymbolField');
+            const descSpan = document.getElementById('queryspaceEntryDescriptionInput');
 
             if (titleInput) titleInput.textContent = qs.name;
 
@@ -622,8 +676,8 @@
             const qs = C9.Store.state.globalQuerySpaces.find(q => q.qsId === C9.Store.state.activeQuerySpaceId);
             if (!qs) return;
 
-            const builderTitle = document.getElementById('queryspaceEntryTitleInput');
-            const builderSymbol = document.getElementById('queryspaceEntrySymbolInput');
+            const builderTitle = document.getElementById('querySpaceBuilderPanelNameField');
+            const builderSymbol = document.getElementById('querySpaceBuilderPanelSymbolField');
             const builderDesc = document.getElementById('queryspaceEntryDescriptionInput');
 
             if (builderTitle) builderTitle.textContent = qs.name;
@@ -651,7 +705,8 @@
             const ref = C9.Store.state.globalQuerySpaceRefs.find(r => r.id === selectedRefId);
             if (!ref) return;
 
-            const ledgerInput = document.getElementById('addToQueryspaceEntryThingInput');
+            const querySpaceLedgerRefThingDisplay = document.getElementById('addToQueryspaceEntryThingInput');
+            const querySpaceLedgerRefSymbolDisplay = document.getElementById('querySpaceLedgerRefSymbolDisplay');
             const qsInput = document.getElementById('addToQueryspaceEntryQsTitleInput');
             const descInput = document.getElementById('addToQueryspaceEntryDescriptionInput');
             const idInput = document.getElementById('queryspaceEntryDetailsGoogleCalendarEventId');
@@ -665,9 +720,10 @@
               idInput.style.color = 'var(--c1d1)';
             }
 
-            if (ledgerInput) {
+            if (querySpaceLedgerRefThingDisplay) {
               const ledgerDetails = C9.QuerySpace.getLedgerEntryById(ref.ledgerId);
-              ledgerInput.textContent = ledgerDetails ? ledgerDetails.thing : (ref.title || 'Unknown');
+              querySpaceLedgerRefThingDisplay.textContent = ledgerDetails ? ledgerDetails.thing : (ref.title || 'Unknown');
+              querySpaceLedgerRefSymbolDisplay.textContent = ledgerDetails ? ledgerDetails.symbol : (ref.title || 'Unknown');
             }
 
             if (qsInput) {
@@ -682,8 +738,8 @@
         if (createBtn) {
           createBtn.addEventListener('click', () => {
             const statusField = document.getElementById('queryspaceEntryStatusField');
-            const titleInput = document.getElementById('queryspaceEntryTitleInput');
-            const symbolInput = document.getElementById('queryspaceEntrySymbolInput');
+            const titleInput = document.getElementById('querySpaceBuilderPanelNameField');
+            const symbolInput = document.getElementById('querySpaceBuilderPanelSymbolField');
 
             if (!titleInput || !symbolInput) return;
 
@@ -691,7 +747,7 @@
             const rawSymbol = symbolInput.textContent.trim();
 
             if (!rawTitle || rawTitle === '-') {
-              if (statusField) statusField.textContent = 'Error: Title cannot be empty.';
+              if (statusField) statusField.textContent = 'Error: Title cannot be empty';
               return;
             }
 
@@ -714,15 +770,15 @@
               endIso: endTime.toISOString()
             };
 
-            if (statusField) statusField.textContent = 'Saving to Google...';
+            if (statusField) statusField.textContent = 'Saving to Google';
 
             C9.QuerySpace.pushNewSpaceToGoogle(payload)
               .then(() => {
-                if (statusField) statusField.textContent = 'Success. Click Refresh to load.';
+                if (statusField) statusField.textContent = 'Success. Refresh to load';
               })
               .catch(err => {
                 console.error("Failed to create Query Space:", err);
-                if (statusField) statusField.textContent = 'Error saving to Google.';
+                if (statusField) statusField.textContent = 'Error saving to Google';
               });
           });
         }
@@ -735,16 +791,16 @@
             const statusField = document.getElementById('queryspaceEntryStatusField');
 
             if (!gcalId) {
-              if (statusField) statusField.textContent = 'Error: No Active QS Selected.';
+              if (statusField) statusField.textContent = 'No Active QS Selected';
               return;
             }
 
-            const titleInput = document.getElementById('queryspaceEntryTitleInput');
-            const symbolInput = document.getElementById('queryspaceEntrySymbolInput');
+            const titleInput = document.getElementById('querySpaceBuilderPanelNameField');
+            const symbolInput = document.getElementById('querySpaceBuilderPanelSymbolField');
             const descInput = document.getElementById('queryspaceEntryDescriptionInput');
 
             if (!titleInput || !symbolInput || !descInput) {
-              if (statusField) statusField.textContent = 'Error: UI elements missing.';
+              if (statusField) statusField.textContent = 'UI elements missing';
               return;
             }
 
@@ -753,7 +809,7 @@
             const rawDesc = descInput.textContent;
 
             if (!rawTitle || !rawTitle || !rawSymbol) {
-              if (statusField) statusField.textContent = 'Error: Title and Symbol cannot be empty.';
+              if (statusField) statusField.textContent = 'Title and Symbol cannot be empty';
               return;
             }
 
@@ -763,7 +819,7 @@
 
             // Hard abort if immutable data is missing
             if (!idMatch || !tsMatch) {
-              if (statusField) statusField.textContent = 'Error: Immutable ID or Timestamp missing. Aborting update.';
+              if (statusField) statusField.textContent = 'ID or Timestamp missing';
               return;
             }
 
@@ -772,7 +828,7 @@
 
             // Hard abort if the timestamp was corrupted into a NaN
             if (isNaN(explicitTimestamp)) {
-              if (statusField) statusField.textContent = 'Error: Timestamp is mathematically invalid. Aborting update.';
+              if (statusField) statusField.textContent = 'Timestamp invalid';
               return;
             }
 
@@ -802,59 +858,59 @@ lastModified: ${currentModified}
               description: updatedDesc
             };
 
-            if (statusField) statusField.textContent = 'Updating Google...';
+            if (statusField) statusField.textContent = 'Updating Google';
 
             C9.QuerySpace.updateQuerySpaceEvent(payload)
               .then(() => {
-                if (statusField) statusField.textContent = 'Successfully updated! Click Refresh.';
+                if (statusField) statusField.textContent = 'Successful update, Refresh';
               })
               .catch(err => {
                 console.error(err);
-                if (statusField) statusField.textContent = 'Error updating QS.';
+                if (statusField) statusField.textContent = 'Error updating QS';
               });
           });
         }
 
         // 3. STAGE REFERENCE BUTTON
-    const loadBtn = document.getElementById('loadEntryInAddToQueryspaceWindow');
-    if (loadBtn) {
-      loadBtn.addEventListener('click', () => {
-        const statusField = document.getElementById('addToQueryspaceEntryStatusField');
+        const loadBtn = document.getElementById('loadEntryInAddToQueryspaceWindow');
+        if (loadBtn) {
+          loadBtn.addEventListener('click', () => {
+            const statusField = document.getElementById('addToQueryspaceEntryStatusField');
 
-        if (!C9.Store.state.activeQuerySpaceId) {
-          if (statusField) statusField.textContent = 'Error: Select a Query Space first.';
-          return;
+            if (!C9.Store.state.activeQuerySpaceId) {
+              if (statusField) statusField.textContent = 'Select Active Query Space';
+              return;
+            }
+
+            const titleField = document.getElementById('calendarEventTitleInput');
+            const targetTitle = titleField ? titleField.textContent : 'Unknown Entry';
+
+            const thingInput = document.getElementById('addToQueryspaceEntryThingInput');
+            if (thingInput) thingInput.textContent = targetTitle;
+
+            const qsInput = document.getElementById('addToQueryspaceEntryQsTitleInput');
+            if (qsInput) {
+              const parentQs = C9.Store.state.globalQuerySpaces.find(q => q.qsId === C9.Store.state.activeQuerySpaceId);
+              qsInput.textContent = parentQs ? parentQs.name : 'Unknown Space';
+            }
+
+            // Generate strict temporal coordinates at the moment of staging
+            const stagingTimestamp = Date.now();
+            const stagedId = `qsr-jtp-unk-${stagingTimestamp}`;
+
+            const descInput = document.getElementById('addToQueryspaceEntryDescriptionInput');
+            if (descInput) {
+              descInput.textContent = C9.Templates.generateStagedReference(
+                stagedId,
+                stagingTimestamp,
+                C9.Store.state.activeQuerySpaceId,
+                C9.Store.state.activeLedgerEntryId // <-- CHANGED
+              );
+            }
+
+            if (statusField) statusField.textContent = 'Ready to add';
+          });
         }
-
-        const titleField = document.getElementById('calendarEventTitleInput');
-        const targetTitle = titleField ? titleField.textContent : 'Unknown Entry';
-
-        const thingInput = document.getElementById('addToQueryspaceEntryThingInput');
-        if (thingInput) thingInput.textContent = targetTitle;
-
-        const qsInput = document.getElementById('addToQueryspaceEntryQsTitleInput');
-        if (qsInput) {
-          const parentQs = C9.Store.state.globalQuerySpaces.find(q => q.qsId === C9.Store.state.activeQuerySpaceId);
-          qsInput.textContent = parentQs ? parentQs.name : 'Unknown Space';
-        }
-
-        // Generate strict temporal coordinates at the moment of staging
-        const stagingTimestamp = Date.now();
-        const stagedId = `qsr-jtp-unk-${stagingTimestamp}`;
-
-        const descInput = document.getElementById('addToQueryspaceEntryDescriptionInput');
-        if (descInput) {
-          descInput.textContent = C9.Templates.generateStagedReference(
-            stagedId,
-            stagingTimestamp,
-            C9.Store.state.activeQuerySpaceId,
-            C9.Store.state.activeLedgerEntryId // <-- CHANGED
-          );
-        }
-
-        if (statusField) statusField.textContent = 'Ready to add.';
-      });
-    }
 
         // 4. COMMIT REFERENCE BUTTON
         const addBtn = document.getElementById('queryspaceLedgerEntryAddBtn');
@@ -876,11 +932,11 @@ lastModified: ${currentModified}
 
             // Strict rejection if the payload was manually corrupted before committing
             if (!qsMatch || !refMatch || !tsMatch) {
-              if (statusField) statusField.textContent = 'Error: Invalid reference format or missing timestamp.';
+              if (statusField) statusField.textContent = 'Invalid format or missing timestamp';
               return;
             }
 
-            if (statusField) statusField.textContent = 'Saving to Google...';
+            if (statusField) statusField.textContent = 'Saving to Google';
 
             const explicitTimestamp = parseInt(tsMatch[1].trim(), 10);
 
@@ -893,13 +949,13 @@ lastModified: ${currentModified}
 
             C9.QuerySpace.pushNewReferenceToGoogle(payload)
               .then(() => {
-                if (statusField) statusField.textContent = 'Success. Click Refresh to load.';
+                if (statusField) statusField.textContent = 'Success. Click Refresh to load';
                 if (descInput) descInput.textContent = '';
                 if (thingInput) thingInput.textContent = '-';
               })
               .catch(err => {
                 console.error("Failed to add reference:", err);
-                if (statusField) statusField.textContent = 'Error saving to Google.';
+                if (statusField) statusField.textContent = 'Error saving to Google';
               });
           });
         }
@@ -914,7 +970,7 @@ lastModified: ${currentModified}
             if (!idInput) {
               if (statusField) {
                  statusField.style.display = 'block';
-                 statusField.textContent = 'Error: Google ID UI element missing. Aborting.';
+                 statusField.textContent = 'Google ID UI element missing';
               }
               return;
             }
@@ -923,7 +979,7 @@ lastModified: ${currentModified}
             if (!gcalId || gcalId === '-') {
               if (statusField) {
                  statusField.style.display = 'block';
-                 statusField.textContent = 'Error: No active reference selected. Aborting.';
+                 statusField.textContent = 'No active reference selected';
               }
               return;
             }
@@ -934,7 +990,7 @@ lastModified: ${currentModified}
             if (!descInput || !thingInput) {
               if (statusField) {
                  statusField.style.display = 'block';
-                 statusField.textContent = 'Error: Data UI elements missing. Aborting.';
+                 statusField.textContent = 'Data UI elements missing';
               }
               return;
             }
@@ -943,7 +999,7 @@ lastModified: ${currentModified}
             if (!rawDesc) {
               if (statusField) {
                  statusField.style.display = 'block';
-                 statusField.textContent = 'Error: Description cannot be empty. Aborting.';
+                 statusField.textContent = 'Description cannot be empty';
               }
               return;
             }
@@ -956,7 +1012,7 @@ lastModified: ${currentModified}
             if (!topIdMatch || !tsMatch) {
               if (statusField) {
                   statusField.style.display = 'block';
-                  statusField.textContent = 'Error: Immutable ID or Timestamp missing in payload. Aborting.';
+                  statusField.textContent = 'ID or Timestamp missing';
               }
               return;
             }
@@ -967,7 +1023,7 @@ lastModified: ${currentModified}
             if (isNaN(explicitTimestamp)) {
               if (statusField) {
                   statusField.style.display = 'block';
-                  statusField.textContent = 'Error: Timestamp is mathematically invalid. Aborting.';
+                  statusField.textContent = 'Timestamp invalid';
               }
               return;
             }
@@ -976,7 +1032,7 @@ lastModified: ${currentModified}
 
             if (statusField) {
                 statusField.style.display = 'block';
-                statusField.textContent = 'Updating Google...';
+                statusField.textContent = 'Updating Google';
             }
 
             // Send stripped payload to protect calendar temporal coordinates
@@ -988,11 +1044,11 @@ lastModified: ${currentModified}
 
             C9.QuerySpace.updateQuerySpaceReferenceEvent(payload)
               .then(() => {
-                if (statusField) statusField.textContent = 'Successfully updated! Click Refresh.';
+                if (statusField) statusField.textContent = 'Successful update, Click Refresh';
               })
               .catch(err => {
                 console.error(err);
-                if (statusField) statusField.textContent = 'Error updating reference.';
+                if (statusField) statusField.textContent = 'Error updating reference';
               });
           });
         }

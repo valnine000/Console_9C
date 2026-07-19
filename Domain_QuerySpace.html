@@ -8,13 +8,13 @@
       // 1. Fetching Pipeline
       fetchAll: function() {
         const statusField = document.getElementById('queryspaceEntryStatusField');
-        if (statusField) statusField.textContent = 'Loading Query Spaces...';
+        if (statusField) statusField.textContent = 'Loading Query Spaces';
 
         C9.Repository.fetchQuerySpaces()
           .then(this.processPayload.bind(this))
           .catch(err => {
             console.error("Query Space Fetch Error:", err);
-            if (statusField) statusField.textContent = 'Error loading Query Spaces.';
+            if (statusField) statusField.textContent = 'Error loading Query Spaces';
           });
       },
 
@@ -23,13 +23,13 @@
 
         if (response.status !== 'success') {
           console.error("Failed to fetch query spaces:", response.message);
-          if (statusField) statusField.textContent = 'Failed to load Query Spaces.';
+          if (statusField) statusField.textContent = 'Failed to load Query Spaces';
           const listContainer = document.getElementById('queryspacesList');
           if (listContainer) listContainer.replaceChildren();
           return;
         }
 
-        if (statusField) statusField.textContent = '-';
+        if (statusField) statusField.textContent = '';
 
         C9.Store.state.globalQuerySpaces = [];
         C9.Store.state.globalQuerySpaceRefs = [];
@@ -118,7 +118,7 @@
 
         const cleanDesc = C9.Parser.cleanHtmlText(targetEvent.description);
         return {
-          symbol: C9.Parser.extractC9Field(cleanDesc, 'symbol') || '*',
+          symbol: C9.Parser.extractC9Field(cleanDesc, 'symbol') || '-',
           thing: C9.Parser.extractC9Field(cleanDesc, 'thing') || 'Unknown',
           idt: C9.Parser.extractC9Field(cleanDesc, 'idt') || '',
           timestamp: targetEvent.timestamp || C9.Parser.extractC9Field(cleanDesc, 'timestamp') || ''
@@ -179,9 +179,9 @@
           const emptyDiv = document.createElement('div');
           emptyDiv.style.padding = '4px';
           emptyDiv.style.color = 'var(--c1d1)';
-          emptyDiv.textContent = 'No Query Spaces found.';
+          emptyDiv.textContent = 'No Query Spaces found';
           listContainer.appendChild(emptyDiv);
-          if (statusField) statusField.textContent = '-';
+          if (statusField) statusField.textContent = '';
           return;
         }
 
@@ -192,7 +192,6 @@
 
           row.style.padding = '6px 4px';
           row.style.cursor = 'pointer';
-          row.style.borderBottom = '1px solid var(--borderColor1)';
           row.style.color = 'var(--c1)';
           row.style.display = 'flex';
           row.style.alignItems = 'center';
@@ -212,7 +211,7 @@
           listContainer.appendChild(row);
         });
 
-        if (statusField) statusField.textContent = '-';
+        if (statusField) statusField.textContent = '';
       },
 
       renderActiveRefs: function(activeQsId) {
@@ -227,7 +226,7 @@
           const emptyDiv = document.createElement('div');
           emptyDiv.style.padding = '4px';
           emptyDiv.style.color = 'var(--c1d1)';
-          emptyDiv.textContent = 'No ledger entries found.';
+          emptyDiv.textContent = 'No ledger entries found';
           activeListContainer.appendChild(emptyDiv);
           return;
         }
@@ -255,7 +254,6 @@
 
           row.style.padding = '6px 4px';
           row.style.cursor = 'pointer';
-          row.style.borderBottom = '1px solid var(--borderColor1)';
           row.style.display = 'flex';
           row.style.alignItems = 'center';
           row.style.whiteSpace = 'nowrap';
@@ -264,7 +262,7 @@
           if (ledgerEntry) {
             const symbolSpan = document.createElement('span');
             symbolSpan.style.color = 'var(--c1)';
-            symbolSpan.style.fontWeight = 'bold';
+
             symbolSpan.style.width = '15px';
             symbolSpan.style.textAlign = 'center';
             symbolSpan.style.marginRight = '8px';
