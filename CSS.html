@@ -6,9 +6,12 @@
       --defaultModalWidth: 412px;
       --defaultDesktopWidth: 1800px;
       --defaultStackHeight:1;
+
+      --defaultColumn0WidthViewer: 1ch;
       --defaultColumn1WidthViewer: 15ch;
       --defaultColumn2WidthViewer: 30ch;
       --defaultColumn3WidthViewer: 5ch;
+
       --defaultTimelineDisplay: 'cascade';
 
       --event-font-size: 12px;
@@ -206,6 +209,7 @@
         /* border-bottom: 1px solid #ff9000; */
     }
 
+
     .panel-input-fields {
         display:inline-block;
         min-height: 1.6em;
@@ -216,14 +220,23 @@
         border-left: 1px solid var(--borderColor1);
     }
 
-    .input-field-1 {
+    .panel-display-field-1 {
+        display:inline-block;
+        min-height: 1.6em;
+        margin: 0px;
+        padding: 0px 0px 0px 4px;
+        vertical-align: top;
+        /* border-bottom:1px solid var(--borderColor1); */
+        /* border-left: 1px solid var(--borderColor1); */
+    }
+
+    .panel-input-field-1 {
         display:inline-block;
         min-height: 1.6em;
         margin: 0px;
         padding: 0px 0px 0px 4px;
         vertical-align: top;
     }
-
 
     .textInputFieldContainer {
         display: inline-block;
@@ -234,6 +247,10 @@
         margin:0;
         vertical-align: top;
         word-wrap: break-word;
+    }
+
+    .defaultColumn0Width {
+        width: var(--defaultColumn0WidthViewer);
     }
 
     .defaultColumn1Width {

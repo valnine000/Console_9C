@@ -118,7 +118,7 @@
 
         const cleanDesc = C9.Parser.cleanHtmlText(targetEvent.description);
         return {
-          symbol: C9.Parser.extractC9Field(cleanDesc, 'symbol') || '*',
+          symbol: C9.Parser.extractC9Field(cleanDesc, 'symbol') || '-',
           thing: C9.Parser.extractC9Field(cleanDesc, 'thing') || 'Unknown',
           idt: C9.Parser.extractC9Field(cleanDesc, 'idt') || '',
           timestamp: targetEvent.timestamp || C9.Parser.extractC9Field(cleanDesc, 'timestamp') || ''
