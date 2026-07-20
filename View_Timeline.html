@@ -344,7 +344,7 @@
               const min = d.getMinutes();
               const timeStr = min === 0 ? (h % 12 || 12) + ampm : (h % 12 || 12) + ":" + min.toString().padStart(2, '0') + ampm;
 
-              let cleanDesc = ev.description ? C9.Parser.cleanHtmlText(ev.description) : "";
+              // C9.Parser completely stripped out here
               const parts = [];
 
               if (state.showEventSymbol) {
@@ -356,7 +356,9 @@
 
               if (state.showEventTime) parts.push(timeStr);
               if (state.showEventThing) parts.push((ev.thing || ev.title || "Thing").trim());
-              if (state.showEventDesc && cleanDesc) parts.push(cleanDesc);
+
+              // Rely purely on the pre-extracted [#C9D] data block
+              if (state.showEventDesc && ev.data) parts.push(ev.data.trim());
 
               const displayText = parts.join(' ');
               const MAX_LABEL_WIDTH = 200;
@@ -381,7 +383,8 @@
 
               // B. The Duration Sibling (If active)
               if (state.showDurationBar) {
-                const durStr = C9.Parser.extractC9Field(cleanDesc, 'duration');
+                // Direct property access instead of regex extraction
+                const durStr = ev.duration || "";
                 const durMs = parseDuration(durStr);
                 const timePixelWidth = (durMs / msPerDay) * pixelsPerDay;
 
