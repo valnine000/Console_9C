@@ -108,20 +108,17 @@
       getLedgerEntryById: function(ledgerId) {
         if (!C9.Store.state.memoryStore) return null;
 
-        const targetEvent = C9.Store.state.memoryStore.find(e => {
-          const cleanDesc = C9.Parser.cleanHtmlText(e.description);
-          const idInDesc = C9.Parser.extractC9Field(cleanDesc, 'id');
-          return idInDesc === ledgerId;
-        });
+        // Directly match the pre-parsed 'id' property on the memoryStore object
+        const targetEvent = C9.Store.state.memoryStore.find(e => e.id === ledgerId);
 
         if (!targetEvent) return null;
 
-        const cleanDesc = C9.Parser.cleanHtmlText(targetEvent.description);
+        // Return the pre-parsed properties
         return {
-          symbol: C9.Parser.extractC9Field(cleanDesc, 'symbol') || '-',
-          thing: C9.Parser.extractC9Field(cleanDesc, 'thing') || 'Unknown',
-          idt: C9.Parser.extractC9Field(cleanDesc, 'idt') || '',
-          timestamp: targetEvent.timestamp || C9.Parser.extractC9Field(cleanDesc, 'timestamp') || ''
+          symbol: targetEvent.symbol || '-',
+          thing: targetEvent.thing || 'Unknown',
+          idt: targetEvent.idt || '',
+          timestamp: targetEvent.timestamp || ''
         };
       },
 
