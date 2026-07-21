@@ -231,7 +231,7 @@
                                 <p class="textInputFieldLabel defaultColumn1Width text-right" style="">Data</p>
                                 <div id="timelineDetailsData"
                                      class="panel-input-fields defaultColumn2Width setting-editable-value text-left hidden-scrollbar"
-                                     style="max-height: 3lh; overflow-y: auto; white-space: pre-wrap"
+                                     style="max-height: 2lh; overflow-y: auto; white-space: pre-wrap"
                                      contenteditable="true"></div>
                             </div>
                             <!--                    -->
@@ -362,9 +362,11 @@
                         <div class="" style="height:60px; width: 100%; padding: 4px 0px 0px 4px; margin-top: 4px;">
                             <p id="queryspaceEntryTitle" style="margin: 0px; padding: 0px 0px 4px 0px; color: var(--c1d1);">Active Query Space</p>
                             <div style="padding: 4px 0px 0px 9px;">
-                                <p id="querySpaceBuilderPanelSymbolField" class="panel-input-field-1 defaultColumn0Width setting-editable-value text-right"
+                                <p id="querySpaceBuilderPanelSymbolField"
+                                   class="panel-input-field-1 defaultColumn0Width setting-editable-value text-right"
                                    contenteditable="true">○</p>
-                                <p id="querySpaceBuilderPanelNameField" class="panel-input-field-1 defaultColumn2Width setting-editable-value text-left"
+                                <p id="querySpaceBuilderPanelNameField"
+                                   class="panel-input-field-1 defaultColumn2Width setting-editable-value text-left"
                                    contenteditable="true"></p>
                             </div>
                         </div>
@@ -458,8 +460,8 @@
             </div>
 
             <!-- Query Space Builder Panel -->
-            <div id="querySpaceBuilderPanelContainer" class="panel-container-wrapper hasBorder" style="">
-                <div id="queryspaceEntry"
+            <div id="querySpaceBuilderPanelContainer" class="panel-container-wrapper hidden-scrollbar hasBorder" style="">
+                <div id="queryspaceEntry" class="hidden-scrollbar "
                      style="height: 100%; position: relative; padding: 4px 0px 4px 0px; box-sizing: border-box;">
 
                     <svg id="toggleQuerySpaceRefPanelBtn" class="setting-action" viewBox="0 0 24 24" fill="none" stroke="var(--c1d1)" stroke-width="2"
@@ -479,32 +481,51 @@
                         </div>
                     </div>
 
-                    <div id="querySpaceRefPanelContent"
+                    <div id="querySpaceRefPanelContent" class="hidden-scrollbar"
                          style="position: absolute; left: 0px; top: 0px; z-index: 90; height:100%; width: 100%; padding: 4px 4px 4px 0px; box-sizing: border-box;">
                         <p id="addToQueryspaceTitle"
-                           style="margin: 0px; padding: 0px 0px 4px 4px; width: 50%;color: var(--c1d1);">Active Query Space Entry</p>
+                           style="margin: 0px; padding: 0px 0px 4px 4px; width: 50%;color: var(--c1d1);">Active Query Space Ledger Entry</p>
 
                         <div class="hidden-scrollbar " style="position: absolute; top: 4px; right: 24px; width:50%; overflow-x: auto;">
                             <p id="addToQueryspaceEntryStatusField" class="text-right"
                                style="position: relative; margin: 0px; padding: 0px 4px 0px 0px; z-index: 100; color:var(--c1d1); font-style: italic;"></p>
                         </div>
 
-                        <div id="addToQueryspaceEntryFields" style="padding: 4px 0px 0px 4px;">
-                            <div>
-                                <!-- Query Space Reference Entry - Ledger Entry -->
+                        <div id="addToQueryspaceEntryFields" class="hidden-scrollbar " style="height: 220px; padding: 4px 0px 0px 4px;overflow:auto;">
+                                <!-- Ledger Entry Reference -->
                                 <div style="padding: 4px 0px 0px 4px;">
-                                    <p class="textInputFieldLabel defaultColumn1Width text-right" style="">Ledger Entry</p>
-                                    <p id="querySpaceLedgerRefSymbolDisplay" class="panel-display-field-1 defaultColumn0Width text-center"></p>
-                                    <p id="addToQueryspaceEntryThingInput" class="panel-display-field-1 defaultColumn2Width text-left"></p>
+                                    <p class="textInputFieldLabel defaultColumn1Width text-right" style="color: var(--c1d1);">Thing</p>
+                                    <p id="querySpaceLedgerRefSymbolDisplay" class="panel-display-field-1 defaultColumn0Width text-left"></p>
+                                    <p id="querySpaceLedgerRefThingDisplay" class="panel-display-field-1 defaultColumn2Width text-left"></p>
                                 </div>
+                                <div style="padding: 4px 0px 0px 4px;">
+                                    <p class="textInputFieldLabel defaultColumn1Width text-right" style="color: var(--c1d1);">Idt</p>
+                                    <p id="querySpaceLedgerRefIdtDisplay" class="panel-display-field-1 defaultColumn2Width text-left"></p>
+                                </div>
+                                <div style="padding: 4px 0px 0px 4px;">
+                                    <p class="textInputFieldLabel defaultColumn1Width text-right" style="color: var(--c1d1);">Duration</p>
+                                    <p id="querySpaceLedgerRefDurationDisplay" class="panel-display-field-1 defaultColumn2Width text-left"></p>
+                                </div>
+                                <div style="padding: 4px 0px 0px 4px;">
+                                    <p class="textInputFieldLabel defaultColumn1Width text-right" style="color: var(--c1d1);">Data</p>
+                                    <p id="querySpaceLedgerRefDataDisplay" class="panel-display-field-1 defaultColumn2Width text-left" style="white-space: pre-wrap; max-height: 5lh; overflow-y: auto;"></p>
+                                </div>
+                                <div style="padding: 4px 0px 0px 4px;">
+                                    <p class="textInputFieldLabel defaultColumn1Width text-right" style="color: var(--c1d1);">Id</p>
+                                    <p id="querySpaceLedgerRefIdDisplay" class="panel-display-field-1 defaultColumn2Width text-left" style="color: var(--c1d1);"></p>
+                                </div>
+                                <div style="padding: 4px 0px 0px 4px;">
+                                    <p class="textInputFieldLabel defaultColumn1Width text-right" style="color: var(--c1d1);">Timestamp</p>
+                                    <p id="querySpaceLedgerRefTimestampDisplay" class="panel-display-field-1 defaultColumn2Width text-left" style="color: var(--c1d1);"></p>
+                                </div>
+                                <div class="divider-1" style="height: 1px; border-top: 1px solid var(--borderColor1); margin: 4px 24px;"></div>
 
-                                <!-- Query Space Reference Entry - Query Space -->
+                                <!-- Query Space Reference -->
                                 <div style="padding: 4px 0px 0px 4px;">
                                     <p class="textInputFieldLabel defaultColumn1Width text-right" style="">Query Space</p>
                                     <p id="addToQueryspaceEntryQsTitleInput"
                                        class="panel-display-field-1 defaultColumn2Width text-left">○</p>
                                 </div>
-                            </div>
                         </div>
                         <div style="position: absolute; bottom: 8px; right: 8px;">
                             <div id="queryspaceLedgerEntryRemoveBtn" class="control-btn">Remove</div>

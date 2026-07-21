@@ -705,8 +705,14 @@
             const ref = C9.Store.state.globalQuerySpaceRefs.find(r => r.id === selectedRefId);
             if (!ref) return;
 
-            const querySpaceLedgerRefThingDisplay = document.getElementById('addToQueryspaceEntryThingInput');
             const querySpaceLedgerRefSymbolDisplay = document.getElementById('querySpaceLedgerRefSymbolDisplay');
+            const querySpaceLedgerRefThingDisplay = document.getElementById('querySpaceLedgerRefThingDisplay');
+            const querySpaceLedgerRefIdtDisplay = document.getElementById('querySpaceLedgerRefIdtDisplay');
+            const querySpaceLedgerRefDurationDisplay = document.getElementById('querySpaceLedgerRefDurationDisplay');
+            const querySpaceLedgerRefDataDisplay = document.getElementById('querySpaceLedgerRefDataDisplay');
+            const querySpaceLedgerRefIdDisplay = document.getElementById('querySpaceLedgerRefIdDisplay');
+            const querySpaceLedgerRefTimestampDisplay = document.getElementById('querySpaceLedgerRefTimestampDisplay');
+
             const qsInput = document.getElementById('addToQueryspaceEntryQsTitleInput');
             const descInput = document.getElementById('addToQueryspaceEntryDescriptionInput');
             const idInput = document.getElementById('queryspaceEntryDetailsGoogleCalendarEventId');
@@ -722,8 +728,13 @@
 
             if (querySpaceLedgerRefThingDisplay) {
               const ledgerDetails = C9.QuerySpace.getLedgerEntryById(ref.ledgerId);
-              querySpaceLedgerRefThingDisplay.textContent = ledgerDetails ? ledgerDetails.thing : (ref.title || 'Unknown');
               querySpaceLedgerRefSymbolDisplay.textContent = ledgerDetails ? ledgerDetails.symbol : (ref.title || 'Unknown');
+              querySpaceLedgerRefThingDisplay.textContent = ledgerDetails ? ledgerDetails.thing : (ref.title || 'Unknown');
+              querySpaceLedgerRefIdtDisplay.textContent = ledgerDetails ? ledgerDetails.idt : (ref.title || 'Unknown');
+              querySpaceLedgerRefDurationDisplay.textContent = ledgerDetails ? ledgerDetails.duration : (ref.title || 'Unknown');
+              querySpaceLedgerRefDataDisplay.textContent = ledgerDetails ? ledgerDetails.data : (ref.title || 'Unknown');
+              querySpaceLedgerRefIdDisplay.textContent = ledgerDetails ? ledgerDetails.id : (ref.title || 'Unknown');
+              querySpaceLedgerRefTimestampDisplay.textContent = ledgerDetails ? ledgerDetails.timestamp : (ref.title || 'Unknown');
             }
 
             if (qsInput) {
@@ -885,7 +896,7 @@ lastModified: ${currentModified}
             const titleField = document.getElementById('calendarEventTitleInput');
             const targetTitle = titleField ? titleField.textContent : 'Unknown Entry';
 
-            const thingInput = document.getElementById('addToQueryspaceEntryThingInput');
+            const thingInput = document.getElementById('querySpaceLedgerRefThingDisplay');
             if (thingInput) thingInput.textContent = targetTitle;
 
             const qsInput = document.getElementById('addToQueryspaceEntryQsTitleInput');
@@ -917,7 +928,7 @@ lastModified: ${currentModified}
         if (addBtn) {
           addBtn.addEventListener('click', () => {
             const descInput = document.getElementById('addToQueryspaceEntryDescriptionInput');
-            const thingInput = document.getElementById('addToQueryspaceEntryThingInput');
+            const thingInput = document.getElementById('querySpaceLedgerRefThingDisplay');
             const statusField = document.getElementById('addToQueryspaceEntryStatusField');
 
             if (!descInput || !descInput.textContent) return;
@@ -985,7 +996,7 @@ lastModified: ${currentModified}
             }
 
             const descInput = document.getElementById('addToQueryspaceEntryDescriptionInput');
-            const thingInput = document.getElementById('addToQueryspaceEntryThingInput');
+            const thingInput = document.getElementById('querySpaceLedgerRefThingDisplay');
 
             if (!descInput || !thingInput) {
               if (statusField) {
