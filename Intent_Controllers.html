@@ -588,7 +588,7 @@
       },
 
       initializeFullscreenControls: function() {
-        const openBtn = document.getElementById('fullscreenButton');
+        const openBtn = document.getElementById('openFullscreenButton');
         //const closeBtn = document.getElementById('closeFullscreenButton'); // If you have one
 
         if (openBtn) {
@@ -734,7 +734,7 @@
               querySpaceLedgerRefDurationDisplay.textContent = ledgerDetails ? ledgerDetails.duration : (ref.title || 'Unknown');
               querySpaceLedgerRefDataDisplay.textContent = ledgerDetails ? ledgerDetails.data : (ref.title || 'Unknown');
               querySpaceLedgerRefIdDisplay.textContent = ledgerDetails ? ledgerDetails.id : (ref.title || 'Unknown');
-              querySpaceLedgerRefTimestampDisplay.textContent = ledgerDetails ? ledgerDetails.timestamp : (ref.title || 'Unknown');
+              //querySpaceLedgerRefTimestampDisplay.textContent = ledgerDetails ? ledgerDetails.timestamp : (ref.title || 'Unknown');
             }
 
             if (qsInput) {

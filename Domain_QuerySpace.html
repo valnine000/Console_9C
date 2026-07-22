@@ -190,20 +190,30 @@
           row.className = 'qs-list-row';
           row.dataset.qsid = qs.qsId;
 
-          row.style.padding = '6px 4px';
+          row.style.padding = '6px 0px';
           row.style.cursor = 'pointer';
           row.style.color = 'var(--c1)';
-          row.style.display = 'flex';
-          row.style.alignItems = 'center';
+          //row.style.border = '1px solid var(--c1)';
 
-          const symbolSpan = document.createElement('span');
-          symbolSpan.style.marginRight = '8px';
-          symbolSpan.style.fontWeight = 'bold';
-          symbolSpan.style.width = '15px';
-          symbolSpan.style.textAlign = 'center';
+          const symbolSpan = document.createElement('p');
+          symbolSpan.classList.add('panel-display-field-1', 'defaultColumn0Width', 'setting-editable-value', 'text-center');
+          symbolSpan.style.marginLeft = '3ch';
+          symbolSpan.style.marginRight = '0ch';
+          symbolSpan.style.padding = '0px';
+          symbolSpan.style.overflow = 'hidden';
+          symbolSpan.style.fontVariantEmoji = 'text';
+          symbolSpan.contentEditable = 'false';
           symbolSpan.textContent = qs.symbol;
 
-          const nameSpan = document.createElement('span');
+          const nameSpan = document.createElement('p');
+          nameSpan.classList.add('panel-display-field-1', 'defaultColumn2Width', 'setting-editable-value', 'text-left');
+
+          nameSpan.style.marginLeft = '1ch';
+          nameSpan.style.marginRight = '0ch';
+          nameSpan.style.padding = '0px';
+          nameSpan.contentEditable = 'false';
+          nameSpan.style.fontVariantEmoji = 'text';
+          nameSpan.style.overflow = 'hidden';
           nameSpan.textContent = qs.name;
 
           row.appendChild(symbolSpan);

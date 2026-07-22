@@ -48,12 +48,17 @@
     <!-- The Application UI -->
     <div id="mainAppWrapper" style="height:100%; ">
 
+        <!-- Fullscreen button -->
+        <div class="divFullscreenButton">
+            <button id="openFullscreenButton" onclick="openFullscreen();">&#9974;</button>
+        </div>
+
         <!-- Header Panel -->
         <div id="header"
              style="position: relative; border: 0px solid #ff9000; width:var(--defaultMobilWidth); max-height: 70px; padding: 4px; text-align: center;">
             <div id="systemDate">...</div>
             <div id="systemClock">--:--:--</div>
-            <div id="settingsShowMenu" class="c1d1" style="position: absolute; top: 8px; right: 8px; cursor: pointer;">&#9881;</div>
+            <div id="settingsShowMenu" class="" style="position: absolute; top: 8px; right: 8px; color: var(--c1d2); cursor: pointer;">&#9881;</div>
             <!-- Settings Panel, move out of this panel and panel container   -->
             <div id="consoleControlPanelContainer" class="hasBorder"
                  style="width: var(--defaultMobilWidth); padding: 4px; position: absolute; z-index: 100; display: none; background-color: var(--backgroundColor1);">
@@ -334,9 +339,9 @@
         <div id="panelsContainer2C" class="panels-container-wrapper hidden-scrollbar " style="">
 
             <!-- QUERY SPACES LIST PANEL -->
-            <div id="querySpacesListPanelContainer" class="panel-container-wrapper hasBorder" style="">
+            <div id="querySpacesListPanelContainer" class="panel-container-wrapper2 hasBorder" style="">
                 <div id="querySpacesListPanelContent" class=""
-                     style="height: 100%; position: relative; padding: 4px 0px 4px 0px; box-sizing: border-box;">
+                     style="height: 100%; position: relative; padding: 0px 0px 0px 0px; box-sizing: border-box;">
 
                     <svg id="toggleQuerySpacesListBtn" class="setting-action" viewBox="0 0 24 24" fill="none" stroke="var(--c1d1)" stroke-width="2"
                          stroke-linecap="round" stroke-linejoin="round"
@@ -345,42 +350,42 @@
                     </svg>
 
                     <div id="queryspacesListContainer" class=""
-                         style="position: absolute; left: 0px; top: 0px; z-index: 90; height:100%; width: 100%; padding: 4px 4px 4px 0px; box-sizing: border-box;">
-                        <p id="queryspacesListWindowTitle" style="margin: 0px; padding: 0px 0px 4px 4px; width: 50%; color: var(--c1d1);">Query
-                            Spaces</p>
+                         style="position: absolute; left: 0px; top: 0px; z-index: 90; height:100%; width: 100%; padding: 0px 0px 0px 0px; box-sizing: border-box;">
 
                         <div class="hidden-scrollbar " style="position: absolute; top: 4px; right: 24px; width:60%; overflow-x: auto;">
                             <p id="queryspaceEntryStatusField" class="text-right"
                                style="position: relative; margin: 0px; padding: 0px 4px 0px 0px; z-index: 100; color:var(--c1d1); font-style: italic;"></p>
                         </div>
 
+                        <p id="queryspacesListWindowTitle"
+                           style="margin: 0px; padding: 0px 0px 4px 4px; width: 50%; color: var(--c1d1);">Query Spaces</p>
                         <div id="queryspacesListScrollContainer" class="hidden-scrollbar "
-                             style="height: 150px; width: 100%; padding: 0px 0px 0px 5ch; overflow-y: auto;">
+                             style="height: 150px; width: 100%; padding: 0px 0px 0px 0ch; overflow-y: auto;">
                             <div id="queryspacesList"></div>
                         </div>
 
-                        <div class="" style="height:60px; width: 100%; padding: 4px 0px 0px 4px; margin-top: 4px;">
-                            <p id="queryspaceEntryTitle" style="margin: 0px; padding: 0px 0px 4px 0px; color: var(--c1d1);">Active Query Space</p>
-                            <div style="padding: 4px 0px 0px 9px;">
+                        <p id="queryspaceEntryTitle"
+                           style="margin: 0px; padding: 0px 0px 4px 4px; width: 50%; color: var(--c1d1);">Active Query Space</p>
+                        <div class="hidden-scrollbar "
+                             style="height:  60px; width: 100%; padding: 0px 0px 0px 0px; overflow-y: auto;">
                                 <p id="querySpaceBuilderPanelSymbolField"
-                                   class="panel-input-field-1 defaultColumn0Width setting-editable-value text-right"
-                                   contenteditable="true">○</p>
-                                <p id="querySpaceBuilderPanelNameField"
+                                   class="panel-input-field-1 defaultColumn0Width setting-editable-value text-center"
+                                   contenteditable="true"
+                                   style="margin-left: 3ch; margin-right: 0ch; padding: 0px; font-variant-emoji:text; overflow:hidden;"></p><p
+                                id="querySpaceBuilderPanelNameField"
                                    class="panel-input-field-1 defaultColumn2Width setting-editable-value text-left"
-                                   contenteditable="true"></p>
-                            </div>
+                                   contenteditable="true"
+                                   style="margin-left: 1ch; margin-right: 0ch; padding: 0px; font-variant-emoji:text; overflow:hidden;"></p>
                         </div>
 
-                        <div style="position: absolute; bottom: 0px; right: 8px; width: 100%;">
+                        <div style="position: absolute; bottom: 4px; right: 8px; width: 100%;">
                             <div class="" style="white-space: normal; text-align: right;">
-                                <div id="queryspaceLoadInBuilderWindowBtn" class="control-btn">Builder</div>
-                                <div id="queryspaceUpdateBtn" class="control-btn">Update QS</div>
-                                <div id="queryspaceCreateBtn" class="control-btn">Create QS</div>
+                                <div id="queryspaceLoadInBuilderWindowBtn" class="control-btn2">Builder</div>
+                                <div id="queryspaceUpdateBtn" class="control-btn2">Update QS</div>
+                                <div id="queryspaceCreateBtn" class="control-btn2">Create QS</div>
                             </div>
                         </div>
                     </div>
-
-
                 </div>
             </div>
 
@@ -491,41 +496,44 @@
                                style="position: relative; margin: 0px; padding: 0px 4px 0px 0px; z-index: 100; color:var(--c1d1); font-style: italic;"></p>
                         </div>
 
-                        <div id="addToQueryspaceEntryFields" class="hidden-scrollbar " style="height: 220px; padding: 4px 0px 0px 4px;overflow:auto;">
-                                <!-- Ledger Entry Reference -->
-                                <div style="padding: 4px 0px 0px 4px;">
-                                    <p class="textInputFieldLabel defaultColumn1Width text-right" style="color: var(--c1d1);">Thing</p>
-                                    <p id="querySpaceLedgerRefSymbolDisplay" class="panel-display-field-1 defaultColumn0Width text-left"></p>
-                                    <p id="querySpaceLedgerRefThingDisplay" class="panel-display-field-1 defaultColumn2Width text-left"></p>
-                                </div>
-                                <div style="padding: 4px 0px 0px 4px;">
-                                    <p class="textInputFieldLabel defaultColumn1Width text-right" style="color: var(--c1d1);">Idt</p>
-                                    <p id="querySpaceLedgerRefIdtDisplay" class="panel-display-field-1 defaultColumn2Width text-left"></p>
-                                </div>
-                                <div style="padding: 4px 0px 0px 4px;">
-                                    <p class="textInputFieldLabel defaultColumn1Width text-right" style="color: var(--c1d1);">Duration</p>
-                                    <p id="querySpaceLedgerRefDurationDisplay" class="panel-display-field-1 defaultColumn2Width text-left"></p>
-                                </div>
-                                <div style="padding: 4px 0px 0px 4px;">
-                                    <p class="textInputFieldLabel defaultColumn1Width text-right" style="color: var(--c1d1);">Data</p>
-                                    <p id="querySpaceLedgerRefDataDisplay" class="panel-display-field-1 defaultColumn2Width text-left" style="white-space: pre-wrap; max-height: 5lh; overflow-y: auto;"></p>
-                                </div>
-                                <div style="padding: 4px 0px 0px 4px;">
-                                    <p class="textInputFieldLabel defaultColumn1Width text-right" style="color: var(--c1d1);">Id</p>
-                                    <p id="querySpaceLedgerRefIdDisplay" class="panel-display-field-1 defaultColumn2Width text-left" style="color: var(--c1d1);"></p>
-                                </div>
-                                <div style="padding: 4px 0px 0px 4px;">
-                                    <p class="textInputFieldLabel defaultColumn1Width text-right" style="color: var(--c1d1);">Timestamp</p>
-                                    <p id="querySpaceLedgerRefTimestampDisplay" class="panel-display-field-1 defaultColumn2Width text-left" style="color: var(--c1d1);"></p>
-                                </div>
-                                <div class="divider-1" style="height: 1px; border-top: 1px solid var(--borderColor1); margin: 4px 24px;"></div>
+                        <div id="addToQueryspaceEntryFields" class="hidden-scrollbar "
+                             style="height: 220px; padding: 4px 0px 0px 4px;overflow:auto;overscroll-behavior: contain;">
+                            <!-- Ledger Entry Reference -->
+                            <div style="padding: 4px 0px 0px 4px;">
+                                <p class="textInputFieldLabel defaultColumn1Width text-right" style="color: var(--c1d1);">Thing</p>
+                                <p id="querySpaceLedgerRefSymbolDisplay" class="panel-display-field-1 defaultColumn0Width text-left"></p>
+                                <p id="querySpaceLedgerRefThingDisplay" class="panel-display-field-1 defaultColumn2Width text-left"></p>
+                            </div>
+                            <div style="padding: 4px 0px 0px 4px;">
+                                <p class="textInputFieldLabel defaultColumn1Width text-right" style="color: var(--c1d1);">Idt</p>
+                                <p id="querySpaceLedgerRefIdtDisplay" class="panel-display-field-1 defaultColumn2Width text-left"></p>
+                            </div>
+                            <div style="padding: 4px 0px 0px 4px;">
+                                <p class="textInputFieldLabel defaultColumn1Width text-right" style="color: var(--c1d1);">Duration</p>
+                                <p id="querySpaceLedgerRefDurationDisplay" class="panel-display-field-1 defaultColumn2Width text-left"></p>
+                            </div>
+                            <div style="padding: 4px 0px 0px 4px;">
+                                <p class="textInputFieldLabel defaultColumn1Width text-right" style="color: var(--c1d1);">Data</p>
+                                <p id="querySpaceLedgerRefDataDisplay" class="panel-display-field-1 defaultColumn2Width text-left"
+                                   style="white-space: pre-wrap; max-height: 4lh; overflow-y: auto; overscroll-behavior: contain;"></p>
+                            </div>
+                            <div style="padding: 4px 0px 0px 4px; ">
+                                <p class="textInputFieldLabel defaultColumn1Width text-right" style="color: var(--c1d1);">Id</p>
+                                <p id="querySpaceLedgerRefIdDisplay" class="panel-display-field-1 defaultColumn1Width text-left"
+                                   style="color: var(--c1d1);"></p>
 
-                                <!-- Query Space Reference -->
-                                <div style="padding: 4px 0px 0px 4px;">
-                                    <p class="textInputFieldLabel defaultColumn1Width text-right" style="">Query Space</p>
-                                    <p id="addToQueryspaceEntryQsTitleInput"
-                                       class="panel-display-field-1 defaultColumn2Width text-left">○</p>
-                                </div>
+<!--                                <p class="textInputFieldLabel defaultColumn0Width text-right" style="color: var(&#45;&#45;c1d1);">Timestamp</p>-->
+<!--                                <p id="querySpaceLedgerRefTimestampDisplay" class="panel-display-field-1 defaultColumn1Width text-left"-->
+<!--                                   style="color: var(&#45;&#45;c1d1);"></p>-->
+                            </div>
+                            <div class="divider-1" style="height: 1px; border-top: 1px solid var(--borderColor1); margin: 4px 24px;"></div>
+
+                            <!-- Query Space Reference -->
+                            <div style="padding: 4px 0px 0px 4px;">
+                                <p class="textInputFieldLabel defaultColumn1Width text-right" style="">Query Space</p>
+                                <p id="addToQueryspaceEntryQsTitleInput"
+                                   class="panel-display-field-1 defaultColumn2Width text-left">○</p>
+                            </div>
                         </div>
                         <div style="position: absolute; bottom: 8px; right: 8px;">
                             <div id="queryspaceLedgerEntryRemoveBtn" class="control-btn">Remove</div>
@@ -594,9 +602,7 @@
         <div class="hasBorder" style="height:400px;"></div>
 
         <!-- Footer Panel -->
-        <div class="divFullscreenButton">
-            <button id="fullscreenButton" onclick="openFullscreen();"> ***</button>
-        </div>
+
     </div>
 
 </div>

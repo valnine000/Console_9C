@@ -7,7 +7,7 @@
       --defaultDesktopWidth: 1800px;
       --defaultStackHeight:1;
 
-      --defaultColumn0WidthViewer: 1ch;
+      --defaultColumn0WidthViewer: 2ch;
       --defaultColumn1WidthViewer: 15ch;
       --defaultColumn2WidthViewer: 30ch;
       --defaultColumn3WidthViewer: 5ch;
@@ -22,6 +22,7 @@
 
       --c1: #ff9000;
       --c1d1: #9a5700;
+      --c1d2: #a05000;
 
       --backgroundColor1: #050200;
       --backgroundColor2: #0b0400;
@@ -281,6 +282,16 @@
       vertical-align: middle;
     }
 
+    .control-btn2 {
+      display: inline-block;
+      cursor: pointer;
+      padding: 0px 6px;
+      margin-left: 0px;
+      font-size: var(--button-font-size);
+      user-select: none;
+      vertical-align: middle;
+    }
+
     /* Desktop Only: Apply hover state if the device has a physical mouse */
     @media (hover: hover) {
       .control-btn:hover {
@@ -288,8 +299,18 @@
       }
     }
 
+    @media (hover: hover) {
+      .control-btn2:hover {
+        background-color: var(--backgroundColor4);
+      }
+    }
+
     /* All Devices: Apply momentary highlight strictly during the physical tap/click */
     .control-btn:active {
+      background-color: var(--backgroundColor4);
+    }
+
+    .control-btn2:active {
       background-color: var(--backgroundColor4);
     }
 
@@ -328,11 +349,9 @@
       background: #0a020000;
       text-align: center;
       position: fixed;
-      bottom: 10px;
-      left: 5px;
-      left: 50%;
+      top: 8px;
+      left: 8px;
       z-index: 200;
-      transform: translate(-50%, -50%);
     }
 
     .divFullscreenButton button {
@@ -342,10 +361,6 @@
       border-style: none none none none;
       color: #a05000;
       z-index: 200;
-      font: 6px Courier New, monospace;
-
-      /* font-family: Arial, Helvetica, sans-serif; */
-      font-size: 6px;
     }
 
     /* Universal Custom Scrollbar Class */
@@ -415,6 +430,15 @@
         width:var(--defaultMobilWidth);
         vertical-align: top;
         padding: 4px 4px 4px 4px;
+        overflow: auto;
+    }
+    .panel-container-wrapper2 {
+        display:inline-block;
+        height:100%;
+        width:var(--defaultMobilWidth);
+        vertical-align: top;
+        padding: 0px 0px 0px 0px;
+        box-sizing: border-box;
         overflow: auto;
     }
 
