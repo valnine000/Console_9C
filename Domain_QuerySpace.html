@@ -72,6 +72,7 @@
                     ledgerId: ledgerIdMatch[1].trim(),
                     googleEventId: event.eventId,
                     title: event.title || 'QS-REF',
+                    timestamp: explicitTimestamp.toString(),
                     startTime: new Date(explicitTimestamp).toISOString(),
                     rawDescription: desc
                   });

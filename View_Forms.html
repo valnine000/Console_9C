@@ -73,6 +73,55 @@
         C9.Store.state.ThingEntityPayload.reset()
       },
 
+      syncQuerySpaceReferenceUI: function() {
+        const payload = C9.Store.state.builderQuerySpaceLedgerReferencePayload;
+
+        // UI Elements
+        const symbolDisplay = document.getElementById('querySpaceLedgerRefSymbolDisplay');
+        const thingDisplay = document.getElementById('querySpaceLedgerRefThingDisplay');
+        const idtDisplay = document.getElementById('querySpaceLedgerRefIdtDisplay');
+        const durationDisplay = document.getElementById('querySpaceLedgerRefDurationDisplay');
+        const dataDisplay = document.getElementById('querySpaceLedgerRefDataDisplay');
+        const idDisplay = document.getElementById('querySpaceLedgerRefIdDisplay');
+
+        const qsInput = document.getElementById('addToQueryspaceEntryQsTitleInput');
+        const statusField = document.getElementById('addToQueryspaceEntryStatusField');
+
+        // 1. Render the active Ledger Entry half
+        if (payload.ledgerId) {
+            const ledgerDetails = C9.QuerySpace.getLedgerEntryById(payload.ledgerId);
+            if (ledgerDetails) {
+                if (symbolDisplay) symbolDisplay.textContent = ledgerDetails.symbol;
+                if (thingDisplay) thingDisplay.textContent = ledgerDetails.thing;
+                if (idtDisplay) idtDisplay.textContent = ledgerDetails.idt;
+                if (durationDisplay) durationDisplay.textContent = ledgerDetails.duration;
+                if (dataDisplay) dataDisplay.textContent = ledgerDetails.data;
+            } else {
+                if (thingDisplay) thingDisplay.textContent = "Unknown Entry";
+            }
+        } else {
+            if (symbolDisplay) symbolDisplay.textContent = "";
+            if (thingDisplay) thingDisplay.textContent = "-";
+            if (idtDisplay) idtDisplay.textContent = "";
+            if (durationDisplay) durationDisplay.textContent = "";
+            if (dataDisplay) dataDisplay.textContent = "";
+        }
+
+        // Render the minted Record ID
+        if (idDisplay) idDisplay.textContent = payload.id || '-';
+
+        // 2. Render the active Query Space half
+        if (payload.qsId) {
+            const parentQs = C9.Store.state.globalQuerySpaces.find(q => q.qsId === payload.qsId);
+            if (qsInput) qsInput.textContent = parentQs ? parentQs.name : 'Unknown Space';
+        } else {
+            if (qsInput) qsInput.textContent = '○';
+        }
+
+        // Reset status
+        if (statusField) statusField.textContent = '';
+      },
+
       loadAsReference: function() {
         console.log('loadAsReference and return');
         return

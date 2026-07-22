@@ -676,25 +676,29 @@
             const qs = C9.Store.state.globalQuerySpaces.find(q => q.qsId === C9.Store.state.activeQuerySpaceId);
             if (!qs) return;
 
+            // 1. Update the Parent QS Builder UI (Regex eliminated, using clean state)
             const builderTitle = document.getElementById('querySpaceBuilderPanelNameField');
             const builderSymbol = document.getElementById('querySpaceBuilderPanelSymbolField');
             const builderDesc = document.getElementById('queryspaceEntryDescriptionInput');
 
             if (builderTitle) builderTitle.textContent = qs.name;
-
-            if (builderSymbol && qs.rawDescription) {
-              const symbolMatch = qs.rawDescription.match(/symbol:\s*([^\n]+)/);
-              builderSymbol.textContent = symbolMatch ? symbolMatch[1].trim() : '○';
-            }
+            if (builderSymbol) builderSymbol.textContent = qs.symbol;
 
             if (builderDesc) {
               builderDesc.textContent = qs.rawDescription;
               builderDesc.style.whiteSpace = 'pre-wrap';
             }
+
+            // 2. Insert into the Reference Payload
+            const refPayload = C9.Store.state.builderQuerySpaceLedgerReferencePayload;
+            refPayload.qsId = qs.qsId;
+
+            // 3. Trigger UI Sync for the Reference Panel
+            C9.Forms.syncQuerySpaceReferenceUI();
           });
         }
 
-        // 1c. LOAD ACTIVE REF INTO DETAILS
+        // 1c. LOAD ACTIVE REF INTO DETAILS (List Click)
         const activeRefListContainer = document.getElementById('activeQueryspaceLedgerEntriesList');
         if (activeRefListContainer) {
           activeRefListContainer.addEventListener('click', (e) => {
@@ -705,42 +709,16 @@
             const ref = C9.Store.state.globalQuerySpaceRefs.find(r => r.id === selectedRefId);
             if (!ref) return;
 
-            const querySpaceLedgerRefSymbolDisplay = document.getElementById('querySpaceLedgerRefSymbolDisplay');
-            const querySpaceLedgerRefThingDisplay = document.getElementById('querySpaceLedgerRefThingDisplay');
-            const querySpaceLedgerRefIdtDisplay = document.getElementById('querySpaceLedgerRefIdtDisplay');
-            const querySpaceLedgerRefDurationDisplay = document.getElementById('querySpaceLedgerRefDurationDisplay');
-            const querySpaceLedgerRefDataDisplay = document.getElementById('querySpaceLedgerRefDataDisplay');
-            const querySpaceLedgerRefIdDisplay = document.getElementById('querySpaceLedgerRefIdDisplay');
-            const querySpaceLedgerRefTimestampDisplay = document.getElementById('querySpaceLedgerRefTimestampDisplay');
+            // Load all variables directly into state payload without parsing
+            const payload = C9.Store.state.builderQuerySpaceLedgerReferencePayload;
+            payload.id = ref.id;
+            payload.qsId = ref.qsId;
+            payload.ledgerId = ref.ledgerId;
+            payload.googleEventId = ref.googleEventId;
+            payload.timestamp = ref.timestamp;
 
-            const qsInput = document.getElementById('addToQueryspaceEntryQsTitleInput');
-            const descInput = document.getElementById('addToQueryspaceEntryDescriptionInput');
-            const idInput = document.getElementById('queryspaceEntryDetailsGoogleCalendarEventId');
-
-            if (descInput) {
-              descInput.textContent = ref.rawDescription;
-            }
-
-            if (idInput) {
-              idInput.textContent = ref.googleEventId || '-';
-              idInput.style.color = 'var(--c1d1)';
-            }
-
-            if (querySpaceLedgerRefThingDisplay) {
-              const ledgerDetails = C9.QuerySpace.getLedgerEntryById(ref.ledgerId);
-              querySpaceLedgerRefSymbolDisplay.textContent = ledgerDetails ? ledgerDetails.symbol : (ref.title || 'Unknown');
-              querySpaceLedgerRefThingDisplay.textContent = ledgerDetails ? ledgerDetails.thing : (ref.title || 'Unknown');
-              querySpaceLedgerRefIdtDisplay.textContent = ledgerDetails ? ledgerDetails.idt : (ref.title || 'Unknown');
-              querySpaceLedgerRefDurationDisplay.textContent = ledgerDetails ? ledgerDetails.duration : (ref.title || 'Unknown');
-              querySpaceLedgerRefDataDisplay.textContent = ledgerDetails ? ledgerDetails.data : (ref.title || 'Unknown');
-              querySpaceLedgerRefIdDisplay.textContent = ledgerDetails ? ledgerDetails.id : (ref.title || 'Unknown');
-              //querySpaceLedgerRefTimestampDisplay.textContent = ledgerDetails ? ledgerDetails.timestamp : (ref.title || 'Unknown');
-            }
-
-            if (qsInput) {
-              const parentQs = C9.Store.state.globalQuerySpaces.find(q => q.qsId === ref.qsId);
-              qsInput.textContent = parentQs ? parentQs.name : 'Unknown Space';
-            }
+            // Project the state to the UI
+            C9.Forms.syncQuerySpaceReferenceUI();
           });
         }
 
@@ -882,87 +860,76 @@ lastModified: ${currentModified}
           });
         }
 
-        // 3. STAGE REFERENCE BUTTON
+        // 3. STAGE REFERENCE BUTTON ("Add to QS")
         const loadBtn = document.getElementById('loadEntryInAddToQueryspaceWindow');
         if (loadBtn) {
           loadBtn.addEventListener('click', () => {
             const statusField = document.getElementById('addToQueryspaceEntryStatusField');
 
-            if (!C9.Store.state.activeQuerySpaceId) {
-              if (statusField) statusField.textContent = 'Select Active Query Space';
+            if (!C9.Store.state.activeLedgerEntryId) {
+              if (statusField) statusField.textContent = 'Select a Ledger Entry first';
               return;
             }
 
-            const titleField = document.getElementById('calendarEventTitleInput');
-            const targetTitle = titleField ? titleField.textContent : 'Unknown Entry';
+            // Only update the target ledger ID in the payload state
+            const payload = C9.Store.state.builderQuerySpaceLedgerReferencePayload;
+            payload.ledgerId = C9.Store.state.activeLedgerEntryId;
 
-            const thingInput = document.getElementById('querySpaceLedgerRefThingDisplay');
-            if (thingInput) thingInput.textContent = targetTitle;
-
-            const qsInput = document.getElementById('addToQueryspaceEntryQsTitleInput');
-            if (qsInput) {
-              const parentQs = C9.Store.state.globalQuerySpaces.find(q => q.qsId === C9.Store.state.activeQuerySpaceId);
-              qsInput.textContent = parentQs ? parentQs.name : 'Unknown Space';
-            }
-
-            // Generate strict temporal coordinates at the moment of staging
-            const stagingTimestamp = Date.now();
-            const stagedId = `qsr-jtp-unk-${stagingTimestamp}`;
-
-            const descInput = document.getElementById('addToQueryspaceEntryDescriptionInput');
-            if (descInput) {
-              descInput.textContent = C9.Templates.generateStagedReference(
-                stagedId,
-                stagingTimestamp,
-                C9.Store.state.activeQuerySpaceId,
-                C9.Store.state.activeLedgerEntryId // <-- CHANGED
-              );
-            }
-
-            if (statusField) statusField.textContent = 'Ready to add';
+            C9.Forms.syncQuerySpaceReferenceUI();
+            if (statusField) statusField.textContent = 'Ledger Entry staged';
           });
         }
 
-        // 4. COMMIT REFERENCE BUTTON
+        // 4. COMMIT REFERENCE BUTTON ("Add")
         const addBtn = document.getElementById('queryspaceLedgerEntryAddBtn');
         if (addBtn) {
           addBtn.addEventListener('click', () => {
-            const descInput = document.getElementById('addToQueryspaceEntryDescriptionInput');
-            const thingInput = document.getElementById('querySpaceLedgerRefThingDisplay');
+            const payload = C9.Store.state.builderQuerySpaceLedgerReferencePayload;
             const statusField = document.getElementById('addToQueryspaceEntryStatusField');
 
-            if (!descInput || !descInput.textContent) return;
-
-            const rawDesc = descInput.textContent;
-            const title = thingInput && thingInput.textContent !== '-' ? `QS-REF: ${thingInput.textContent}` : 'QS-REF';
-
-            // Extract IDs and the staged timestamp directly from the UI payload
-            const qsMatch = rawDesc.match(/\[#C9QSER\][\s\S]*?id:\s*([^\n\[]+)/);
-            const refMatch = rawDesc.match(/\[#C9R\][\s\S]*?id:\s*([^\n\[]+)/);
-            const tsMatch = rawDesc.match(/timestamp:\s*(\d+)/);
-
-            // Strict rejection if the payload was manually corrupted before committing
-            if (!qsMatch || !refMatch || !tsMatch) {
-              if (statusField) statusField.textContent = 'Invalid format or missing timestamp';
+            // Gate 1: Check required references
+            if (!payload.qsId || !payload.ledgerId) {
+              if (statusField) statusField.textContent = 'Missing Query Space or Ledger Entry';
               return;
             }
 
-            if (statusField) statusField.textContent = 'Saving to Google';
+            // Gate 2: Prevent overwriting existing records
+            if (payload.id !== "" || payload.timestamp !== "") {
+              if (statusField) statusField.textContent = 'Record already exists. Clear keys first.';
+              return;
+            }
 
-            const explicitTimestamp = parseInt(tsMatch[1].trim(), 10);
+            if (statusField) statusField.textContent = 'Saving to Google...';
 
-            const payload = {
+            // Mint new temporal keys
+            const stagingTimestamp = Date.now();
+            payload.timestamp = stagingTimestamp.toString();
+            payload.id = `qsr-jtp-unk-${stagingTimestamp}`;
+
+            // Build payload description dynamically
+            const rawDesc = C9.Templates.generateStagedReference(
+                payload.id,
+                payload.timestamp,
+                payload.qsId,
+                payload.ledgerId
+            );
+
+            const thingDisplay = document.getElementById('querySpaceLedgerRefThingDisplay');
+            const title = thingDisplay && thingDisplay.textContent && thingDisplay.textContent !== '-'
+                ? `QS-REF: ${thingDisplay.textContent}`
+                : 'QS-REF';
+
+            const serverPayload = {
               title: title,
               description: rawDesc,
-              startIso: new Date(explicitTimestamp).toISOString(),
-              endIso: new Date(explicitTimestamp + (15 * 60 * 1000)).toISOString()
+              startIso: new Date(stagingTimestamp).toISOString(),
+              endIso: new Date(stagingTimestamp + (15 * 60 * 1000)).toISOString()
             };
 
-            C9.QuerySpace.pushNewReferenceToGoogle(payload)
+            C9.QuerySpace.pushNewReferenceToGoogle(serverPayload)
               .then(() => {
                 if (statusField) statusField.textContent = 'Success. Click Refresh to load';
-                if (descInput) descInput.textContent = '';
-                if (thingInput) thingInput.textContent = '-';
+                C9.Forms.syncQuerySpaceReferenceUI(); // Projects the newly minted ID
               })
               .catch(err => {
                 console.error("Failed to add reference:", err);
@@ -971,89 +938,41 @@ lastModified: ${currentModified}
           });
         }
 
-        // 5. UPDATE REFERENCE BUTTON
+        // 5. UPDATE REFERENCE BUTTON ("Update")
         const updateRefBtn = document.getElementById('queryspaceLedgerEntryUpdateBtn');
         if (updateRefBtn) {
           updateRefBtn.addEventListener('click', () => {
-            const idInput = document.getElementById('queryspaceEntryDetailsGoogleCalendarEventId');
+            const payload = C9.Store.state.builderQuerySpaceLedgerReferencePayload;
             const statusField = document.getElementById('addToQueryspaceEntryStatusField');
 
-            if (!idInput) {
-              if (statusField) {
-                 statusField.style.display = 'block';
-                 statusField.textContent = 'Google ID UI element missing';
-              }
+            // Gate 1: Ensure ALL specific keys exist
+            if (!payload.qsId || !payload.ledgerId || !payload.id || !payload.timestamp || !payload.googleEventId) {
+              if (statusField) statusField.textContent = 'Missing data. Cannot update.';
               return;
             }
 
-            const gcalId = idInput.textContent.trim();
-            if (!gcalId || gcalId === '-') {
-              if (statusField) {
-                 statusField.style.display = 'block';
-                 statusField.textContent = 'No active reference selected';
-              }
-              return;
-            }
+            if (statusField) statusField.textContent = 'Updating Google...';
 
-            const descInput = document.getElementById('addToQueryspaceEntryDescriptionInput');
-            const thingInput = document.getElementById('querySpaceLedgerRefThingDisplay');
+            // Re-generate text with EXISTING keys
+            const rawDesc = C9.Templates.generateStagedReference(
+                payload.id,
+                payload.timestamp,
+                payload.qsId,
+                payload.ledgerId
+            );
 
-            if (!descInput || !thingInput) {
-              if (statusField) {
-                 statusField.style.display = 'block';
-                 statusField.textContent = 'Data UI elements missing';
-              }
-              return;
-            }
+            const thingDisplay = document.getElementById('querySpaceLedgerRefThingDisplay');
+            const title = thingDisplay && thingDisplay.textContent && thingDisplay.textContent !== '-'
+                ? `QS-REF: ${thingDisplay.textContent}`
+                : 'QS-REF';
 
-            const rawDesc = descInput.textContent;
-            if (!rawDesc) {
-              if (statusField) {
-                 statusField.style.display = 'block';
-                 statusField.textContent = 'Description cannot be empty';
-              }
-              return;
-            }
-
-            // Extract the strictly immutable core properties
-            const topIdMatch = rawDesc.match(/\[#C9QSCR\][\s\S]*?id:\s*([^\n\[]+)/i);
-            const tsMatch = rawDesc.match(/timestamp:\s*(\d+)/);
-
-            // Hard abort if immutable data is missing
-            if (!topIdMatch || !tsMatch) {
-              if (statusField) {
-                  statusField.style.display = 'block';
-                  statusField.textContent = 'ID or Timestamp missing';
-              }
-              return;
-            }
-
-            const explicitTimestamp = parseInt(tsMatch[1].trim(), 10);
-
-            // Hard abort if the timestamp was corrupted into a NaN
-            if (isNaN(explicitTimestamp)) {
-              if (statusField) {
-                  statusField.style.display = 'block';
-                  statusField.textContent = 'Timestamp invalid';
-              }
-              return;
-            }
-
-            const title = thingInput.textContent !== '-' ? `QS-REF: ${thingInput.textContent.trim()}` : 'QS-REF';
-
-            if (statusField) {
-                statusField.style.display = 'block';
-                statusField.textContent = 'Updating Google';
-            }
-
-            // Send stripped payload to protect calendar temporal coordinates
-            const payload = {
-              eventId: gcalId,
+            const serverPayload = {
+              eventId: payload.googleEventId,
               title: title,
               description: rawDesc
             };
 
-            C9.QuerySpace.updateQuerySpaceReferenceEvent(payload)
+            C9.QuerySpace.updateQuerySpaceReferenceEvent(serverPayload)
               .then(() => {
                 if (statusField) statusField.textContent = 'Successful update, Click Refresh';
               })
@@ -1061,6 +980,17 @@ lastModified: ${currentModified}
                 console.error(err);
                 if (statusField) statusField.textContent = 'Error updating reference';
               });
+          });
+        }
+
+        // 6. CLEAR KEYS BUTTON ("Clear Keys")
+        const clearKeysBtn = document.getElementById('queryspaceLedgerEntryClearKeysBtn');
+        if (clearKeysBtn) {
+          clearKeysBtn.addEventListener('click', () => {
+            C9.Store.state.builderQuerySpaceLedgerReferencePayload.clearKeys();
+            C9.Forms.syncQuerySpaceReferenceUI();
+            const statusField = document.getElementById('addToQueryspaceEntryStatusField');
+            if (statusField) statusField.textContent = 'Keys cleared. Ready for duplicate record.';
           });
         }
       }

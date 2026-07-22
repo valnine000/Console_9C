@@ -19,7 +19,28 @@
         activeQuerySpaceGoogleCalendarId: null,
         activeLedgerEntryPayload: null,
         builderLedgerEntryPayload: null,
-        builderQuerySpaceLedgerReferencePayload: null,
+
+        // The structured payload for Cross References
+        builderQuerySpaceLedgerReferencePayload: {
+            id: "",
+            timestamp: "",
+            qsId: "",
+            ledgerId: "",
+            googleEventId: "",
+            reset: function() {
+                this.id = "";
+                this.timestamp = "";
+                this.qsId = "";
+                this.ledgerId = "";
+                this.googleEventId = "";
+            },
+            clearKeys: function() {
+                this.id = "";
+                this.timestamp = "";
+                this.googleEventId = "";
+            }
+        },
+
         builderLedgerEntryGoogleCalendarId: null,
         builderLedgerEntryGoogleCalendarPayload: null,
 
