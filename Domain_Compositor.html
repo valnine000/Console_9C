@@ -49,6 +49,10 @@
           description: ev.description,
           symbol: ev.symbol,
           thing: ev.thing,
+          idt: ev.idt,
+          duration: ev.duration,
+          timestamp: ev.timestamp,
+          data: ev.data,
           startTime: ev.startTime,
           endTime: ev.endTime,
           source: ev.source || 'primary'
@@ -69,6 +73,10 @@
               description: qs.rawDescription,
               symbol: qs.symbol,
               thing: qs.name,
+              idt: '',
+              duration: '',
+              timestamp: timestamp.toString(),
+              data: '',
               startTime: new Date(timestamp).toISOString(),
               endTime: new Date(timestamp + 900000).toISOString(),
               source: 'queryspace'
@@ -80,14 +88,18 @@
         if (state.globalQuerySpaceRefs) {
           state.globalQuerySpaceRefs.forEach(ref => {
             compositeQueue.push({
-              id: ref.id, // Your new explicit explicit ID
-              qsId: ref.qsId, // Passed along for the Active Lens filter below
+              id: ref.id,
+              qsId: ref.qsId,
               googleCalendarId: ref.googleEventId,
               title: ref.title,
               description: ref.rawDescription,
               symbol: '🔗',
               thing: ref.title,
-              startTime: ref.startTime, // Your parsed explicit timestamp
+              idt: '',
+              duration: '',
+              timestamp: '',
+              data: '',
+              startTime: ref.startTime,
               endTime: ref.startTime,
               source: 'queryspace'
             });
