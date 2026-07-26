@@ -44,8 +44,8 @@
       timelineEntryDetailsPanelClearBuilderLedgerEntryPayload: function() {
         C9.Store.update({ builderLedgerEntryPayload: null });
 
-        const LedgerEntryUpdateCreatePanelPayloadField = document.getElementById('calendarEntryDescriptionInput');
-        LedgerEntryUpdateCreatePanelPayloadField.innerText = C9.Store.state.builderLedgerEntryPayload;
+<!--        const LedgerEntryUpdateCreatePanelPayloadField = document.getElementById('calendarEntryDescriptionInput');-->
+<!--        LedgerEntryUpdateCreatePanelPayloadField.innerText = C9.Store.state.builderLedgerEntryPayload;-->
       },
 
       timelineEntryDetailsPanelClearForm: function() {
@@ -159,7 +159,7 @@
         C9.Store.state.ThingEntityPayload.reset();
 
         const statusField = document.getElementById('timelineDetailsPanelStatusField');
-        const previewField = document.getElementById('calendarEntryDescriptionInput');
+<!--        const previewField = document.getElementById('calendarEntryDescriptionInput');-->
         statusField.innerText = "";
         statusField.style.color = "var(--c1d1)";
 
@@ -213,13 +213,13 @@
 
         // Optional: Write a draft preview to the UI so you can see it,
         // but the actual submission will serialize directly from state.
-        if (previewField) {
-            let draft = `[#C9]\nsymbol:${symVal}\nthing:${thingVal}\nidt:${idtVal}\nduration:${durVal}\n`;
-            draft += `id:${idVal}\ntimestamp:${tsVal}\n[#C9D]\n`;
-            if (dataVal !== "") draft += `${dataVal}\n`;
-            draft += `[/#C9D]\n[/#C9]`;
-            previewField.innerText = draft;
-        }
+        //if (previewField) {
+        //    let draft = `[#C9]\nsymbol:${symVal}\nthing:${thingVal}\nidt:${idtVal}\nduration:${durVal}\n`;
+        //    draft += `id:${idVal}\ntimestamp:${tsVal}\n[#C9D]\n`;
+        //    if (dataVal !== "") draft += `${dataVal}\n`;
+        //    draft += `[/#C9D]\n[/#C9]`;
+        //    previewField.innerText = draft;
+        //}
     },
 
       submitNewEvent: function() {
@@ -414,7 +414,7 @@
                     }
                 }, 3000);
 
-                document.getElementById('calendarEntryDescriptionInput').innerText = serializedPayload;
+<!--                document.getElementById('calendarEntryDescriptionInput').innerText = serializedPayload;-->
             })
             .catch((err) => {
                 btn.style.pointerEvents = 'auto';

@@ -162,8 +162,8 @@
                         <p id="timelineListWindowTitle" style="width: 50%; margin: 0px; padding: 0px 0px 0px 4px; color: var(--c1d1);">Timeline
                             List</p>
                         <div id="calendarListScrollContainer" class="hidden-scrollbar"
-                             style="height: 200px; padding: 4px 0px 0px 4px; overflow-y: auto;">
-                            <div id="calendar"></div>
+                             style="height: 200px; padding: 4px 0px 0px 4px; overflow-y: auto; overscroll-behavior: contain;">
+                            <div id="calendar" style=" "></div>
                         </div>
                     </div>
 
@@ -285,7 +285,7 @@
                         <p id="queryspacesListWindowTitle"
                            style="margin: 0px; padding: 8px 0px 4px 8px; width: 50%; color: var(--c1d1);">Query Spaces</p>
                         <div id="queryspacesListScrollContainer" class="hidden-scrollbar "
-                             style="height: 150px; width: 100%; padding: 0px 0px 0px 0ch; overflow-y: auto;">
+                             style="height: 150px; width: 100%; padding: 0px 0px 0px 0ch; overflow-y: auto; overscroll-behavior: contain;">
                             <div id="queryspacesList"></div>
                         </div>
 
@@ -324,7 +324,7 @@
                         <p id="activeQueryspaceListWindowTitle" style="margin: 0px; padding: 0px 0px 0px 4px; width: 50%; color: var(--c1d1);">Query
                             Space Entries</p>
                         <div id="activeQueryspaceListScrollContainer" class="hidden-scrollbar"
-                             style="height: 200px; padding: 0px 0px 0px 4px; overflow-y: auto;">
+                             style="height: 200px; margin-top: 8px; padding: 0px 0px 0px 16px; overflow-y: auto; overscroll-behavior: contain;">
                             <div id="activeQueryspaceLedgerEntriesList" style="padding: 0px;"></div>
                         </div>
                     </div>
@@ -359,7 +359,7 @@
                         </div>
 
                         <div id="addToQueryspaceEntryFields" class="hidden-scrollbar "
-                             style="height: 220px; padding: 4px 0px 0px 4px;overflow:auto;overscroll-behavior: contain;">
+                             style="height: 220px; padding: 4px 0px 0px 4px;overflow:auto; overscroll-behavior: contain;">
                             <!-- Ledger Entry Reference -->
                             <div style="padding: 4px 0px 0px 4px;">
                                 <p class="textInputFieldLabel defaultColumn1Width text-right" style="color: var(--c1d1);">Thing</p>
