@@ -628,32 +628,15 @@
             // ========================
 
             // Populate Details UI
-            const titleInput1 = document.getElementById('queryspaceDetailsTitle');
-            const symbolInput1 = document.getElementById('queryspaceDetailsSymbolInput');
-            const descSpan1 = document.getElementById('queryspaceDetailsDescription');
 
             const titleInput = document.getElementById('querySpaceBuilderPanelNameField');
             const symbolInput = document.getElementById('querySpaceBuilderPanelSymbolField');
-            const descSpan = document.getElementById('queryspaceEntryDescriptionInput');
 
             if (titleInput) titleInput.textContent = qs.name;
 
             if (symbolInput && qs.rawDescription) {
               const symbolMatch = qs.rawDescription.match(/symbol:\s*([^\n]+)/);
               symbolInput.textContent = symbolMatch ? symbolMatch[1].trim() : '○';
-            }
-
-            if (descSpan) {
-              descSpan.textContent = qs.rawDescription;
-              descSpan.style.whiteSpace = 'pre-wrap';
-            }
-
-            // Populate Dev Helper ID
-            const gcalIdField = document.getElementById('queryspaceDetailsGoogleCalendarEventId');
-            if (gcalIdField) {
-              // Usually mapped as googleCalendarId or id depending on the fetch parser
-              gcalIdField.textContent = qs.googleCalendarId || qs.id || '-';
-              gcalIdField.style.color = 'var(--c1d1)';
             }
 
             // Draw the side panel
